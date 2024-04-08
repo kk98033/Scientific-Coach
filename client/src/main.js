@@ -19,7 +19,7 @@ const config = {
     scene: [
         // Boot,
         // Preloader,
-        // MainMenu,
+        MainMenu,
         Game,
         // GameOver
     ]

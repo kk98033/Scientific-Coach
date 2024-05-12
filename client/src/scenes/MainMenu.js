@@ -34,7 +34,7 @@ export class MainMenu extends Scene {
             console.log('加入：' + roomNumber);
             gameManager.joinRoom(roomNumber);
             this.scene.stop('MainMenu');
-            this.scene.start('Game');
+            this.scene.start('Game', { gameManager: gameManager });
         });
 
         document.getElementById('createRoomBtn').addEventListener('click', function () {

@@ -1,11 +1,13 @@
 import { io } from 'socket.io-client';
+import Card from './card';
 
 export default class GameManager {
-    constructor() {
+    constructor(scene) {
+        this.scene = scene;
         this.socket = null;
-
         this.roomId = null;
         this.playerId = null;
+        this.hand = [];  // Store player's hand locally
 
         this.connectSocket();
         this.setupEventListeners();
@@ -43,6 +45,14 @@ export default class GameManager {
         this.socket.on('player_left', (data) => {
             console.log(`Player ${data.playerId} has left the room.`);
         });
+
+        this.socket.on('player_hand', (data) => {
+            const { playerId, hand } = data;
+            console.log(playerId);
+            console.log(hand);
+            this.hand = hand;  // Update local hand
+            this.displayPlayerHand();
+        });
     }
 
     setupBeforeUnloadListener() {
@@ -66,5 +76,21 @@ export default class GameManager {
     joinRoom(roomId) {
         this.roomId = roomId;
         this.socket.emit('join_room', { roomId: roomId });
+    }
+
+    getPlayerHand() {
+        this.socket.emit('get_player_hand', { roomId: this.roomId, playerId: this.playerId });
+    }
+
+    displayPlayerHand() {
+        const baseX = 475;
+        const baseY = 650;
+        const cardOffset = 100;
+
+        this.hand.forEach((card, index) => {
+            // 使用 Card 類來創建和顯示卡牌
+            let playerCard = new Card(this.scene);
+            playerCard.render(baseX + (index * cardOffset), baseY, 'cyanCardFront', card.type);
+        });
     }
 }

@@ -1,5 +1,5 @@
 import { Scene } from 'phaser';
-import Card from '../helpers/card';
+// import Card from '../helpers/card';
 import Zone from '../helpers/zone';
 import io from 'socket.io-client';
 import Dealer from '../helpers/dealer';
@@ -9,6 +9,11 @@ export class Game extends Scene {
         super({
             key: 'Game'
         });
+    }
+
+    init(data) {
+        this.gameManager = data.gameManager;
+        this.gameManager.scene = this;
     }
 
     preload() {
@@ -27,12 +32,19 @@ export class Game extends Scene {
         this.dropZone = this.zone.renderZone();
         this.outline = this.zone.renderOutline(this.dropZone);
 
+        this.createHTMLUI();
+
+
         // this.dealCards = () => {
         //     for (let i = 0; i < 5; i++) {
         //         let playerCard = new Card(this);
         //         playerCard.render(475 + (i * 100), 650, 'cyanCardFront');
         //         console.log('c')
         //     }
+        // }
+        // for (let i = 0; i < 5; i++) {
+        //     let playerCard = new Card(this);
+        //     playerCard.render(475 + (i * 100), 650, 'cyanCardFront');
         // }
         this.dealer = new Dealer(this);
 
@@ -81,6 +93,13 @@ export class Game extends Scene {
             console.log('Connected!');
         });
 
+        // DEBUG for start game
+        document.getElementById('start_game').addEventListener('click', () => {
+            console.log('a');
+            this.socket.emit('initialize_game', '');
+            this.gameManager.getPlayerHand();
+        });
+
         this.isPlayerA = false;
         this.opponentCards = [];
 
@@ -109,5 +128,17 @@ export class Game extends Scene {
     }
 
     update() {
+    }
+
+    createHTMLUI() {
+        // button
+        let createRoomBtn = document.createElement('button');
+        createRoomBtn.id = 'start_game';
+        createRoomBtn.textContent = '開始遊戲';
+        createRoomBtn.style.position = 'absolute';
+        createRoomBtn.style.top = '60%';
+        createRoomBtn.style.left = '45%';
+        document.body.appendChild(createRoomBtn);
+
     }
 }

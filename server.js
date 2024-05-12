@@ -9,7 +9,12 @@ const io = require('socket.io')(http, {
         methods: ["GET", "POST"]
     }
 });
-let players = [];
+const GameManager = require('./gameManager');
+const gameManager = new GameManager(io, gameRoomManager);
+// gameManager.init();
+
+
+// let players = [];
 
 // io.on('connection', function (socket) {
 //     console.log('A user connected: ' + socket.id);
@@ -34,14 +39,58 @@ let players = [];
 //     });
 // });
 
+const debugCards = [
+    { id: 1, type: '0' },
+    { id: 2, type: '1' },
+    { id: 3, type: '2' },
+    { id: 4, type: '3' },
+    { id: 5, type: '4' }
+];
+
 io.on('connection', (socket) => {
     console.log('A user connected with socket id:', socket.id);
     socket.emit('your_player_id', { playerId: socket.id });
 
+    socket.on('deal_cards', (roomId) => {
+        gameManager.dealCards(socket, roomId);
+    });
+
+    socket.on('card_played', (roomId, gameObject, isPlayerA) => {
+        gameManager.cardPlayed(socket, roomId, gameObject, isPlayerA);
+    });
+
+    socket.on('add_cards_to_deck', (data) => {
+        const { roomId, cards } = data;
+        gameManager.addCardsToDeck(roomId, cards);
+        console.log(`Cards added to deck in room ${roomId}`);
+    });
+
+    socket.on('deal_cards_to_player', (data) => {
+        const { roomId, playerId, numberOfCards } = data;
+        gameManager.dealCardsToPlayer(roomId, playerId, numberOfCards);
+        console.log(`Dealt ${numberOfCards} cards to player ${playerId} in room ${roomId}`);
+    });
+
+    socket.on('get_player_hand', (data) => {
+        const { roomId, playerId } = data;
+        const hand = gameManager.getPlayerHand(roomId, playerId);
+        socket.emit('player_hand', { playerId: playerId, hand: hand });
+    });
+
+    // 初始化遊戲的事件  
+    socket.on('initialize_game', (roomId) => {
+        gameManager.initializeGame(roomId);
+        console.log(`Game initialized in room ${roomId}`);
+    });
+
     socket.on('create_room', (data) => {
         const roomId = gameRoomManager.generateUniqueRoomId();
+
+        console.log(`Cards added to deck in room ${roomId}`);
         let rooms = gameRoomManager.getRoomIds(); // debug, TODO: delete it
         if (gameRoomManager.createRoom(roomId)) {
+            gameManager.addCardsToDeck(roomId, debugCards);
+            console.log(gameRoomManager.rooms[roomId])
             socket.join(roomId);
             io.to(roomId).emit('room_created', { roomId, rooms });
         }
@@ -58,12 +107,14 @@ io.on('connection', (socket) => {
         } else {
             socket.emit('room_not_found', { roomId });
         }
+        console.log(gameRoomManager.rooms, "a")
     });
 
     socket.on('leave_room', (data) => {
         const roomId = data.roomId;
         const reason = data.reason;
-        socket.leave(roomId); // leave room
+        socket.leave(roomId); // leave room 
+        gameRoomManager.leaveRoom(socket.id)
         console.log(`Player ${socket.id} left room ${roomId}. Reason: ${reason}`);
 
         // tell everyone

@@ -8,6 +8,8 @@ export class MainMenu extends Scene {
     }
 
     create() {
+        this.events.on('shutdown', this.removeHTMLUI, this);
+
         // const socket = io('http://localhost:3000');
         const gameManager = new GameManager();
 
@@ -27,10 +29,12 @@ export class MainMenu extends Scene {
 
         this.createHTMLUI();
 
-        document.getElementById('joinRoomBtn').addEventListener('click', function () {
+        document.getElementById('joinRoomBtn').addEventListener('click', () => {
             var roomNumber = document.getElementById('roomInput').value;
             console.log('加入：' + roomNumber);
             gameManager.joinRoom(roomNumber);
+            this.scene.stop('MainMenu');
+            this.scene.start('Game');
         });
 
         document.getElementById('createRoomBtn').addEventListener('click', function () {
@@ -70,4 +74,21 @@ export class MainMenu extends Scene {
         document.body.appendChild(createRoomBtn);
         document.body.appendChild(joinRoomBtn);
     }
+
+    removeHTMLUI() {
+        let inputElement = document.getElementById('roomInput');
+        let createRoomBtn = document.getElementById('createRoomBtn');
+        let joinRoomBtn = document.getElementById('joinRoomBtn');
+
+        if (inputElement) {
+            inputElement.parentNode.removeChild(inputElement);
+        }
+        if (createRoomBtn) {
+            createRoomBtn.parentNode.removeChild(createRoomBtn);
+        }
+        if (joinRoomBtn) {
+            joinRoomBtn.parentNode.removeChild(joinRoomBtn);
+        }
+    }
+
 }

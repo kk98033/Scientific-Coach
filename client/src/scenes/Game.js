@@ -16,7 +16,7 @@ export class Game extends Scene {
         this.load.image('cyanCardBack', 'assets/CardBack.png');
         this.load.image('magentaCardFront', 'assets/b1.png');
         this.load.image('magentaCardBack', 'assets/CardBack.png');
-
+        console.log('All assets loaded');
     }
 
     create() {

@@ -34,6 +34,8 @@ export class Game extends Scene {
 
         this.createHTMLUI();
 
+        this.setupDragEvents();
+
 
         // this.dealCards = () => {
         //     for (let i = 0; i < 5; i++) {
@@ -60,32 +62,32 @@ export class Game extends Scene {
             self.dealText.setColor('#00ffff');
         })
 
-        this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
-            gameObject.x = dragX;
-            gameObject.y = dragY;
+        // this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
+        //     gameObject.x = dragX;
+        //     gameObject.y = dragY;
 
-        })
+        // })
 
-        this.input.on('dragstart', function (pointer, gameObject) {
-            gameObject.setTint(0xff69b4);
-            self.children.bringToTop(gameObject);
-        })
+        // this.input.on('dragstart', function (pointer, gameObject) {
+        //     gameObject.setTint(0xff69b4);
+        //     self.children.bringToTop(gameObject);
+        // })
 
-        this.input.on('dragend', function (pointer, gameObject, dropped) {
-            gameObject.setTint();
-            if (!dropped) {
-                gameObject.x = gameObject.input.dragStartX;
-                gameObject.y = gameObject.input.dragStartY;
-            }
-        })
+        // this.input.on('dragend', function (pointer, gameObject, dropped) {
+        //     gameObject.setTint();
+        //     if (!dropped) {
+        //         gameObject.x = gameObject.input.dragStartX;
+        //         gameObject.y = gameObject.input.dragStartY;
+        //     }
+        // })
 
-        this.input.on('drop', function (pointer, gameObject, dropZone) {
-            dropZone.data.values.cards++;
-            gameObject.x = (dropZone.x - 350) + (dropZone.data.values.cards * 50);
-            gameObject.y = dropZone.y;
-            gameObject.disableInteractive();
-            self.socket.emit('cardPlayed', gameObject, self.isPlayerA);
-        })
+        // this.input.on('drop', function (pointer, gameObject, dropZone) {
+        //     dropZone.data.values.cards++;
+        //     gameObject.x = (dropZone.x - 350) + (dropZone.data.values.cards * 50);
+        //     gameObject.y = dropZone.y;
+        //     gameObject.disableInteractive();
+        //     self.socket.emit('cardPlayed', gameObject, self.isPlayerA);
+        // })
 
         this.socket = io('http://localhost:3000');
 
@@ -94,9 +96,12 @@ export class Game extends Scene {
         });
 
         // DEBUG for start game
-        document.getElementById('start_game').addEventListener('click', () => {
-            console.log('a');
-            this.socket.emit('initialize_game', '');
+        document.getElementById('start-game').addEventListener('click', () => {
+            this.socket.emit('initialize_game', this.gameManager.roomId);
+            this.gameManager.getPlayerHand();
+        });
+        // DEBUG for get card
+        document.getElementById('get-card').addEventListener('click', () => {
             this.gameManager.getPlayerHand();
         });
 
@@ -130,15 +135,61 @@ export class Game extends Scene {
     update() {
     }
 
+    setupDragEvents() {
+        this.input.on('drag', (pointer, gameObject, dragX, dragY) => {
+            gameObject.x = dragX;
+            gameObject.y = dragY;
+            // console.log("before", gameObject.x, gameObject.y)
+        });
+
+        this.input.on('dragstart', (pointer, gameObject) => {
+            gameObject.setTint(0xff69b4);
+            this.children.bringToTop(gameObject);
+        });
+
+        this.input.on('dragend', (pointer, gameObject, dropped) => {
+            gameObject.clearTint();
+            if (!dropped) {
+                gameObject.x = gameObject.input.dragStartX;
+                gameObject.y = gameObject.input.dragStartY;
+                // if (typeText) {
+                //     typeText.x = card.input.dragStartX;
+                //     typeText.y = card.input.dragStartY - 50;
+                // }
+            }
+        });
+
+        this.input.on('drop', (pointer, gameObject, dropZone) => {
+            dropZone.data.values.cards++;
+            let newX = (dropZone.x - 350) + (dropZone.data.values.cards * 50);
+            let newY = dropZone.y;
+
+            if (gameObject.card) { // Check if the gameObject has a 'card' property
+                gameObject.card.updatePosition(newX, newY);
+            }
+
+            gameObject.disableInteractive();
+            this.socket.emit('cardPlayed', gameObject, this.isPlayerA);
+        });
+    }
+
     createHTMLUI() {
         // button
         let createRoomBtn = document.createElement('button');
-        createRoomBtn.id = 'start_game';
+        createRoomBtn.id = 'start-game';
         createRoomBtn.textContent = '開始遊戲';
         createRoomBtn.style.position = 'absolute';
         createRoomBtn.style.top = '60%';
         createRoomBtn.style.left = '45%';
         document.body.appendChild(createRoomBtn);
+
+        let getcardBtn = document.createElement('button');
+        getcardBtn.id = 'get-card';
+        getcardBtn.textContent = '取得手牌';
+        getcardBtn.style.position = 'absolute';
+        getcardBtn.style.top = '60%';
+        getcardBtn.style.left = '55%';
+        document.body.appendChild(getcardBtn);
 
     }
 }

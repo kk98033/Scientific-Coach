@@ -43,6 +43,8 @@ class GameManager {
 
             room.state = 1; // start the game
         }
+        console.log("-----=-=-=-=-=-=-=")
+        console.log(roomId)
         console.log(room)
     }
 

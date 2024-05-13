@@ -10,6 +10,9 @@ export default class GameManager {
 
         this.roomId = null;
         this.playerId = null;
+        this.currentPlayer = null;
+        this.gameState = null;
+
         this.hand = [];  // Store player's hand locally
         this.handObj = [];  // Card object to store cards on hands
         this.tableCards = []; // Array to store cards on the table
@@ -54,12 +57,14 @@ export default class GameManager {
 
         this.socket.on('update_game_state', (data) => {
             console.log(`update game state!`);
-            const { roomId } = data;
-            this.updateGameState();
+            const { roomId, currentPlayer, gameState } = data;
+
+            this.updateGameState(data);
         });
 
         this.socket.on('game_started', () => {
             console.log(`Game started!`);
+
             this.getPlayerHand();
         });
 
@@ -95,6 +100,22 @@ export default class GameManager {
         // });
     }
 
+    isPlayerTurn() {
+        if (this.playerId === this.currentPlayer)
+            return true;
+        return false;
+    }
+
+    dealCards(gameObject) {
+        console.log(this.playerId, this.currentPlayer, "sadj;f;asdjfsjlafjkl;ads")
+        if (this.playerId === this.currentPlayer) {
+            console.log("deal card");
+            this.socket.emit('deal_cards', { roomId: this.roomId, playerId: this.playerId, cardId: gameObject.card.cardId });
+        } else {
+            console.log('not your turn!')
+        }
+    }
+
     setupBeforeUnloadListener() {
         // window is closing
         window.addEventListener("beforeunload", (event) => {
@@ -118,8 +139,14 @@ export default class GameManager {
         this.socket.emit('join_room', { roomId: roomId });
     }
 
-    updateGameState() {
+    updateGameState(data) {
         console.log("update game state");
+        const { roomId, currentPlayer, gameState } = data;
+        console.log("=-=125-=1234-=5413-=51-=5-=13=5-1-=5")
+        console.log(data)
+        this.currentPlayer = currentPlayer;
+        this.gameState = gameState;
+
         this.getCardsOnTable();
         this.displayCardsOnTable();
 
@@ -153,7 +180,7 @@ export default class GameManager {
         this.dropZone.data.values.cards = 0;
         this.tableCardsObj = this.tableCards.map((card, index) => {
             this.dropZone.data.values.cards++;
-            let tableCard = new Card(this.scene, card.id);
+            let tableCard = new Card(this.scene, card.id, false);
             tableCard.render(((this.dropZone.x - 350) + (this.dropZone.data.values.cards * 50)), (this.dropZone.y), 'cyanCardFront', card.type);
             // this.tableCards.push(card);
             return tableCard;
@@ -210,7 +237,7 @@ export default class GameManager {
         this.clearPlayerHandDisplay();
 
         this.handObj = this.hand.map((card, index) => {
-            let playerCard = new Card(this.scene, card.id);
+            let playerCard = new Card(this.scene, card.id, this.isPlayerTurn());
             playerCard.render(baseX + (index * cardOffset), baseY, 'cyanCardFront', card.type);
             return playerCard;
         });

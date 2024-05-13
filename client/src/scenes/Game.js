@@ -147,12 +147,22 @@ export class Game extends Scene {
         });
 
         this.input.on('dragstart', (pointer, gameObject) => {
-            gameObject.setTint(0xff69b4);
-            this.children.bringToTop(gameObject);
+            console.log(this.gameManager.isPlayerTurn())
+            if (!this.gameManager.isPlayerTurn()) {
+                console.log("It's not your turn!");
+                // pointer.dragState = 0;  // 停止拖動
+                // gameObject.input.enabled = false;  // 禁用拖動
+                // gameObject.x = gameObject.input.dragStartX;  // 立即返回原位
+                // gameObject.y = gameObject.input.dragStartY;
+            } else {
+                gameObject.setTint(0xff69b4);
+                this.children.bringToTop(gameObject);
+            }
         });
 
         this.input.on('dragend', (pointer, gameObject, dropped) => {
             gameObject.clearTint();
+            gameObject.input.enabled = true;
             if (!dropped) {
                 gameObject.x = gameObject.input.dragStartX;
                 gameObject.y = gameObject.input.dragStartY;
@@ -170,7 +180,9 @@ export class Game extends Scene {
             // }
 
             // gameObject.disableInteractive();
-            console.log('deal card')
+            console.log('deal card');
+            this.gameManager.dealCards(gameObject);
+
             this.socket.emit('deal_cards', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId, cardId: gameObject.card.cardId });
 
             // TODO: 看出牌後還有沒有要做的事情

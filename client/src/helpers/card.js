@@ -1,14 +1,14 @@
 export default class Card {
-    constructor(scene, cardId) {
+    constructor(scene, cardId, isPlayerTurn) {
         this.scene = scene;
         this.cardId = cardId;
+        this.isPlayerTurn = isPlayerTurn;
     }
 
     render(x, y, sprite, type) {
-        let image = this.scene.add.image(x, y, sprite).setScale(0.3, 0.3).setInteractive();
-        this.scene.input.setDraggable(image);
+        let image = this.scene.add.image(x, y, sprite).setScale(0.3, 0.3).setInteractive({ draggable: this.isPlayerTurn });
+        this.scene.input.setDraggable(image, this.isPlayerTurn); // 根據是否為玩家的回合設置拖動性
 
-        // Associate this Card instance with the image for easy access
         image.card = this;
 
         image.on('pointerover', () => {
@@ -45,8 +45,8 @@ export default class Card {
 
     destroy() {
         if (this.typeText) {
-            this.typeText.destroy();  // 銷毀額外的文字元件
+            this.typeText.destroy();
         }
-        this.card.destroy();  // 銷毀 Phaser 圖像物件
+        this.card.destroy();
     }
 }

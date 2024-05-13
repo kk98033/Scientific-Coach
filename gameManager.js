@@ -68,8 +68,18 @@ class GameManager {
         room.table.push(card); // 將卡牌放到桌面上
         console.log(`Player ${playerId} played card ${cardId} onto the table.`);
         console.log(room, "after")
-        console.log("--=-=-=-=-=-=-=-=")
-        this.io.to(roomId).emit('update_game_state', { roomId: roomId });
+        console.log("-=-=-=-=-=-=-=-=")
+        // this.io.to(roomId).emit('update_game_state', { roomId: roomId });
+        this.updateGameState(roomId);
+    }
+
+    updateGameState(roomId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        console.log(room);
+        let currentPlayer = room.currentPlayer;
+        let currentPlayerId = room.players[currentPlayer];
+        let gameState = room.state;
+        this.io.to(roomId).emit('update_game_state', { roomId: roomId, currentPlayer: currentPlayerId, gameState: gameState });
     }
 
     drawCards(roomId, playerId) {
@@ -81,8 +91,9 @@ class GameManager {
             room.hands[playerId].push(card);  // 將抽到的牌加入到玩家手牌中
 
             // socket.emit('card_drawn', { card: card, playerId: playerId });
-            this.io.to(roomId).emit('update_game_state', { roomId: roomId });
-            console.log(room)
+            // this.io.to(roomId).emit('update_game_state', { roomId: roomId });
+            this.updateGameState(roomId);
+            console.log(room);
         } else {
             // TODO: refresh deck
             this.io.to(roomId).emit('draw_error', { message: 'No cards left in the deck' });
@@ -130,6 +141,7 @@ class GameManager {
         console.log("-----=-=-=-=-=-=-=")
         console.log(roomId)
         console.log(room)
+        this.updateGameState(roomId);
     }
 
     // 處理卡牌發放給玩家

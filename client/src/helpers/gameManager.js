@@ -7,6 +7,7 @@ export default class GameManager {
         this.scene = scene;
         this.dropZone = null;
         this.socket = null;
+        this.turnTimer = 10; // TODO: 10
 
         this.roomId = null;
         this.playerId = null;
@@ -53,6 +54,12 @@ export default class GameManager {
 
         this.socket.on('player_left', (data) => {
             console.log(`Player ${data.playerId} has left the room.`);
+        });
+
+        this.socket.on('update_timer', (data) => {
+            const { turnTimer } = data;
+            this.turnTimer = turnTimer;
+            console.log(`Remaining time for player ${this.currentPlayer} in room ${this.roomId}: ${this.turnTimer} seconds`);
         });
 
         this.socket.on('update_game_state', (data) => {

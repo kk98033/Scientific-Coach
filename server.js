@@ -67,16 +67,23 @@ io.on('connection', (socket) => {
     //     }
     // });
 
-    socket.on('end_turn', (roomId) => {
+    socket.on('end_turn', (data) => {
+        const { roomId, card, playerId } = data;
         gameManager.endTurn(roomId);
     });
 
     socket.on('deal_cards', (data) => {
-        const { roomId, card, playerId } = data;
+        const { roomId, playerId, cardId } = data;
         console.log(data)
         if (gameManager.currentState === 'PlayerTurn') {
-            gameManager.dealCards(socket, roomId);
+            gameManager.dealCards(roomId, playerId, cardId);
         }
+    });
+
+    socket.on('draw_cards', (data) => {
+        const { roomId, playerId } = data;
+        console.log(`${playerId} drew a card`);
+        gameManager.drawCards(roomId, playerId);
     });
 
     socket.on('card_played', (roomId, gameObject, isPlayerA) => {
@@ -98,7 +105,13 @@ io.on('connection', (socket) => {
     socket.on('get_player_hand', (data) => {
         const { roomId, playerId } = data;
         const hand = gameManager.getPlayerHand(roomId, playerId);
-        io.to(roomId).emit('player_hand', { playerId: playerId, hand: hand });
+        io.to(roomId).emit('get_player_hand', { playerId: playerId, hand: hand });
+    });
+
+    socket.on('get_cards_on_table', (data) => {
+        const { roomId, playerId } = data;
+        const cards = gameManager.getCardsOnTable(roomId);
+        io.to(roomId).emit('get_cards_on_table', { playerId: playerId, cards: cards });
     });
 
     socket.on('initialize_game', (roomId) => {

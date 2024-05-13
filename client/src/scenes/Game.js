@@ -31,6 +31,7 @@ export class Game extends Scene {
         this.zone = new Zone(this);
         this.dropZone = this.zone.renderZone();
         this.outline = this.zone.renderOutline(this.dropZone);
+        this.gameManager.dropZone = this.dropZone;
 
         this.createHTMLUI();
 
@@ -98,11 +99,14 @@ export class Game extends Scene {
         // DEBUG for start game
         document.getElementById('start-game').addEventListener('click', () => {
             this.socket.emit('initialize_game', this.gameManager.roomId);
-            this.gameManager.getPlayerHand();
+            // this.gameManager.getPlayerHand();
         });
         // DEBUG for get card
         document.getElementById('get-card').addEventListener('click', () => {
             this.gameManager.getPlayerHand();
+        });
+        document.getElementById('draw-card').addEventListener('click', () => {
+            this.gameManager.drawCards();
         });
 
         this.isPlayerA = false;
@@ -118,13 +122,13 @@ export class Game extends Scene {
         })
 
         this.socket.on('cardPlayed', function (gameObject, isPlayerA) {
-            if (isPlayerA !== self.isPlayerA) {
-                let sprite = gameObject.textureKey;
-                self.opponentCards.shift().destroy();
-                self.dropZone.data.values.cards++;
-                let card = new Card(self);
-                card.render(((self.dropZone.x - 350) + (self.dropZone.data.values.cards * 50)), (self.dropZone.y), sprite).disableInteractive();
-            }
+            // if (isPlayerA !== self.isPlayerA) {
+            //     let sprite = gameObject.textureKey;
+            //     self.opponentCards.shift().destroy();
+            //     self.dropZone.data.values.cards++;
+            //     let card = new Card(self);
+            //     card.render(((self.dropZone.x - 350) + (self.dropZone.data.values.cards * 50)), (self.dropZone.y), sprite).disableInteractive();
+            // }
         })
 
         this.dealText.on('pointerdown', function () {
@@ -156,16 +160,18 @@ export class Game extends Scene {
         });
 
         this.input.on('drop', (pointer, gameObject, dropZone) => {
-            dropZone.data.values.cards++;
-            let newX = (dropZone.x - 350) + (dropZone.data.values.cards * 50);
-            let newY = dropZone.y;
+            // dropZone.data.values.cards++;
+            // let newX = (dropZone.x - 350) + (dropZone.data.values.cards * 50);
+            // let newY = dropZone.y;
 
-            if (gameObject.card) { // Check if the gameObject has a 'card' property
-                gameObject.card.updatePosition(newX, newY);
-            }
+            // if (gameObject.card) { // Check if the gameObject has a 'card' property
+            //     gameObject.card.updatePosition(newX, newY);
+            //     console.log(gameObject.card)
+            // }
 
-            gameObject.disableInteractive();
-            this.socket.emit('deal_cards', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId, card: gameObject.card.cardId });
+            // gameObject.disableInteractive();
+            console.log('deal card')
+            this.socket.emit('deal_cards', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId, cardId: gameObject.card.cardId });
 
             // TODO: 看出牌後還有沒有要做的事情
             this.socket.emit('end_turn', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId, card: gameObject.card.cardId });
@@ -182,13 +188,21 @@ export class Game extends Scene {
         createRoomBtn.style.left = '45%';
         document.body.appendChild(createRoomBtn);
 
-        let getcardBtn = document.createElement('button');
-        getcardBtn.id = 'get-card';
-        getcardBtn.textContent = '取得手牌';
-        getcardBtn.style.position = 'absolute';
-        getcardBtn.style.top = '60%';
-        getcardBtn.style.left = '55%';
-        document.body.appendChild(getcardBtn);
+        let getCardBtn = document.createElement('button');
+        getCardBtn.id = 'get-card';
+        getCardBtn.textContent = '取得手牌';
+        getCardBtn.style.position = 'absolute';
+        getCardBtn.style.top = '60%';
+        getCardBtn.style.left = '55%';
+        document.body.appendChild(getCardBtn);
+
+        let drawCardBtn = document.createElement('button');
+        drawCardBtn.id = 'draw-card';
+        drawCardBtn.textContent = '抽牌';
+        drawCardBtn.style.position = 'absolute';
+        drawCardBtn.style.top = '60%';
+        drawCardBtn.style.left = '65%';
+        document.body.appendChild(drawCardBtn);
 
     }
 }

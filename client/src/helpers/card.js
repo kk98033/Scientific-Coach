@@ -42,4 +42,11 @@ export default class Card {
             this.typeText.y = y - 170;
         }
     }
+
+    destroy() {
+        if (this.typeText) {
+            this.typeText.destroy();  // 銷毀額外的文字元件
+        }
+        this.card.destroy();  // 銷毀 Phaser 圖像物件
+    }
 }

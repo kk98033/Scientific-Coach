@@ -8,7 +8,7 @@ class GameRoomManager {
                 players: [],
                 cardCount: 60,
                 gameType: 0,
-                currentPlayer: null,
+                currentPlayer: 0,
                 turnTimer: 0,
                 deck: [
                     { id: 1, type: '0' },
@@ -31,7 +31,7 @@ class GameRoomManager {
                 players: [],
                 cardCount: 60, // 牌組初始卡牌數
                 gameType: 0,   // 遊戲類型，根據需要可以設定具體遊戲
-                currentPlayer: null,  // 目前的玩家 ID
+                currentPlayer: 0,  // 目前的玩家 ID
                 turnTimer: 0,  // 玩家出牌剩餘時間
                 deck: [],      // 牌組中的卡牌
                 table: [],     // 桌面上的卡牌

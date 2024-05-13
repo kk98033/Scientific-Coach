@@ -1,6 +1,7 @@
 export default class Card {
-    constructor(scene) {
+    constructor(scene, cardId) {
         this.scene = scene;
+        this.cardId = cardId;
     }
 
     render(x, y, sprite, type) {
@@ -16,7 +17,7 @@ export default class Card {
                     font: '18px Arial',
                     fill: '#ffffff'
                 }).setOrigin(0.5, 0.5);
-                image.typeText = this.typeText; // Associate the text with the image
+                image.typeText = this.typeText;
             }
             this.typeText.setVisible(true);
         });

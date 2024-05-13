@@ -59,8 +59,24 @@ io.on('connection', (socket) => {
     console.log('A user connected with socket id:', socket.id);
     socket.emit('your_player_id', { playerId: socket.id });
 
-    socket.on('deal_cards', (roomId) => {
-        gameManager.dealCards(socket, roomId);
+    // Game logic
+    // socket.on('play_card', (data) => {
+    //     const { roomId, card, playerId } = data;
+    //     if (gameManager.currentState === 'PlayerTurn') {
+    //         gameManager.playCard(roomId, playerId, card);
+    //     }
+    // });
+
+    socket.on('end_turn', (roomId) => {
+        gameManager.endTurn(roomId);
+    });
+
+    socket.on('deal_cards', (data) => {
+        const { roomId, card, playerId } = data;
+        console.log(data)
+        if (gameManager.currentState === 'PlayerTurn') {
+            gameManager.dealCards(socket, roomId);
+        }
     });
 
     socket.on('card_played', (roomId, gameObject, isPlayerA) => {
@@ -82,14 +98,15 @@ io.on('connection', (socket) => {
     socket.on('get_player_hand', (data) => {
         const { roomId, playerId } = data;
         const hand = gameManager.getPlayerHand(roomId, playerId);
-        socket.emit('player_hand', { playerId: playerId, hand: hand });
+        io.to(roomId).emit('player_hand', { playerId: playerId, hand: hand });
     });
 
-    // 初始化遊戲的事件  
     socket.on('initialize_game', (roomId) => {
         gameManager.initializeGame(roomId);
         console.log(`Game initialized in room ${roomId}`);
+        io.to(roomId).emit('game_started');
     });
+    // end game logic
 
     socket.on('create_room', (data) => {
         const roomId = gameRoomManager.generateUniqueRoomId();

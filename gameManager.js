@@ -2,6 +2,47 @@ class GameManager {
     constructor(io, gameRoomManager) {
         this.io = io;
         this.gameRoomManager = gameRoomManager;
+        this.currentState = 'PlayerTurn'
+    }
+
+    changeState(newState) {
+        console.log(`State changed from ${this.currentState} to ${newState}`);
+        this.currentState = newState;
+        this.handleStateChange();
+    }
+
+    handleStateChange() {
+        switch (this.currentState) {
+            case 'ShufflingDeck':
+                this.shuffleDeck();
+                this.changeState('DealingCards');
+                break;
+            case 'DealingCards':
+                this.dealInitialCards();
+                this.changeState('PlayerTurn');
+                break;
+            case 'PlayerTurn':
+                // 等待玩家操作
+                break;
+            case 'EvaluatingMove':
+                this.evaluateMove();
+                // Decide next state based on evaluation
+                break;
+            case 'EndOfGame':
+                this.endGame();
+                break;
+        }
+    }
+
+    // 處理回合結束
+    endTurn(roomId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        // if (room) {
+        room.currentPlayer = (room.currentPlayer + 1) % room.players.length;
+        this.changeState('PlayerTurn');
+        this.io.to(roomId).emit('turn_changed', { currentPlayerId: room.players[room.currentPlayer] });
+        // }
+        console.log(room.currentPlayer)
     }
 
     dealCards(socket, roomId) {
@@ -41,7 +82,10 @@ class GameManager {
                 this.dealCardsToPlayer(roomId, playerId, 2); // 每人發兩張卡
             });
 
-            room.state = 1; // start the game
+            room.currentPlayer = 0;  // 從第一個玩家開始
+            room.state = 1;  // 遊戲開始
+            this.io.to(roomId).emit('game_started', { currentPlayerId: room.players[room.currentPlayer] });
+            this.changeState('PlayerTurn');
         }
         console.log("-----=-=-=-=-=-=-=")
         console.log(roomId)

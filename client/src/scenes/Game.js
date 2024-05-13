@@ -152,10 +152,6 @@ export class Game extends Scene {
             if (!dropped) {
                 gameObject.x = gameObject.input.dragStartX;
                 gameObject.y = gameObject.input.dragStartY;
-                // if (typeText) {
-                //     typeText.x = card.input.dragStartX;
-                //     typeText.y = card.input.dragStartY - 50;
-                // }
             }
         });
 
@@ -169,7 +165,10 @@ export class Game extends Scene {
             }
 
             gameObject.disableInteractive();
-            this.socket.emit('cardPlayed', gameObject, this.isPlayerA);
+            this.socket.emit('deal_cards', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId, card: gameObject.card.cardId });
+
+            // TODO: 看出牌後還有沒有要做的事情
+            this.socket.emit('end_turn', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId, card: gameObject.card.cardId });
         });
     }
 

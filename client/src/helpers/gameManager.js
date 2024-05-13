@@ -46,12 +46,19 @@ export default class GameManager {
             console.log(`Player ${data.playerId} has left the room.`);
         });
 
+        this.socket.on('game_started', () => {
+            console.log(`Game started!`);
+            this.getPlayerHand();
+        });
+
         this.socket.on('player_hand', (data) => {
             const { playerId, hand } = data;
+            if (playerId === this.playerId) {
+                this.hand = hand;  // Update local hand
+                this.displayPlayerHand();
+            }
             console.log(playerId);
             console.log(hand);
-            this.hand = hand;  // Update local hand
-            this.displayPlayerHand();
         });
     }
 
@@ -89,7 +96,7 @@ export default class GameManager {
 
         this.hand.forEach((card, index) => {
             // 使用 Card 類來創建和顯示卡牌
-            let playerCard = new Card(this.scene);
+            let playerCard = new Card(this.scene, card.id);
             playerCard.render(baseX + (index * cardOffset), baseY, 'cyanCardFront', card.type);
         });
     }

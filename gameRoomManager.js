@@ -30,6 +30,7 @@ class GameRoomManager {
                 matchArea: [],
                 hands: {},
                 state: 0,
+                timer: null
             }
         }; // for debug
     }
@@ -46,7 +47,8 @@ class GameRoomManager {
                 table: [],     // 桌面上的卡牌
                 matchArea: [], // 配對區的卡牌
                 hands: {},      // 每個玩家的手牌，使用玩家 ID 為 key
-                state: 0
+                state: 0,
+                timer: null
             };
             console.log(`Room ${roomId} created.`);
             return true;

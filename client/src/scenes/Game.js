@@ -183,7 +183,7 @@ export class Game extends Scene {
             console.log('deal card');
             this.gameManager.dealCards(gameObject);
 
-            this.socket.emit('deal_cards', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId, cardId: gameObject.card.cardId });
+            // this.socket.emit('deal_cards', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId, cardId: gameObject.card.cardId });
 
             // TODO: 看出牌後還有沒有要做的事情
             this.socket.emit('end_turn', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId, card: gameObject.card.cardId });

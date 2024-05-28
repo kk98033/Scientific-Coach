@@ -28,7 +28,7 @@ export default class GameManager {
         // this.socket = io('http://localhost:3000');
 
         // test on lan
-        this.socket = io('http://192.168.31.59:3000');
+        this.socket = io('http://192.168.31.202:3000');
     }
 
     setupEventListeners() {

@@ -35,33 +35,37 @@ class GameManager {
     }
 
     startTurnTimer(roomId) {
-        const room = this.gameRoomManager.rooms[roomId];
-        room.turnTimer = 10 // TODO: 設定時間
-        let interval = setInterval(() => {
-            room.turnTimer--;
-            console.log(`Remaining time for player ${room.currentPlayerIndex} in room ${roomId}: ${room.turnTimer} seconds`);
-            this.io.to(roomId).emit('update_timer', { turnTimer: room.turnTimer });
-            if (room.turnTimer <= 0) {
-                clearInterval(interval);
-                this.endTurn(roomId);
-            }
-        }, 1000);
+        // const room = this.gameRoomManager.rooms[roomId];
+        // room.turnTimer = 10 // TODO: 設定時間
+        // let interval = setInterval(() => {
+        //     room.turnTimer--;
+        //     console.log(`Remaining time for player ${room.currentPlayerIndex} in room ${roomId}: ${room.turnTimer} seconds`);
+        //     this.io.to(roomId).emit('update_timer', { turnTimer: room.turnTimer });
+        //     if (room.turnTimer <= 0) {
+        //         clearInterval(interval);
+        //         this.endTurn(roomId);
+        //     }
+        // }, 1000);
     }
 
     // 處理回合結束 
     endTurn(roomId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        room.currentPlayer = (room.currentPlayer + 1) % room.players.length;
         this.updateGameState(roomId);
         // TODO: 強制出牌
-        // dealCards(XXXXXX)
+        // dealCards(XXXXXX) 
         this.startTurnTimer(roomId);
 
-        // const room = this.gameRoomManager.rooms[roomId];
+        
         // // if (room) {
         // // console.log("fsdfasdfasfas", roomId);
         // // console.log(this.gameRoomManager.rooms);
-        // // console.log(room)
-        // room.currentPlayer = (room.currentPlayer + 1) % room.players.length;
-        // this.changeState('PlayerTurn');
+        // // console.log(room)    
+        
+        console.log("endturn", room.currentPlayer)
+        // console.log("endturn")
+        // this.changeState('PlayerTurn'); 
         // this.io.to(roomId).emit('turn_changed', { currentPlayerId: room.players[room.currentPlayer] });
 
         // this.startTurnTimer(roomId);

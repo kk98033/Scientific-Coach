@@ -73,11 +73,11 @@ io.on('connection', (socket) => {
     });
 
     socket.on('deal_cards', (data) => {
-        const { roomId, playerId, cardId } = data;
+        const { roomId, playerId, cardId, zoneIndex } = data;
         console.log(data)
         if (gameManager.currentState === 'PlayerTurn') {
-            gameManager.dealCards(roomId, playerId, cardId);
-        }
+            gameManager.dealCards(roomId, playerId, cardId, zoneIndex); 
+        } 
     });
 
     socket.on('draw_cards', (data) => {
@@ -93,7 +93,7 @@ io.on('connection', (socket) => {
     socket.on('add_cards_to_deck', (data) => {
         const { roomId, cards } = data;
         gameManager.addCardsToDeck(roomId, cards);
-        console.log(`Cards added to deck in room ${roomId}`);
+        console.log(`Cards added to deck in room ${roomId}`); 
     });
 
     socket.on('deal_cards_to_player', (data) => {

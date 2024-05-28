@@ -5,7 +5,7 @@ import Zone from '../helpers/zone';
 export default class GameManager {
     constructor(scene) {
         this.scene = scene;
-        this.dropZone = null;
+        this.dropZones = null;
         this.socket = null;
         this.turnTimer = 10; // TODO: 10
 
@@ -16,8 +16,8 @@ export default class GameManager {
 
         this.hand = [];  // Store player's hand locally
         this.handObj = [];  // Card object to store cards on hands
-        this.tableCards = []; // Array to store cards on the table
-        this.tableCardsObj = []; // Array to store cards on the table
+        this.tableCards = Array.from({ length: 8 }, () => []); // Array to store cards on the table
+        this.tableCardsObj = Array.from({ length: 8 }, () => []); // Array to store cards on the table
 
         this.connectSocket();
         this.setupEventListeners();
@@ -116,13 +116,13 @@ export default class GameManager {
         return false;
     }
 
-    dealCards(gameObject) {
-        console.log(this.playerId, this.currentPlayer, "sadj;f;asdjfsjlafjkl;ads")
+    dealCards(gameObject, zoneIndex) {
+        console.log(this.playerId, this.currentPlayer, "sadj;f;asdjfsjlafjkl;ads");
         if (this.playerId === this.currentPlayer) {
             console.log("deal card");
-            this.socket.emit('deal_cards', { roomId: this.roomId, playerId: this.playerId, cardId: gameObject.card.cardId });
+            this.socket.emit('deal_cards', { roomId: this.roomId, playerId: this.playerId, cardId: gameObject.card.cardId, zoneIndex });
         } else {
-            console.log('not your turn!')
+            console.log('not your turn!');
         }
     }
 
@@ -162,6 +162,26 @@ export default class GameManager {
 
         this.getPlayerHand();
         this.displayPlayerHand();
+
+        this.updateUI(data);
+    }
+
+    updateUI(data) {
+        const { roomId, currentPlayer, gameState } = data;
+
+        this.updateCurrentPlayerText(currentPlayer);
+    }
+
+    updateCurrentPlayerText(currentPlayer) {
+        if (this.scene && this.scene.currentPlayerText) {
+            if (currentPlayer === this.playerId) {
+                this.scene.currentPlayerText.setText(`Current Player: ${currentPlayer}(你的回合)`);
+                this.scene.currentPlayerText.setColor('#00ff00'); // Green
+            } else {
+                this.scene.currentPlayerText.setText(`Current Player: ${currentPlayer}`);
+                this.scene.currentPlayerText.setColor('#ffffff'); // white
+            }
+        }
     }
 
     drawCards() {
@@ -175,10 +195,14 @@ export default class GameManager {
     clearCardsOnTable() {
         console.log('this.tableCardsObj')
         console.log(this.tableCardsObj);
-        this.tableCardsObj.forEach(card => {
-            card.destroy();
+
+        this.tableCardsObj.forEach(cardGroup => {
+            cardGroup.forEach(card => {
+                card.destroy();
+            });
         });
-        this.tableCardsObj = [];
+    
+        this.tableCardsObj = Array.from({ length: 8 }, () => []);
     }
 
     displayCardsOnTable() {
@@ -187,14 +211,20 @@ export default class GameManager {
 
         // this.tableCards = [];
         console.log("display cards on table")
-        this.dropZone.data.values.cards = 0;
-        this.tableCardsObj = this.tableCards.map((card, index) => {
-            this.dropZone.data.values.cards++;
-            let tableCard = new Card(this.scene, card.id, false);
-            tableCard.render(((this.dropZone.x - 350) + (this.dropZone.data.values.cards * 50)), (this.dropZone.y), 'cyanCardFront', card.type);
-            // this.tableCards.push(card);
-            return tableCard;
+        // TODO: 不知道會有甚麼影響
+        // this.dropZone.data.values.cards = 0;
+
+        this.tableCardsObj = this.tableCards.map((cardGroup, groupIndex) => {
+            return cardGroup.map((card, index) => {
+                const dropZone = this.dropZones[groupIndex]; // 根據索引找到對應的 dropZone
+                const x = dropZone.x + (index * 50);
+                const y = dropZone.y;
+                let tableCard = new Card(this.scene, card.id, false);
+                tableCard.render(x, y, 'cyanCardFront', card.type);
+                return tableCard;
+            });
         });
+        
         console.log('table', this.tableCardsObj);
 
         // this.handObj = this.hand.map((card, index) => {

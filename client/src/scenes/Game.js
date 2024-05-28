@@ -29,14 +29,15 @@ export class Game extends Scene {
 
         this.dealText = this.add.text(75, 350, ['DEAL CARDS']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         this.zone = new Zone(this);
-        this.dropZone = this.zone.renderZone();
-        this.outline = this.zone.renderOutline(this.dropZone);
-        this.gameManager.dropZone = this.dropZone;
+        this.dropZones = this.zone.renderZone();
+        this.outline = this.dropZones.forEach(zone => this.zone.renderOutline(zone));
+        this.gameManager.dropZones = this.dropZones;
 
         this.createHTMLUI();
 
         this.setupDragEvents();
 
+        this.currentPlayerText = this.add.text(10, 10, 'Current Player: ', { fontSize: '18px', fill: '#fff' });
 
         // this.dealCards = () => {
         //     for (let i = 0; i < 5; i++) {
@@ -90,7 +91,8 @@ export class Game extends Scene {
         //     self.socket.emit('cardPlayed', gameObject, self.isPlayerA);
         // })
 
-        this.socket = io('http://localhost:3000');
+        // this.socket = io('http://localhost:3000');
+        this.socket = io('http://192.168.31.202:3000');
 
         this.socket.on('connect', function () {
             console.log('Connected!');
@@ -140,26 +142,37 @@ export class Game extends Scene {
     }
 
     setupDragEvents() {
+        this.input.on('pointermove', (pointer) => {
+            // 檢測滑鼠在哪個 drop zone 中
+            let highlightedZoneIndex = -1;
+            this.dropZones.forEach((zone, index) => {
+                if (this.isPointerInZone(pointer, zone)) {
+                    highlightedZoneIndex = index;
+                } else {
+                    this.zone.clearHighlightZone(index);
+                }
+            });
+    
+            if (highlightedZoneIndex !== -1) {
+                this.zone.highlightZone(highlightedZoneIndex);
+            }
+        });
+    
         this.input.on('drag', (pointer, gameObject, dragX, dragY) => {
             gameObject.x = dragX;
             gameObject.y = dragY;
-            // console.log("before", gameObject.x, gameObject.y)
         });
-
+    
         this.input.on('dragstart', (pointer, gameObject) => {
-            console.log(this.gameManager.isPlayerTurn())
+            console.log(this.gameManager.isPlayerTurn());
             if (!this.gameManager.isPlayerTurn()) {
                 console.log("It's not your turn!");
-                // pointer.dragState = 0;  // 停止拖動
-                // gameObject.input.enabled = false;  // 禁用拖動
-                // gameObject.x = gameObject.input.dragStartX;  // 立即返回原位
-                // gameObject.y = gameObject.input.dragStartY;
             } else {
                 gameObject.setTint(0xff69b4);
                 this.children.bringToTop(gameObject);
             }
         });
-
+    
         this.input.on('dragend', (pointer, gameObject, dropped) => {
             gameObject.clearTint();
             gameObject.input.enabled = true;
@@ -168,26 +181,31 @@ export class Game extends Scene {
                 gameObject.y = gameObject.input.dragStartY;
             }
         });
-
+    
         this.input.on('drop', (pointer, gameObject, dropZone) => {
-            // dropZone.data.values.cards++;
-            // let newX = (dropZone.x - 350) + (dropZone.data.values.cards * 50);
-            // let newY = dropZone.y;
-
-            // if (gameObject.card) { // Check if the gameObject has a 'card' property
-            //     gameObject.card.updatePosition(newX, newY);
-            //     console.log(gameObject.card)
-            // }
-
-            // gameObject.disableInteractive();
-            console.log('deal card');
-            this.gameManager.dealCards(gameObject);
-
-            // this.socket.emit('deal_cards', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId, cardId: gameObject.card.cardId });
-
-            // TODO: 看出牌後還有沒有要做的事情
-            this.socket.emit('end_turn', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId, card: gameObject.card.cardId });
+            // 檢測在哪個 drop zone 中
+            const zoneIndex = this.dropZones.findIndex(zone => this.isPointerInZone(pointer, zone));
+    
+            if (zoneIndex !== -1) {
+                console.log(`Card dropped in zone ${zoneIndex}`);
+                this.gameManager.dealCards(gameObject, zoneIndex);
+                this.zone.clearHighlightZone(zoneIndex); // 清除高亮顯示
+            } else {
+                console.log('Card not dropped in any zone');
+            }
+    
+            this.socket.emit('end_turn', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId, card: gameObject.card.cardId, zoneIndex });
         });
+    }
+
+    isPointerInZone(pointer, zone) {
+        const bounds = zone.getBounds();
+        return Phaser.Geom.Rectangle.Contains(bounds, pointer.x, pointer.y);
+    }
+
+    isCardInZone(card, zone) {
+        const bounds = zone.getBounds();
+        return Phaser.Geom.Intersects.RectangleToRectangle(card.getBounds(), bounds);
     }
 
     createHTMLUI() {

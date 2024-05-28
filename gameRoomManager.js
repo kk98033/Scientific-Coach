@@ -3,6 +3,7 @@ const crypto = require('crypto');
 class GameRoomManager {
     constructor() {
         // this.rooms = {};
+        // TODO: debug room, 記得刪掉!
         this.rooms = {
             "": {
                 players: [],
@@ -26,7 +27,7 @@ class GameRoomManager {
                     { id: 13, type: '12' },
                     { id: 14, type: '13' },
                 ],
-                table: [],
+                table: Array.from({ length: 8 }, () => []),
                 matchArea: [],
                 hands: {},
                 state: 0,
@@ -44,7 +45,7 @@ class GameRoomManager {
                 currentPlayer: 0,  // 目前的玩家 ID
                 turnTimer: 0,  // 玩家出牌剩餘時間
                 deck: [],      // 牌組中的卡牌
-                table: [],     // 桌面上的卡牌
+                table: Array.from({ length: 8 }, () => []), // 牌桌上的卡牌，預設為包含八個空陣列的陣列
                 matchArea: [], // 配對區的卡牌
                 hands: {},      // 每個玩家的手牌，使用玩家 ID 為 key
                 state: 0,

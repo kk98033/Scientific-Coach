@@ -45,18 +45,18 @@ class GameManager {
                 clearInterval(room.timer);
                 this.endTurn(roomId);
             }
-        }, 1000); 
+        }, 1000);   
     }
 
     // 處理回合結束 
-    endTurn(roomId) {
+    endTurn(roomId) { 
         
         const room = this.gameRoomManager.rooms[roomId];
         if (room.timer) clearInterval(room.timer);
         room.currentPlayer = (room.currentPlayer + 1) % room.players.length;
         this.updateGameState(roomId);
-        // TODO: 強制出牌
-        // dealCards(XXXXXX)  
+        // TODO: 強制出牌 
+        // dealCards(XXXXXX)   
         this.startTurnTimer(roomId);
 
         
@@ -75,7 +75,7 @@ class GameManager {
         // console.log(room.currentPlayer)
     }
 
-    dealCards(roomId, playerId, cardId) {
+    dealCards(roomId, playerId, cardId, zoneIndex) {
         console.log(roomId, playerId, cardId)
         const room = this.gameRoomManager.rooms[roomId];
         console.log("--=-=-=-=-=-=-=-=")
@@ -92,7 +92,7 @@ class GameManager {
         }
 
         const [card] = room.hands[playerId].splice(cardIndex, 1); // 從手牌中移除該卡牌
-        room.table.push(card); // 將卡牌放到桌面上
+        room.table[zoneIndex].push(card); // 將卡牌放到桌面上
         console.log(`Player ${playerId} played card ${cardId} onto the table.`);
         console.log(room, "after")
         console.log("-=-=-=-=-=-=-=-=")

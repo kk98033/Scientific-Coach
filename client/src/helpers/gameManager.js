@@ -67,7 +67,7 @@ export default class GameManager {
 
         this.socket.on('update_game_state', (data) => {
             console.log(`update game state!`);
-            const { roomId, currentPlayer, gameState } = data;
+            const { roomId, currentPlayer, gameState, pairSuccessIndex } = data;
 
             this.updateGameState(data);
         });
@@ -87,6 +87,13 @@ export default class GameManager {
 
                 this.displayPlayerHand();
             }
+        });
+
+        this.socket.on('pair_success', (data) => {
+            const { zoneIndex, cards, cardIds } = data;
+            console.log("asdj;f;asdkjfsdjl;fjk;asdlfj;klsfjkl;dsafjkl;")
+            this.handlePairSuccess(zoneIndex, cards);
+            // this.endTurn();
         });
 
         this.socket.on('get_cards_on_table', (data) => {
@@ -150,46 +157,90 @@ export default class GameManager {
     }
 
     updateGameState(data) {
-        console.log("update game state");
-        const { roomId, currentPlayer, gameState } = data;
-        console.log("=-=125-=1234-=5413-=51-=5-=13=5-1-=5")
-        console.log(data)
+        console.log("更新遊戲狀態");
+        const { roomId, currentPlayer, gameState, table, pairSuccessIndex, cards } = data;
+        console.log("接收到的資料:", data);
         this.currentPlayer = currentPlayer;
         this.gameState = gameState;
-
-        this.getCardsOnTable();
-        this.displayCardsOnTable();
-
-        this.getPlayerHand();
-        this.displayPlayerHand();
-
-        this.updateUI(data);
+    
+        const getCardsOnTablePromise = new Promise((resolve) => {
+            this.getCardsOnTable(currentPlayer, cards);
+            resolve();
+            console.log("A0");
+        });
+    
+        getCardsOnTablePromise
+            .then(() => {
+                return new Promise((resolve) => {
+                    this.displayCardsOnTable();
+                    resolve();
+                    console.log("A0000");
+                });
+            })
+            .then(() => {
+                return new Promise((resolve) => {
+                    this.getPlayerHand();
+                    console.log("A1");
+                    resolve();
+                });
+            })
+            .then(() => {
+                return new Promise((resolve) => {
+                    this.displayPlayerHand();
+                    console.log("A2");
+                    resolve();
+                });
+            })
+            .then(() => {
+                return new Promise((resolve) => {
+                    this.updateUI(data);
+                    console.log("A3");
+                    resolve();
+                });
+            })
+            .then(() => {
+                if (pairSuccessIndex !== -1) {
+                    this.handlePairSuccess(this.tableCardsObj[pairSuccessIndex]);
+                }
+            })
+            .catch((error) => {
+                console.error("更新遊戲狀態時發生錯誤:", error); 
+            });
     }
-
+    
+    
     updateUI(data) {
         const { roomId, currentPlayer, gameState } = data;
 
-        this.updateCurrentPlayerText(currentPlayer);
+        this.updateCurrentPlayerText(currentPlayer); 
     }
 
     updateCurrentPlayerText(currentPlayer) {
         if (this.scene && this.scene.currentPlayerText) {
-            if (currentPlayer === this.playerId) {
+            if (currentPlayer === this.playerId) { 
                 this.scene.currentPlayerText.setText(`Current Player: ${currentPlayer}(你的回合)`);
                 this.scene.currentPlayerText.setColor('#00ff00'); // Green
             } else {
                 this.scene.currentPlayerText.setText(`Current Player: ${currentPlayer}`);
-                this.scene.currentPlayerText.setColor('#ffffff'); // white
+                this.scene.currentPlayerText.setColor('#ffffff'); // white 
             }
         }
-    }
+    } 
 
     drawCards() {
         this.socket.emit('draw_cards', { roomId: this.roomId, playerId: this.playerId });
     }
 
-    getCardsOnTable() {
-        this.socket.emit('get_cards_on_table', { roomId: this.roomId, playerId: this.playerId });
+    getCardsOnTable(playerId, cards) {
+        // const { playerId, cards } = data;
+        // if (playerId === this.playerId) {
+        this.tableCards = cards;  // Update local hand
+        console.log(this.tableCards);
+
+        this.displayCardsOnTable();
+        // }
+
+        // this.socket.emit('get_cards_on_table', { roomId: this.roomId, playerId: this.playerId });
     }
 
     clearCardsOnTable() {
@@ -283,4 +334,66 @@ export default class GameManager {
         });
         console.log(this.handObj)
     }
+
+    endTurn() {
+        this.socket.emit('end_turn', { roomId: this.roomId, playerId: this.playerId });
+    }
+
+    handlePairSuccess(cards) {
+        console.log("處理配對成功的卡片:", cards);
+    
+        // 確保有卡片需要高亮和移除
+        if (cards.length > 0) {
+            // 記住每張卡片的位置和類型資訊
+            const cardInfo = cards.map(card => ({
+                x: card.card.x,
+                y: card.card.y,
+                type: card.card.texture.key,
+                cardId: card.cardId,
+                isPlayerTurn: card.isPlayerTurn
+            }));
+    
+            // 先清除舊卡片
+            cards.forEach(card => {
+                card.card.destroy(); // 銷毀每個卡片對象的圖像
+                console.log('銷毀卡片圖像:', card.card);
+            });
+    
+            // 渲染新的高亮卡片
+            const newCards = cardInfo.map(info => {
+                const newCard = new Card(this.scene, info.cardId, info.isPlayerTurn);
+                newCard.render(info.x, info.y, info.type, 'cyanCardFront'); // 重新渲染卡片
+                newCard.card.setTint(0xff0000); // 設置為紅色高亮
+                console.log('設置卡片為紅色高亮:', newCard.card); 
+                return newCard; 
+            });
+    
+            // 使用計時器在一秒後移除高亮卡片
+            this.scene.time.delayedCall(1000, () => {
+                console.log('移除高亮顯示的卡片');
+                newCards.forEach(card => {
+                    card.card.destroy(); // 銷毀每個卡片對象的圖像
+                    console.log('銷毀卡片圖像:', card.card);
+                });
+            });
+        }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 }

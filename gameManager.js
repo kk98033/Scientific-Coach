@@ -1,8 +1,11 @@
+const PairingManager = require('./pairingManager');
+
 class GameManager {
     constructor(io, gameRoomManager) {
         this.io = io;
         this.gameRoomManager = gameRoomManager;
         this.currentState = 'PlayerTurn'
+        this.pairingManager = new PairingManager();
     }
 
     changeState(newState) {
@@ -80,6 +83,7 @@ class GameManager {
         const room = this.gameRoomManager.rooms[roomId];
         console.log("--=-=-=-=-=-=-=-=")
         console.log(room, "before")
+
         if (!room || !room.players.includes(playerId) || !room.hands[playerId]) {
             console.log(`Invalid room or player.`);
             return;
@@ -92,21 +96,53 @@ class GameManager {
         }
 
         const [card] = room.hands[playerId].splice(cardIndex, 1); // 從手牌中移除該卡牌
-        room.table[zoneIndex].push(card); // 將卡牌放到桌面上
+        const zoneCards = room.table[zoneIndex];
+
+        if (zoneCards.length === 1 && this.pairingManager.canPair(zoneCards[0], card)) {
+            // 可以配對
+            room.table[zoneIndex].push(card); // 將卡牌放到桌面上
+
+            // 先更新前端成配對成功卡片放上去的畫面 
+            this.updateGameState(roomId, zoneIndex);
+            // console.log(room.table[zoneIndex])
+            // 通知前端配對成功並淡出
+            // this.io.to(roomId).emit('pair_success', { zoneIndex: zoneIndex, cards: room.table[zoneIndex], cardIds: [zoneCards[0].id, card.id] });
+            // room.table[zoneIndex] = [];
+            //     this.updateGameState(roomId, zoneIndex);
+            // 從桌面上移除配對成功的卡牌
+            room.table[zoneIndex] = [];
+                this.updateGameState(roomId);
+            // setTimeout(() => {
+            //     room.table[zoneIndex] = [];
+            //     this.updateGameState(roomId);
+            // }, 5000); // 等待1秒鐘讓前端完成淡出效果
+
+        } else {
+            // 不能配對
+            room.hands[playerId].push(card);
+        }
+
         console.log(`Player ${playerId} played card ${cardId} onto the table.`);
         console.log(room, "after")
-        console.log("-=-=-=-=-=-=-=-=")
+        console.log("-=-=-=-=-=-=-=-=")  
         // this.io.to(roomId).emit('update_game_state', { roomId: roomId });
-        this.updateGameState(roomId);
-    }
+        this.updateGameState(roomId);      
+    } 
 
-    updateGameState(roomId) {
-        const room = this.gameRoomManager.rooms[roomId];
+    updateGameState(roomId, pairSuccessIndex = -1) {
+        const room = this.gameRoomManager.rooms[roomId]; 
         console.log(room);
         let currentPlayer = room.currentPlayer;
-        let currentPlayerId = room.players[currentPlayer];
+        let currentPlayerId = room.players[currentPlayer]; 
         let gameState = room.state;
-        this.io.to(roomId).emit('update_game_state', { roomId: roomId, currentPlayer: currentPlayerId, gameState: gameState });
+        this.io.to(roomId).emit('update_game_state', {
+            roomId: roomId,
+            currentPlayer: currentPlayerId,
+            gameState: gameState,
+            table: room.table,
+            cards: this.getCardsOnTable(roomId), 
+            pairSuccessIndex: pairSuccessIndex
+        });    
     }
 
     drawCards(roomId, playerId) {
@@ -169,8 +205,26 @@ class GameManager {
         console.log("-----=-=-=-=-=-=-=")
         console.log(roomId)
         console.log(room)
+        this.dealCardsToDeck(roomId);
         this.updateGameState(roomId);
     }
+
+    dealCardsToDeck(roomId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        if (!room) { 
+            console.log(`Room ${roomId} does not exist.`); 
+            return;
+        }
+    
+        room.table.forEach((zone, index) => {
+            if (zone.length === 0 && room.deck.length > 0) {
+                const card = room.deck.pop();  // 從牌組頂部抽一張牌
+                room.table[index].push(card);  // 將抽到的牌放置在空的 zone 上
+                console.log(`Placed card ${card.id} in zone ${index}`);
+            }
+        });
+    }
+    
 
     // 處理卡牌發放給玩家
     dealCardsToPlayer(roomId, playerId, numberOfCards) {

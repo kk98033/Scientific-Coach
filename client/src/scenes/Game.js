@@ -165,6 +165,7 @@ export class Game extends Scene {
     
         this.input.on('dragstart', (pointer, gameObject) => {
             console.log(this.gameManager.isPlayerTurn());
+            console.log(gameObject)
             if (!this.gameManager.isPlayerTurn()) {
                 console.log("It's not your turn!");
             } else {
@@ -194,7 +195,7 @@ export class Game extends Scene {
                 console.log('Card not dropped in any zone');
             }
     
-            this.socket.emit('end_turn', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId, card: gameObject.card.cardId, zoneIndex });
+            // this.socket.emit('end_turn', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId, card: gameObject.card.cardId, zoneIndex });
         });
     }
 

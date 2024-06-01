@@ -68,7 +68,7 @@ io.on('connection', (socket) => {
     // });
 
     socket.on('end_turn', (data) => {
-        const { roomId, card, playerId } = data;
+        const { roomId, playerId } = data;
         gameManager.endTurn(roomId);
     });
 

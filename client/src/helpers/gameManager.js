@@ -4,6 +4,9 @@ import Zone from '../helpers/zone';
 
 export default class GameManager {
     constructor(scene) {
+        this.serverIP = '192.168.31.202';
+        this.socketIP = '192.168.31.202';
+
         this.scene = scene;
         this.dropZones = null;
         this.socket = null;
@@ -24,11 +27,19 @@ export default class GameManager {
         this.setupBeforeUnloadListener();
     }
 
+    setIP(serverIP, socketIP) {
+        this.serverIP = serverIP;
+        this.socketIP = socketIP;
+
+        // reconnect
+        this.connectSocket();
+    }
+
     connectSocket() {
         // this.socket = io('http://localhost:3000');
 
         // test on lan
-        this.socket = io('http://192.168.31.202:3000');
+        this.socket = io(this.socketIP + ':3000');
     }
 
     setupEventListeners() {
@@ -379,21 +390,23 @@ export default class GameManager {
         }
     }
     
+    updatePlayerList(players) {
+        const playerListContainer = document.getElementById('playerListContainer');
+        playerListContainer.innerHTML = ''; // 清空列表
+
+        players.forEach(playerId => {
+            const playerItem = document.createElement('div');
+            playerItem.textContent = `Player ID: ${playerId}`;
+            playerItem.style.marginBottom = '10px';
+            
+            // 高亮當前玩家
+            if (playerId === this.gameManager.currentPlayer) {
+                playerItem.style.color = 'green'; // 將當前玩家 ID 設置為綠色
+                playerItem.style.fontWeight = 'bold'; // 讓文字加粗
+            }
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+            playerListContainer.appendChild(playerItem);
+        });
+    }
+
 }

@@ -6,6 +6,19 @@ class GameManager {
         this.gameRoomManager = gameRoomManager;
         this.currentState = 'PlayerTurn'
         this.pairingManager = new PairingManager();
+
+        // { 
+        //     id: [唯一的數字ID, 從1到50], 
+        //     type: '[卡片的類型，‘0’, ‘1’, ‘2’, ‘3’, ‘4’...]' 
+        // }
+        this.debugCards = [];
+        for (let i = 1; i <= 20; i++) {
+            this.debugCards.push({ 
+                id: i, 
+                type: (i - 1).toString() 
+            });
+        }
+        console.log(this.debugCards);
     }
 
     changeState(newState) {
@@ -111,7 +124,7 @@ class GameManager {
             //     this.updateGameState(roomId, zoneIndex);
             // 從桌面上移除配對成功的卡牌
             room.table[zoneIndex] = [];
-                this.updateGameState(roomId);
+            this.updateGameState(roomId);
             // setTimeout(() => {
             //     room.table[zoneIndex] = [];
             //     this.updateGameState(roomId);
@@ -142,7 +155,9 @@ class GameManager {
             table: room.table,
             cards: this.getCardsOnTable(roomId), 
             pairSuccessIndex: pairSuccessIndex
-        });    
+        });   
+        const players = this.gameRoomManager.getPlayersInRoom(roomId);
+        this.io.to(roomId).emit('update_player_list', { players }); 
     }
 
     drawCards(roomId, playerId) {

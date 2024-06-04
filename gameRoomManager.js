@@ -93,6 +93,12 @@ class GameRoomManager {
         }
     }
 
+    getPlayersInRoom(roomId) {
+        if (this.rooms[roomId]) {
+            return this.rooms[roomId].players;
+        }
+        return [];
+    }
 
     generateUniqueRoomId() {
         let uniqueId;

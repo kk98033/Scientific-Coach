@@ -14,6 +14,7 @@ export class Game extends Scene {
     init(data) {
         this.gameManager = data.gameManager;
         this.gameManager.scene = this;
+        console.log(this.gameManager.socket)
     }
 
     preload() {
@@ -64,6 +65,13 @@ export class Game extends Scene {
             self.dealText.setColor('#00ffff');
         })
 
+        // this.gameManager.socket.on('update_game_state', (data) => {
+        //     console.log(`update game state!`);
+        //     const { roomId, currentPlayer, gameState, pairSuccessIndex } = data;
+
+        //     self.updatePlayerList(data.players);
+        // });
+
         // this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
         //     gameObject.x = dragX;
         //     gameObject.y = dragY;
@@ -92,50 +100,65 @@ export class Game extends Scene {
         // })
 
         // this.socket = io('http://localhost:3000');
-        this.socket = io('http://192.168.31.202:3000');
+        // this.socket = io('http://192.168.31.202:3000');
 
-        this.socket.on('connect', function () {
-            console.log('Connected!');
-        });
+        // this.socket.on('connect', function () {
+        //     console.log('Connected!');
+        // });
 
         // DEBUG for start game
         document.getElementById('start-game').addEventListener('click', () => {
-            this.socket.emit('initialize_game', this.gameManager.roomId);
+            this.gameManager.socket.emit('initialize_game', this.gameManager.roomId);
             // this.gameManager.getPlayerHand();
         });
         // DEBUG for get card
         document.getElementById('get-card').addEventListener('click', () => {
             this.gameManager.getPlayerHand();
         });
+
         document.getElementById('draw-card').addEventListener('click', () => {
+            // TODO: draw card and end turn
             this.gameManager.drawCards();
         });
 
         this.isPlayerA = false;
         this.opponentCards = [];
 
-        this.socket.on('isPlayerA', function () {
-            self.isPlayerA = true;
-        })
+        // this.socket.on('isPlayerA', function () {
+        //     self.isPlayerA = true;
+        // })
 
-        this.socket.on('dealCards', function () {
-            self.dealer.dealCards();
-            self.dealText.disableInteractive();
-        })
+        // this.socket.on('dealCards', function () {
+        //     self.dealer.dealCards();
+        //     self.dealText.disableInteractive();
+        // })
 
-        this.socket.on('cardPlayed', function (gameObject, isPlayerA) {
-            // if (isPlayerA !== self.isPlayerA) {
-            //     let sprite = gameObject.textureKey;
-            //     self.opponentCards.shift().destroy();
-            //     self.dropZone.data.values.cards++;
-            //     let card = new Card(self);
-            //     card.render(((self.dropZone.x - 350) + (self.dropZone.data.values.cards * 50)), (self.dropZone.y), sprite).disableInteractive();
-            // }
-        })
+        this.gameManager.socket.on('update_player_list', function (data) {
+            console.log("AAAAA")
+            console.log(data)
+            self.updatePlayerList(data.players);
+        });
+        this.gameManager.socket.on('game_started', function (data) {
+            document.getElementById('start-game').remove();
+            document.getElementById('get-card').remove();
+            // document.getElementById('draw-card').remove();
+        });
+
+        // this.socket.on('cardPlayed', function (gameObject, isPlayerA) {
+        //     // if (isPlayerA !== self.isPlayerA) {
+        //     //     let sprite = gameObject.textureKey;
+        //     //     self.opponentCards.shift().destroy();
+        //     //     self.dropZone.data.values.cards++;
+        //     //     let card = new Card(self);
+        //     //     card.render(((self.dropZone.x - 350) + (self.dropZone.data.values.cards * 50)), (self.dropZone.y), sprite).disableInteractive();
+        //     // }
+        // })
 
         this.dealText.on('pointerdown', function () {
             self.socket.emit("dealCards");
         })
+
+        this.gameManager.socket.emit('update_player_list', { roomId: this.gameManager.roomId });
     }
 
     update() {
@@ -209,7 +232,42 @@ export class Game extends Scene {
         return Phaser.Geom.Intersects.RectangleToRectangle(card.getBounds(), bounds);
     }
 
+    updatePlayerList(players) {
+        const playerListContainer = document.getElementById('playerListContainer');
+        playerListContainer.innerHTML = ''; // 清空列表
+
+        players.forEach(playerId => {
+            const playerItem = document.createElement('div');
+            playerItem.textContent = `Player ID: ${playerId}`;
+            playerItem.style.marginBottom = '10px';
+            
+            // 高亮當前玩家
+            if (playerId === this.gameManager.currentPlayer) {
+                playerItem.style.color = 'green'; // 將當前玩家 ID 設置為綠色
+                playerItem.style.fontWeight = 'bold'; // 讓文字加粗
+            }
+    
+            playerListContainer.appendChild(playerItem);
+        });
+    }
+
     createHTMLUI() {
+        // create player list container
+        let playerListContainer = document.createElement('div');
+        playerListContainer.id = 'playerListContainer';
+        playerListContainer.style.position = 'absolute';
+        playerListContainer.style.bottom = '10px';
+        playerListContainer.style.left = '10px';
+        playerListContainer.style.width = '200px';
+        playerListContainer.style.height = '150px';
+        playerListContainer.style.overflowY = 'scroll';
+        playerListContainer.style.backgroundColor = '#333';
+        playerListContainer.style.color = '#fff';
+        playerListContainer.style.padding = '10px';
+        playerListContainer.style.borderRadius = '10px';
+
+        document.body.appendChild(playerListContainer);
+
         // button
         let createRoomBtn = document.createElement('button');
         createRoomBtn.id = 'start-game';
@@ -234,6 +292,5 @@ export class Game extends Scene {
         drawCardBtn.style.top = '60%';
         drawCardBtn.style.left = '65%';
         document.body.appendChild(drawCardBtn);
-
     }
 }

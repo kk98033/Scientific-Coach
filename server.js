@@ -39,21 +39,7 @@ const gameManager = new GameManager(io, gameRoomManager);
 //     });
 // });
 
-const debugCards = [
-    { id: 1, type: '0' },
-    { id: 2, type: '1' },
-    { id: 3, type: '2' },
-    { id: 4, type: '3' },
-    { id: 5, type: '4' },
-    { id: 5, type: '4' },
-    { id: 5, type: '4' },
-    { id: 5, type: '4' },
-    { id: 5, type: '4' },
-    { id: 5, type: '4' },
-    { id: 5, type: '4' },
-    { id: 5, type: '4' },
-    { id: 5, type: '4' }
-];
+
 
 io.on('connection', (socket) => {
     console.log('A user connected with socket id:', socket.id);
@@ -127,36 +113,60 @@ io.on('connection', (socket) => {
         console.log(`Cards added to deck in room ${roomId}`);
         let rooms = gameRoomManager.getRoomIds(); // debug, TODO: delete it
         if (gameRoomManager.createRoom(roomId)) {
-            gameManager.addCardsToDeck(roomId, debugCards);
+            gameManager.addCardsToDeck(roomId, gameManager.debugCards);
             console.log(gameRoomManager.rooms[roomId])
             socket.join(roomId);
             io.to(roomId).emit('room_created', { roomId, rooms });
+
+            // const rooms = gameRoomManager.getRoomIds();
+            io.emit('room_list', gameRoomManager.getRoomIds());
         }
     });
 
     socket.on('join_room', (data) => {
         const roomId = data.roomId;
         const playerId = socket.id; // use socket ID as player ID
-
-        // try to join room
+    
         if (gameRoomManager.joinRoom(roomId, playerId)) {
             socket.join(roomId);
             io.to(roomId).emit('player_joined', { playerId });
+    
+            // 向房間內的所有玩家發送更新後的玩家列表
+            const players = gameRoomManager.getPlayersInRoom(roomId);
+            io.to(roomId).emit('update_player_list', { players });
         } else {
             socket.emit('room_not_found', { roomId });
         }
         console.log(gameRoomManager.rooms, "a")
     });
-
+    
     socket.on('leave_room', (data) => {
         const roomId = data.roomId;
         const reason = data.reason;
         socket.leave(roomId); // leave room 
         gameRoomManager.leaveRoom(socket.id)
         console.log(`Player ${socket.id} left room ${roomId}. Reason: ${reason}`);
-
+    
+        // 向房間內的所有玩家發送更新後的玩家列表
+        const players = gameRoomManager.getPlayersInRoom(roomId);
+        io.to(roomId).emit('update_player_list', { players });
+    
         // tell everyone
         socket.to(roomId).emit('player_left', { playerId: socket.id });
+    });
+
+    socket.on('get_room_list', () => {
+        const rooms = gameRoomManager.getRoomIds();
+        console.log("rooms");
+        console.log(rooms)
+        socket.emit('room_list', rooms);
+    });
+    
+    socket.on('update_player_list', (data) => {
+        const roomId = data.roomId;
+        console.log("data", data)
+        const players = gameRoomManager.getPlayersInRoom(roomId);
+        io.to(roomId).emit('update_player_list', { players });
     });
 });
 

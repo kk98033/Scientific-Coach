@@ -387,7 +387,7 @@ export default class GameManager {
     
         this.handObj.forEach(card => {
             console.log(card)
-            card.card.destroy();
+            card.card.destroy(); 
         });
         console.log("update", this.hand)
         this.socket.emit('update_hand', { roomId: this.roomId, playerId: this.playerId, hand: this.hand });

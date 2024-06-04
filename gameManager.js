@@ -125,10 +125,11 @@ class GameManager {
             // 從桌面上移除配對成功的卡牌
             room.table[zoneIndex] = [];
             this.updateGameState(roomId);
-            // setTimeout(() => {
-            //     room.table[zoneIndex] = [];
-            //     this.updateGameState(roomId);
-            // }, 5000); // 等待1秒鐘讓前端完成淡出效果
+            
+            setTimeout(() => {
+                this.dealCardsToDeck(roomId);
+                this.updateGameState(roomId);
+            }, 5000); // 等待1秒鐘讓前端完成淡出效果
 
         } else {
             // 不能配對

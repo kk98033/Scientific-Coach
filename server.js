@@ -145,7 +145,7 @@ io.on('connection', (socket) => {
         const reason = data.reason;
         socket.leave(roomId); // leave room 
         gameRoomManager.leaveRoom(socket.id)
-        console.log(`Player ${socket.id} left room ${roomId}. Reason: ${reason}`);
+        console.log(`Player ${socket.id} left room ${roomId}. Reason: ${reason}`); 
     
         // 向房間內的所有玩家發送更新後的玩家列表
         const players = gameRoomManager.getPlayersInRoom(roomId);
@@ -167,6 +167,12 @@ io.on('connection', (socket) => {
         console.log("data", data)
         const players = gameRoomManager.getPlayersInRoom(roomId);
         io.to(roomId).emit('update_player_list', { players });
+    });
+
+    socket.on('update_hand', (data) => {
+        const { roomId, playerId, hand } = data;
+        console.log("data", data)
+        gameManager.updatePlayersHand(roomId, playerId, hand);
     });
 });
 

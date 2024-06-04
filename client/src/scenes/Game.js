@@ -34,11 +34,14 @@ export class Game extends Scene {
         this.outline = this.dropZones.forEach(zone => this.zone.renderOutline(zone));
         this.gameManager.dropZones = this.dropZones;
 
+        this.gameManager.setupDragEvents();
+
         this.createHTMLUI();
 
         this.setupDragEvents();
 
-        this.currentPlayerText = this.add.text(10, 10, 'Current Player: ', { fontSize: '18px', fill: '#fff' });
+        this.currentPlayerText = this.add.text(10, 5, 'Current Player: ', { fontSize: '36px', fill: '#fff' });
+        this.timerText = this.add.text(10, 30, '', { fontSize: '36px', fill: '#fff' });
 
         // this.dealCards = () => {
         //     for (let i = 0; i < 5; i++) {
@@ -119,6 +122,9 @@ export class Game extends Scene {
         document.getElementById('draw-card').addEventListener('click', () => {
             // TODO: draw card and end turn
             this.gameManager.drawCards();
+            this.gameManager.drawCards();
+            // 丟棄兩張牌
+            this.gameManager.endTurn()
         });
 
         this.isPlayerA = false;
@@ -198,11 +204,14 @@ export class Game extends Scene {
         });
     
         this.input.on('dragend', (pointer, gameObject, dropped) => {
-            gameObject.clearTint();
-            gameObject.input.enabled = true;
-            if (!dropped) {
-                gameObject.x = gameObject.input.dragStartX;
-                gameObject.y = gameObject.input.dragStartY;
+            if (gameObject.scene) {
+                console.log(gameObject)
+                gameObject.clearTint();
+                gameObject.input.enabled = true;
+                if (!dropped) {
+                    gameObject.x = gameObject.input.dragStartX;
+                    gameObject.y = gameObject.input.dragStartY;
+                }
             }
         });
     

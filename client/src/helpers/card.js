@@ -2,14 +2,16 @@ export default class Card {
     constructor(scene, cardId, isPlayerTurn) {
         this.scene = scene;
         this.cardId = cardId;
+        this.type = ""
         this.isPlayerTurn = isPlayerTurn;
     }
 
     render(x, y, sprite, type) {
-        let image = this.scene.add.image(x, y, sprite).setScale(0.3, 0.3).setInteractive({ draggable: this.isPlayerTurn });
+        let image = this.scene.add.image(x, y, sprite).setScale(0.25, 0.25).setInteractive({ draggable: this.isPlayerTurn });
         this.scene.input.setDraggable(image, this.isPlayerTurn); // 根據是否為玩家的回合設置拖動性
 
         image.card = this;
+        this.type = type;
 
         image.on('pointerover', () => {
             if (!this.typeText) {

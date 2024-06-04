@@ -73,7 +73,8 @@ export default class GameManager {
         this.socket.on('update_timer', (data) => {
             const { turnTimer } = data;
             this.turnTimer = turnTimer;
-            console.log(`Remaining time for player ${this.currentPlayer} in room ${this.roomId}: ${this.turnTimer} seconds`);
+            // console.log(`Remaining time for player ${this.currentPlayer} in room ${this.roomId}: ${this.turnTimer} seconds`);
+            this.scene.timerText.setText(`Remaining time for player ${this.currentPlayer} in room ${this.roomId}: ${this.turnTimer} seconds`);
         });
 
         this.socket.on('update_game_state', (data) => {
@@ -330,20 +331,92 @@ export default class GameManager {
         this.handObj = [];
     }
 
-    displayPlayerHand() {
+    setupDragEvents() {
+        this.scene.input.on('drag', (pointer, gameObject, dragX, dragY) => {
+            gameObject.x = dragX;
+            gameObject.y = dragY;
+        });
+
+        this.scene.input.on('dragend', (pointer, gameObject, dropped) => {
+            gameObject.clearTint();
+            if (!dropped) {
+                this.insertCardInHand(gameObject);
+                this.displayPlayerHand();
+            }
+        });
+    }
+
+    insertCardInHand(card) {
         const baseX = 475;
         const baseY = 650;
         const cardOffset = 100;
-
+    
+        // 獲取卡片基本信息
+        const cardData = { id: card.card.cardId, type: card.card.type };
+    
+        // 移除已經存在於手牌中的相同卡片
+        const existingIndex = this.handObj.findIndex(c => c.card.cardId === card.card.cardId);
+        if (existingIndex !== -1) {
+            this.handObj.splice(existingIndex, 1);
+            this.hand.splice(existingIndex, 1); // 同步移除 this.hand 中的相應卡片
+        }
+    
+        let insertIndex = this.handObj.length;
+        for (let i = 0; i < this.handObj.length; i++) {
+            console.log("FFF", card.x, this.handObj[i].x);
+            if (card.x < this.handObj[i].x) {
+                insertIndex = i;
+                break;
+            }
+        }
+        console.log("FFF FINAL", insertIndex);
+    
+        this.handObj.splice(insertIndex, 0, card);
+        this.hand.splice(insertIndex, 0, cardData); // 同步插入 this.hand 中的相應卡片基本信息
+    
+        // 更新所有手牌的位置
+        this.handObj.forEach((card, index) => {
+            if (card.card) {
+                card.card.x = baseX + index * cardOffset;
+                card.card.y = baseY;
+            } else {
+                card.x = baseX + index * cardOffset;
+                card.y = baseY;
+            }
+        });
+    
+        this.handObj.forEach(card => {
+            console.log(card)
+            card.card.destroy();
+        });
+        console.log("update", this.hand)
+        this.socket.emit('update_hand', { roomId: this.roomId, playerId: this.playerId, hand: this.hand });
+    }
+    
+    
+    
+    
+    displayPlayerHand() {
+        const baseX = 475; 
+        const baseY = 650;
+        const cardOffset = 100;
+    
         // rerender all cards
         this.clearPlayerHandDisplay();
-
+    
         this.handObj = this.hand.map((card, index) => {
             let playerCard = new Card(this.scene, card.id, this.isPlayerTurn());
             playerCard.render(baseX + (index * cardOffset), baseY, 'cyanCardFront', card.type);
-            return playerCard;
+            return playerCard.card; 
         });
-        console.log(this.handObj)
+    }
+    
+
+    clearPlayerHandDisplay() {
+        this.handObj.forEach(card => {
+            card.destroy();
+        });
+        this.handObj = [];
     }
 
     endTurn() {

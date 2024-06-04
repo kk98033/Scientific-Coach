@@ -12,10 +12,10 @@ class GameManager {
         //     type: '[卡片的類型，‘0’, ‘1’, ‘2’, ‘3’, ‘4’...]' 
         // }
         this.debugCards = [];
-        for (let i = 1; i <= 20; i++) {
+        for (let i = 0; i <= 60; i++) {
             this.debugCards.push({ 
                 id: i, 
-                type: (i - 1).toString() 
+                type: (i % 20).toString() 
             });
         }
         console.log(this.debugCards);
@@ -270,6 +270,16 @@ class GameManager {
             return room.table;
         } else {
             return []; // 如果房間或玩家不存在，返回空數組
+        }
+    }
+
+    updatePlayersHand(roomId, playerId, hand) {
+        const room = this.gameRoomManager.rooms[roomId];
+        if (room && room.players.includes(playerId)) {
+            room.hands[playerId] = hand;
+            console.log(`Updated hand for player ${playerId} in room ${roomId}, HAND: ${hand}`);
+        } else {
+            console.log(`Room ${roomId} or player ${playerId} does not exist.`);
         }
     }
 }

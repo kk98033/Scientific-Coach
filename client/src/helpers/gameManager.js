@@ -17,10 +17,14 @@ export default class GameManager {
         this.currentPlayer = null;
         this.gameState = null;
 
+        this.isGameTable = false;
+
         this.hand = [];  // Store player's hand locally
         this.handObj = [];  // Card object to store cards on hands
         this.tableCards = Array.from({ length: 8 }, () => []); // Array to store cards on the table
         this.tableCardsObj = Array.from({ length: 8 }, () => []); // Array to store cards on the table
+
+        this.selectedCards = [];
 
         this.connectSocket();
         this.setupEventListeners();
@@ -82,7 +86,7 @@ export default class GameManager {
             const { roomId, currentPlayer, gameState, pairSuccessIndex } = data;
 
             this.updateGameState(data);
-        });
+        }); 
 
         this.socket.on('game_started', () => {
             console.log(`Game started!`);
@@ -90,14 +94,16 @@ export default class GameManager {
             this.getPlayerHand();
         });
 
-        this.socket.on('get_player_hand', (data) => {
+        this.socket.on('get_player_hand', (data) => { 
             const { playerId, hand } = data;
             if (playerId === this.playerId) {
                 this.hand = hand;  // Update local hand
                 console.log(playerId, 'aa');
                 console.log(hand);
 
-                this.displayPlayerHand();
+                if (!this.isGameTable) {
+                    this.displayPlayerHand();
+                }
             }
         });
 
@@ -114,7 +120,9 @@ export default class GameManager {
                 this.tableCards = cards;  // Update local hand
                 console.log(this.tableCards);
 
-                this.displayCardsOnTable();
+                if (this.isGameTable) {
+                    this.displayCardsOnTable();
+                }
             }
         });
 
@@ -127,6 +135,7 @@ export default class GameManager {
         //     console.log(playerId);
         //     console.log(hand);
         // });
+        
     }
 
     isPlayerTurn() {
@@ -147,8 +156,8 @@ export default class GameManager {
 
     setupBeforeUnloadListener() {
         // window is closing
-        window.addEventListener("beforeunload", (event) => {
-            this.leaveRoom('window closing');
+        window.addEventListener("beforeunload", (event) => { 
+            this.leaveRoom('window closing'); 
             event.returnValue = '';
         });
     }
@@ -160,20 +169,32 @@ export default class GameManager {
     }
 
     createRoom() {
-        this.socket.emit('create_room');
+        this.socket.emit('create_room'); 
     }
 
-    joinRoom(roomId) {
+    joinRoom(roomId, isTable) {
         this.roomId = roomId;
-        this.socket.emit('join_room', { roomId: roomId });
+ 
+        if (isTable) {
+            this.socket.emit('table_join_room', { roomId: roomId });
+        } else {
+            this.socket.emit('join_room', { roomId: roomId });
+        }
     }
 
     updateGameState(data) {
         console.log("更新遊戲狀態");
-        const { roomId, currentPlayer, gameState, table, pairSuccessIndex, cards } = data;
+        const { roomId, currentPlayer, gameState, table, pairSuccessIndex, cards, selected } = data;
         console.log("接收到的資料:", data);
         this.currentPlayer = currentPlayer;
         this.gameState = gameState;
+        this.selectedCards = selected;
+
+        console.log('HIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHT')
+        console.log(this.selectedCards)
+        console.log('HIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHT')
+
+        this.highlightSelectedCards();
     
         const getCardsOnTablePromise = new Promise((resolve) => {
             this.getCardsOnTable(currentPlayer, cards);
@@ -182,9 +203,12 @@ export default class GameManager {
         });
     
         getCardsOnTablePromise
-            .then(() => {
+            .then(() => { 
                 return new Promise((resolve) => {
-                    this.displayCardsOnTable();
+                    // this.displayCardsOnTable();
+                    if (this.isGameTable) {
+                        this.displayCardsOnTable();
+                    }
                     resolve();
                     console.log("A0000");
                 });
@@ -198,7 +222,10 @@ export default class GameManager {
             })
             .then(() => {
                 return new Promise((resolve) => {
-                    this.displayPlayerHand();
+                    if (!this.isGameTable) {
+                        this.displayPlayerHand();
+                    }
+                    // this.displayPlayerHand();
                     console.log("A2");
                     resolve();
                 });
@@ -247,9 +274,14 @@ export default class GameManager {
         // const { playerId, cards } = data;
         // if (playerId === this.playerId) {
         this.tableCards = cards;  // Update local hand
+        console.log('===table cards===')
         console.log(this.tableCards);
+        console.log('===table cards===')
 
-        this.displayCardsOnTable();
+        if (this.isGameTable) {
+            this.displayCardsOnTable();
+        }
+        // this.displayCardsOnTable();
         // }
 
         // this.socket.emit('get_cards_on_table', { roomId: this.roomId, playerId: this.playerId });
@@ -331,6 +363,12 @@ export default class GameManager {
         this.handObj = [];
     }
 
+    setupPointerEvents() {
+        this.scene.input.on('pointerdown', (pointer) => {
+            this.handlePointerDown(pointer);
+        });
+    }
+    
     setupDragEvents() {
         this.scene.input.on('drag', (pointer, gameObject, dragX, dragY) => {
             gameObject.x = dragX;
@@ -341,7 +379,10 @@ export default class GameManager {
             gameObject.clearTint();
             if (!dropped) {
                 this.insertCardInHand(gameObject);
-                this.displayPlayerHand();
+                // this.displayPlayerHand();
+                if (!this.isGameTable) {
+                    this.displayPlayerHand();
+                }
             }
         });
     }
@@ -361,7 +402,7 @@ export default class GameManager {
             this.hand.splice(existingIndex, 1); // 同步移除 this.hand 中的相應卡片
         }
     
-        let insertIndex = this.handObj.length;
+        let insertIndex = this.handObj.length;  
         for (let i = 0; i < this.handObj.length; i++) {
             console.log("FFF", card.x, this.handObj[i].x);
             if (card.x < this.handObj[i].x) {
@@ -397,11 +438,15 @@ export default class GameManager {
     
     
     displayPlayerHand() {
-        const baseX = 475; 
-        const baseY = 650;
-        const cardOffset = 100;
+        const screenWidth = this.scene.cameras.main.width;
+        const screenHeight = this.scene.cameras.main.height;
+        const cardWidth = 100; // 卡片的寬度（假設為 100）
+        const cardOffset = 200; // 卡片之間的間距
+        const totalCardWidth = cardOffset * (this.hand.length - 1) + cardWidth;
+        const baseX = (screenWidth - totalCardWidth) / 2; // 計算起始X座標，讓卡片在螢幕中央
+        const baseY = screenHeight / 2; // 將卡片顯示在螢幕的正中央下方
     
-        // rerender all cards
+        // 重新渲染所有卡片
         this.clearPlayerHandDisplay();
     
         this.handObj = this.hand.map((card, index) => {
@@ -421,6 +466,47 @@ export default class GameManager {
 
     endTurn() {
         this.socket.emit('end_turn', { roomId: this.roomId, playerId: this.playerId });
+    }
+
+    highlightCard(cardId) {
+        console.log("highlightCard處理配對成功的卡片:", cardId);
+
+        // 找到匹配的卡片
+        const card = this.findCardById(cardId);
+        if (card) {
+            console.log('highlightCard', card)
+            // 記住卡片的位置和類型資訊
+            const cardInfo = {
+                x: card.x,
+                y: card.y,
+                type: card.card.type,
+                cardId: card.card.cardId,
+            };
+    
+            // 清除舊卡片
+            card.destroy(); // 銷毀卡片對象的圖像
+            console.log('highlightCard info:', cardInfo);
+            console.log('highlightCard銷毀卡片圖像:', card.card);
+    
+            // 渲染新的高亮卡片
+            const newCard = new Card(this.scene, cardInfo.cardId, cardInfo.isPlayerTurn);
+            newCard.render(cardInfo.x, cardInfo.y, cardInfo.type, 'cyanCardFront'); // 重新渲染卡片
+            newCard.card.setTint(0xff0000); // 設置為紅色高亮
+            console.log('highlightCard設置卡片為紅色高亮:', newCard.card);
+    
+            // 使用計時器在一秒後移除高亮卡片
+            // this.scene.time.delayedCall(1000, () => {
+            //     console.log('highlightCard移除高亮顯示的卡片');
+            //     newCard.card.destroy(); // 銷毀卡片對象的圖像
+            //     console.log('highlightCard銷毀卡片圖像:', newCard.card);
+            // });
+        } else {
+            console.log('highlightCard未找到卡片:', cardId);
+        }
+    }
+
+    findCardById(cardId) {
+        return this.scene.children.list.find(child => child.card && child.card.cardId === cardId);
     }
 
     handlePairSuccess(cards) {
@@ -481,5 +567,103 @@ export default class GameManager {
             playerListContainer.appendChild(playerItem);
         });
     }
+
+    handlePointerDown(pointer) {
+        const { x, y } = pointer;
+        let clickedOnCard = false;
+    
+        this.scene.children.list.forEach(child => {
+            if (child.texture && child.texture.key.includes('Card') && child.getBounds().contains(x, y)) {
+                this.toggleCardSelection(child);
+                clickedOnCard = true;
+    
+                console.log('------------');
+                console.log('hand', this.hand);
+                console.log('ahdnobj', this.handObj);
+                console.log('table cards', this.tableCards);
+                console.log('table cards obj', this.tableCardsObj);
+                console.log('selected', this.getFormattedSelectedCards());
+                console.log('------------'); 
+            }
+        });
+    
+        if (!clickedOnCard) {
+            this.clearAllSelections();
+        } else {
+            // 發送卡片資訊給 socket server
+            const selectedCard = this.selectedCards[this.selectedCards.length - 1].card;
+            console.log('selectedddd', selectedCard)
+            this.socket.emit('update_selected', { roomId: this.roomId, card: { id: selectedCard.cardId, type: selectedCard.type } });
+        }
+    }
+
+    highlightSelectedCards() { 
+        // 遍歷選中的卡片
+        this.selectedCards.forEach(selectedCard => {
+            this.highlightCard(selectedCard.id)
+            console.log('highlight', selectedCard)
+            // 在場景中找到匹配的卡片
+            this.scene.children.list.forEach(child => {
+                console.log('highlight-1', child, child.cardId, selectedCard.id)
+                if (child.card){
+                    console.log('highlight-023223', child.card, child.card.cardId)
+                    if (child.card.cardId === selectedCard.id && child.card.type === selectedCard.type) {
+                        console.log('highlight-11110101010')
+                        // 高亮匹配的卡片
+                        child.setTint(0xff69b4);
+                    }
+                }
+            });
+        });
+    }
+    
+    
+    getFormattedSelectedCards() {
+        return this.selectedCards.map(card => ({
+            id: card.cardId,  
+            type: card.type     
+        }));
+    }
+    
+    clearAllSelections() {
+        if (this.selectedCards && this.selectedCards.length > 0) {
+            this.selectedCards.forEach(card => {
+                card.clearTint();
+            });
+            this.selectedCards = [];
+        }
+    }
+    
+    
+    clearAllSelections() {
+        if (this.selectedCards && this.selectedCards.length > 0) {
+            this.selectedCards.forEach(card => {
+                card.clearTint();
+            });
+            this.selectedCards = [];
+        }
+    }
+
+    
+    toggleCardSelection(card) {
+        const index = this.selectedCards.indexOf(card);
+        if (index === -1) {
+            card.setTint(0xff69b4); 
+            this.selectedCards.push(card);
+        } else {
+            card.clearTint(); 
+            this.selectedCards.splice(index, 1); 
+        }
+    }
+    
+    handleDropZoneClick() {
+        this.selectedCards.forEach(card => {
+            card.clearTint();
+            card.setInteractive(false);
+            this.dealCards(card, this.dropZones.indexOf(card.zone));
+        });
+        this.selectedCards = [];
+    }
+    
 
 }

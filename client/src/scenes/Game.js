@@ -9,6 +9,7 @@ export class Game extends Scene {
         super({
             key: 'Game'
         });
+        // this.selectedCards = [];
     }
 
     init(data) {
@@ -28,20 +29,36 @@ export class Game extends Scene {
     create() {
         let self = this;
 
-        this.dealText = this.add.text(75, 350, ['DEAL CARDS']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
-        this.zone = new Zone(this);
-        this.dropZones = this.zone.renderZone();
-        this.outline = this.dropZones.forEach(zone => this.zone.renderOutline(zone));
-        this.gameManager.dropZones = this.dropZones;
+        // this.dealText = this.add.text(75, 350, ['DEAL CARDS']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
+        // this.zone = new Zone(this);
+        // this.dropZones = this.zone.renderZone();
+        // this.outline = this.dropZones.forEach(zone => this.zone.renderOutline(zone));
+        // this.gameManager.dropZones = this.dropZones;
 
-        this.gameManager.setupDragEvents();
+        // this.gameManager.setupDragEvents();
+        this.gameManager.setupPointerEvents();
 
         this.createHTMLUI();
 
-        this.setupDragEvents();
+        // this.setupDragEvents();
 
         this.currentPlayerText = this.add.text(10, 5, 'Current Player: ', { fontSize: '36px', fill: '#fff' });
         this.timerText = this.add.text(10, 30, '', { fontSize: '36px', fill: '#fff' });
+
+        // this.input.on('pointerdown', (pointer) => {
+        //     this.handlePointerDown(pointer);
+        // });
+
+        // this.gameManager.socket.on('update_player_list', function (data) {
+        //     self.updatePlayerList(data.players);
+        // });
+
+        // this.gameManager.socket.on('game_started', function (data) {
+        //     document.getElementById('start-game').remove();
+        //     document.getElementById('get-card').remove();
+        // });
+
+        // this.gameManager.socket.emit('update_player_list', { roomId: this.gameManager.roomId });
 
         // this.dealCards = () => {
         //     for (let i = 0; i < 5; i++) {
@@ -54,19 +71,19 @@ export class Game extends Scene {
         //     let playerCard = new Card(this);
         //     playerCard.render(475 + (i * 100), 650, 'cyanCardFront');
         // }
-        this.dealer = new Dealer(this);
+        // this.dealer = new Dealer(this);
 
         // this.dealText.on('pointerdown', function () {
         //     self.dealCards();
+        // })                                                                                                           
+
+        // this.dealText.on('pointerover', function () {
+        //     self.dealText.setColor('#ff69b4');
         // })
 
-        this.dealText.on('pointerover', function () {
-            self.dealText.setColor('#ff69b4');
-        })
-
-        this.dealText.on('pointerout', function () {
-            self.dealText.setColor('#00ffff');
-        })
+        // this.dealText.on('pointerout', function () {
+        //     self.dealText.setColor('#00ffff');
+        // })
 
         // this.gameManager.socket.on('update_game_state', (data) => {
         //     console.log(`update game state!`);
@@ -160,12 +177,54 @@ export class Game extends Scene {
         //     // }
         // })
 
-        this.dealText.on('pointerdown', function () {
-            self.socket.emit("dealCards");
-        })
+        // this.dealText.on('pointerdown', function () {
+        //     self.socket.emit("dealCards");
+        // })
 
         this.gameManager.socket.emit('update_player_list', { roomId: this.gameManager.roomId });
     }
+
+    // handlePointerDown(pointer) {
+    //     const { x, y } = pointer;
+    //     let clickedOnCard = false;
+
+    //     this.children.list.forEach(child => {
+    //         if (child.texture && child.texture.key.includes('Card') && child.getBounds().contains(x, y)) {
+    //             this.toggleCardSelection(child);
+    //             clickedOnCard = true;
+    //         }
+    //     });
+
+    //     if (!clickedOnCard) {
+    //         this.dropZones.forEach(zone => {
+    //             if (zone.getBounds().contains(x, y)) {
+    //                 this.handleDropZoneClick();
+    //             }
+    //         });
+    //     }
+    //     console.log(this.selectedCards)
+    // }
+
+    // toggleCardSelection(card) {
+    //     const index = this.selectedCards.indexOf(card);
+    //     if (index === -1) {
+    //         card.setTint(0xff69b4);
+    //         this.selectedCards.push(card);
+    //     } else {
+    //         card.clearTint();
+    //         this.selectedCards.splice(index, 1);
+    //     }
+    // }
+
+    // handleDropZoneClick() {
+    //     this.selectedCards.forEach(card => {
+    //         // 處理卡片加入卡桌的邏輯
+    //         card.clearTint();
+    //         card.setInteractive(false);
+    //         this.gameManager.dealCards(card, this.dropZones.indexOf(card.zone));
+    //     });
+    //     this.selectedCards = [];
+    // }
 
     update() {
     }
@@ -195,6 +254,7 @@ export class Game extends Scene {
         this.input.on('dragstart', (pointer, gameObject) => {
             console.log(this.gameManager.isPlayerTurn());
             console.log(gameObject)
+            console.log('drag start ----------')
             if (!this.gameManager.isPlayerTurn()) {
                 console.log("It's not your turn!");
             } else {
@@ -206,6 +266,7 @@ export class Game extends Scene {
         this.input.on('dragend', (pointer, gameObject, dropped) => {
             if (gameObject.scene) {
                 console.log(gameObject)
+                console.log('dragend ----------')
                 gameObject.clearTint();
                 gameObject.input.enabled = true;
                 if (!dropped) {

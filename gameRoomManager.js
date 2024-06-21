@@ -7,6 +7,7 @@ class GameRoomManager {
         this.rooms = {
             "": {
                 players: [],
+                tableScreenId: [],
                 cardCount: 60,
                 gameType: 0,
                 currentPlayer: 0,
@@ -27,9 +28,10 @@ class GameRoomManager {
                     { id: 13, type: '12' },
                     { id: 14, type: '13' },
                 ],
-                table: Array.from({ length: 8 }, () => []),
+                table: Array.from({ length: 8 }, () => []), 
                 matchArea: [],
                 hands: {},
+                currentSelected: [],
                 state: 0,
                 timer: null
             }
@@ -40,6 +42,7 @@ class GameRoomManager {
         if (!this.rooms[roomId]) {
             this.rooms[roomId] = {
                 players: [],
+                tableScreenId: [],
                 cardCount: 60, // 牌組初始卡牌數
                 gameType: 0,   // 遊戲類型，根據需要可以設定具體遊戲
                 currentPlayer: 0,  // 目前的玩家 ID
@@ -49,6 +52,7 @@ class GameRoomManager {
                 matchArea: [], // 配對區的卡牌
                 hands: {},      // 每個玩家的手牌，使用玩家 ID 為 key
                 state: 0,
+                currentSelected: [],
                 timer: null
             };
             console.log(`Room ${roomId} created.`);
@@ -73,6 +77,22 @@ class GameRoomManager {
             return true;
         } else {
             console.log(`Player ${playerId} already in room ${roomId}.`);
+            return false;
+        }
+    }
+
+    tableJoinRoom(roomId, tableID) {
+        if (!this.rooms[roomId]) {
+            console.log(`Attempted to join non-existent room ${roomId}.`);
+            return false;
+        }
+
+        if (!this.rooms[roomId].tableScreenId.includes(tableID)) {
+            this.rooms[roomId].tableScreenId.push(tableID);
+            console.log(`TALBE ${tableID} joined room ${roomId}.`);
+            return true;
+        } else {
+            console.log(`TALBE ${tableID} already in room ${roomId}.`);
             return false;
         }
     }
@@ -113,6 +133,7 @@ class GameRoomManager {
     getRoomIds() {
         return Object.keys(this.rooms);
     }
+
 }
 
 module.exports = GameRoomManager;

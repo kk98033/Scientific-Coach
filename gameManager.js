@@ -18,7 +18,7 @@ class GameManager {
                 type: (i % 20).toString() 
             });
         }
-        console.log(this.debugCards);
+        console.log(this.debugCards); 
     }
 
     changeState(newState) {
@@ -74,6 +74,7 @@ class GameManager {
         // TODO: 強制出牌 
         // dealCards(XXXXXX)   
         this.startTurnTimer(roomId);
+        this.clearCurrentSelectedCards(roomId);
 
         
         // // if (room) {
@@ -146,6 +147,9 @@ class GameManager {
     updateGameState(roomId, pairSuccessIndex = -1) {
         const room = this.gameRoomManager.rooms[roomId]; 
         console.log(room);
+        console.log('current selected');
+        console.log(room.currentSelected);
+        console.log('---------');
         let currentPlayer = room.currentPlayer;
         let currentPlayerId = room.players[currentPlayer]; 
         let gameState = room.state;
@@ -155,6 +159,7 @@ class GameManager {
             gameState: gameState,
             table: room.table,
             cards: this.getCardsOnTable(roomId), 
+            selected: room.currentSelected,
             pairSuccessIndex: pairSuccessIndex
         });   
         const players = this.gameRoomManager.getPlayersInRoom(roomId);
@@ -268,6 +273,10 @@ class GameManager {
     getCardsOnTable(roomId, playerId) {
         const room = this.gameRoomManager.rooms[roomId];
         if (room) {
+            console.log('===debug===')
+            console.log(room.table)
+            console.log(room.hands)
+            console.log('===debug===')
             return room.table;
         } else {
             return []; // 如果房間或玩家不存在，返回空數組
@@ -282,6 +291,35 @@ class GameManager {
         } else {
             console.log(`Room ${roomId} or player ${playerId} does not exist.`);
         }
+    }
+
+    appendCurrentSelectedCards(roomId, card) {
+        const room = this.gameRoomManager.rooms[roomId];
+        if (!room) {
+            console.error(`Room ${roomId} does not exist`);
+            return;
+        }
+
+        if (!room.currentSelected) {
+            room.currentSelected = [];
+        }
+
+        const cardExists = room.currentSelected.some(existingCard => existingCard.id === card.id);
+        if (!cardExists) {
+            room.currentSelected.push(card);
+        } else { 
+            console.log(`Card with id ${card.id} already exists in room ${roomId}`);
+        }    
+    }
+
+    clearCurrentSelectedCards(roomId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        if (room) {
+            console.error(`Room ${roomId} does not exist`);
+            return;
+        }
+
+        room.currentSelected = [];
     }
 }
 

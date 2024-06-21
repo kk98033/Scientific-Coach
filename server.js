@@ -137,6 +137,23 @@ io.on('connection', (socket) => {
         } else {
             socket.emit('room_not_found', { roomId });
         }
+        console.log(gameRoomManager.rooms, "a")  
+    });
+
+    socket.on('table_join_room', (data) => {
+        const roomId = data.roomId;
+        const tableId = socket.id; // use socket ID as player ID
+    
+        if (gameRoomManager.tableJoinRoom(roomId, tableId)) {
+            socket.join(roomId);
+            io.to(roomId).emit('player_joined', { tableId });
+    
+            // 向房間內的所有玩家發送更新後的玩家列表
+            const players = gameRoomManager.getPlayersInRoom(roomId);
+            io.to(roomId).emit('update_player_list', { players });
+        } else {
+            socket.emit('room_not_found', { roomId });
+        }
         console.log(gameRoomManager.rooms, "a")
     });
     
@@ -173,6 +190,12 @@ io.on('connection', (socket) => {
         const { roomId, playerId, hand } = data;
         console.log("data", data)
         gameManager.updatePlayersHand(roomId, playerId, hand);
+    });
+    
+    socket.on('update_selected', (data) => {
+        const { roomId, card } = data;
+        console.log("-=-=-=-=-=-=-=-=-=-=-=-==--=update_selected-=-=-=-=-=-=-=-=-=-=-=-==--=", data, card)
+        gameManager.appendCurrentSelectedCards(roomId, card);
     });
 });
 

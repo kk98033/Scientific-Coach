@@ -13,7 +13,7 @@ export class MainMenu extends Scene {
         // const socket = io('http://localhost:3000');
         const gameManager = new GameManager();
 
-        // this.add.image(512, 384, 'background');
+        // this.add.image(512, 384, 'background'); 
         // this.add.image(512, 300, 'logo');
         this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 3, 'Main Menu', {
             fontFamily: 'Arial Black', fontSize: '38px', color: '#ffffff',
@@ -30,13 +30,23 @@ export class MainMenu extends Scene {
         this.createHTMLUI();
 
         document.getElementById('joinRoomBtn').addEventListener('click', () => {
+            const hostCheckbox = document.getElementById('hostCheckbox'); 
+            const isHost = hostCheckbox ? hostCheckbox.checked : false; 
+
             var roomNumber = document.getElementById('roomInput').value;
+
             console.log('加入：' + roomNumber);
-            gameManager.joinRoom(roomNumber);
+            if (isHost) {
+                gameManager.joinRoom(roomNumber, isHost);
+            } else {
+                gameManager.joinRoom(roomNumber, isHost);
+            }
+            
             this.removeHTMLUI();
             this.scene.stop('MainMenu');
-            this.scene.start('Game', { gameManager: gameManager });
+            this.scene.start(isHost ? 'GameTable' : 'Game', { gameManager: gameManager });
         });
+        
 
         document.getElementById('createRoomBtn').addEventListener('click', function () {
             console.log('創建房間');
@@ -85,7 +95,6 @@ export class MainMenu extends Scene {
     
 
     createHTMLUI() {
-        // input
         let ipSettingInputElement = document.createElement('input');
         ipSettingInputElement.type = 'text';
         ipSettingInputElement.id = 'ipSettingInputElement';
@@ -95,7 +104,6 @@ export class MainMenu extends Scene {
         ipSettingInputElement.style.left = '50%';
         ipSettingInputElement.style.transform = 'translate(-50%, -50%)';
     
-        // create room button
         let ipSettingInputBtn = document.createElement('button');
         ipSettingInputBtn.id = 'ipSettingInputBtn';
         ipSettingInputBtn.textContent = '連接伺服器';
@@ -103,7 +111,6 @@ export class MainMenu extends Scene {
         ipSettingInputBtn.style.top = '13.5%';
         ipSettingInputBtn.style.left = '60%';
     
-        // input
         let inputElement = document.createElement('input');
         inputElement.type = 'text';
         inputElement.id = 'roomInput';
@@ -113,7 +120,6 @@ export class MainMenu extends Scene {
         inputElement.style.left = '50%';
         inputElement.style.transform = 'translate(-50%, -50%)';
     
-        // create room button
         let createRoomBtn = document.createElement('button');
         createRoomBtn.id = 'createRoomBtn';
         createRoomBtn.textContent = '新建房間';
@@ -121,15 +127,28 @@ export class MainMenu extends Scene {
         createRoomBtn.style.top = '60%';
         createRoomBtn.style.left = '45%';
     
-        // join room button
         let joinRoomBtn = document.createElement('button');
         joinRoomBtn.id = 'joinRoomBtn';
         joinRoomBtn.textContent = '加入房間';
         joinRoomBtn.style.position = 'absolute';
         joinRoomBtn.style.top = '60%';
         joinRoomBtn.style.left = '55%';
+
+        let hostCheckboxLabel = document.createElement('label');
+        hostCheckboxLabel.textContent = '房主: ';
+        hostCheckboxLabel.style.position = 'absolute';
+        hostCheckboxLabel.style.top = '65%';
+        hostCheckboxLabel.style.left = '50%';
+        hostCheckboxLabel.style.transform = 'translate(-50%, -50%)';
+        hostCheckboxLabel.id = 'hostCheckboxLabel';
+
+        let hostCheckbox = document.createElement('input');
+        hostCheckbox.type = 'checkbox';
+        hostCheckbox.id = 'hostCheckbox';
+        hostCheckbox.style.position = 'absolute';
+        hostCheckbox.style.top = '65%';
+        hostCheckbox.style.left = '55%';
     
-        // room list container
         let roomListContainer = document.createElement('div');
         roomListContainer.id = 'roomListContainer';
         roomListContainer.style.position = 'absolute';
@@ -150,6 +169,8 @@ export class MainMenu extends Scene {
         document.body.appendChild(ipSettingInputElement);
         document.body.appendChild(ipSettingInputBtn);
         document.body.appendChild(roomListContainer);
+        document.body.appendChild(hostCheckboxLabel);
+        document.body.appendChild(hostCheckbox);
     }
     
 
@@ -160,6 +181,8 @@ export class MainMenu extends Scene {
         let ipSettingInputElement = document.getElementById('ipSettingInputElement');
         let ipSettingInputBtn = document.getElementById('ipSettingInputBtn');
         let roomListContainer = document.getElementById('roomListContainer');
+        let hostCheckboxLabel = document.getElementById('hostCheckboxLabel');
+        let hostCheckbox = document.getElementById('hostCheckbox');
 
         if (inputElement) {
             inputElement.parentNode.removeChild(inputElement);
@@ -179,23 +202,12 @@ export class MainMenu extends Scene {
         if (roomListContainer) {
             roomListContainer.parentNode.removeChild(roomListContainer);
         }
-
-        // 退出全螢幕模式
-        // const exitFullscreen = () => {
-        //     if (document.exitFullscreen) {
-        //         return document.exitFullscreen();
-        //     } else if (document.mozCancelFullScreen) { // Firefox
-        //         return document.mozCancelFullScreen();
-        //     } else if (document.webkitExitFullscreen) { // Chrome, Safari and Opera
-        //         return document.webkitExitFullscreen();
-        //     } else if (document.msExitFullscreen) { // IE/Edge
-        //         return document.msExitFullscreen();
-        //     }
-        // };
-
-        // exitFullscreen().catch((err) => {
-        //     console.error('Exit fullscreen failed:', err);
-        // });
+        if (hostCheckboxLabel) {
+            hostCheckboxLabel.parentNode.removeChild(hostCheckboxLabel);
+        }
+        if (hostCheckbox) {
+            hostCheckbox.parentNode.removeChild(hostCheckbox);
+        }
     }
 
     addFullScreenButton() {

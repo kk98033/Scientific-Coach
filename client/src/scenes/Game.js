@@ -134,7 +134,7 @@ export class Game extends Scene {
         // DEBUG for get card
         document.getElementById('get-card').addEventListener('click', () => { 
             this.gameManager.getPlayerHand();
-        });
+        }); 
 
         document.getElementById('pair-button').addEventListener('click', () => {
             console.log('配對按鈕被按下');
@@ -152,7 +152,7 @@ export class Game extends Scene {
             this.gameManager.endTurn()
         });
  
-        this.isPlayerA = false;
+        this.isPlayerA = false; 
         this.opponentCards = [];
 
         // this.socket.on('isPlayerA', function () {

@@ -78,8 +78,14 @@ export default class GameManager {
         this.socket.on('update_timer', (data) => {
             const { turnTimer } = data;
             this.turnTimer = turnTimer;
-            // console.log(`Remaining time for player ${this.currentPlayer} in room ${this.roomId}: ${this.turnTimer} seconds`);
-            this.scene.timerText.setText(`Remaining time for player ${this.currentPlayer} in room ${this.roomId}: ${this.turnTimer} seconds`);
+        
+            // 格式化並設置定時器文字
+            const playerText = `Player: ${this.currentPlayer}`;
+            const roomText = `Room ID: ${this.roomId}`;
+            const timerText = `Remaining time: ${this.turnTimer} seconds`;
+        
+            // 設置顯示文字
+            this.scene.timerText.setText(`${playerText}\n${roomText}\n${timerText}`);
         });
 
         this.socket.on('update_game_state', (data) => {
@@ -343,7 +349,7 @@ export default class GameManager {
 
         this.tableCardsObj.forEach(cardGroup => {
             cardGroup.forEach(card => {
-                card.destroy();
+                card.destroy(); 
             });
         });
     
@@ -472,7 +478,7 @@ export default class GameManager {
                 card.card.y = baseY;
             } else {
                 card.x = baseX + index * cardOffset;
-                card.y = baseY;
+                card.y = baseY; 
             }
         });
     
@@ -492,19 +498,25 @@ export default class GameManager {
         const screenHeight = this.scene.cameras.main.height;
         const cardWidth = 100; // 卡片的寬度（假設為 100）
         const cardOffset = 200; // 卡片之間的間距
-        const totalCardWidth = cardOffset * (this.hand.length - 1) + cardWidth;
-        const baseX = (screenWidth - totalCardWidth) / 2; // 計算起始X座標，讓卡片在螢幕中央
+        const cardsPerRow = 4; // 每 row 的卡片數量
+        const rowHeight = cardWidth * 2 - 20; // 每 row 的高度，假設為卡片高度加上一點間距
         const baseY = screenHeight / 2; // 將卡片顯示在螢幕的正中央下方
     
         // 重新渲染所有卡片
         this.clearPlayerHandDisplay();
     
         this.handObj = this.hand.map((card, index) => {
+            const row = Math.floor(index / cardsPerRow); // 計算卡片所在的 row
+            const col = index % cardsPerRow; // 計算卡片所在的 column
+            const totalCardWidth = cardOffset * (Math.min(cardsPerRow, this.hand.length) - 1) + cardWidth;
+            const baseX = (screenWidth - totalCardWidth) / 2; // 計算每 row 的起始X座標，讓卡片在螢幕中央
+    
             let playerCard = new Card(this.scene, card.id, this.isPlayerTurn());
-            playerCard.render(baseX + (index * cardOffset), baseY, 'cyanCardFront', card.type);
+            playerCard.render(baseX + (col * cardOffset), baseY + (row * rowHeight), 'cyanCardFront', card.type);
             return playerCard.card; 
         });
     }
+    
     
 
     clearPlayerHandDisplay() {
@@ -693,7 +705,7 @@ export default class GameManager {
     }
     
     clearAllSelections() {
-        if (this.selectedCards && this.selectedCards.length > 0) { 
+        if (this.selectedCards && this.selectedCards.length > 0) {  
             this.selectedCards.forEach(card => { 
                 if (card)
                 card.clearTint(); 
@@ -715,14 +727,33 @@ export default class GameManager {
     
     toggleCardSelection(card) {
         const index = this.selectedCards.indexOf(card);
+        const moveUpDistance = 50; // 卡片向上移動的距離
+    
         if (index === -1) {
-            card.setTint(0xff69b4);  
+            // 如果卡片未被選中，將其設置為高亮並向上移動
+            card.setTint(0xff69b4);
             this.selectedCards.push(card);
+    
+            this.scene.tweens.add({
+                targets: card,
+                y: card.y - moveUpDistance,
+                duration: 300,
+                ease: 'Power2'
+            });
         } else {
-            card.clearTint(); 
-            // this.selectedCards.splice(index, 1);   
+            // 如果卡片已被選中，將其取消高亮並歸位
+            card.clearTint();
+            this.selectedCards.splice(index, 1);
+    
+            this.scene.tweens.add({
+                targets: card,
+                y: card.y + moveUpDistance,
+                duration: 300,
+                ease: 'Power2'
+            });
         }
-    }  
+    }
+    
      
     handleDropZoneClick() {
         this.selectedCards.forEach(card => {

@@ -9,6 +9,7 @@ export default class GameManager {
 
         this.scene = scene;
         this.dropZones = null;
+        this.zone = null;
         this.socket = null;
         this.turnTimer = 10; // TODO: 10
 
@@ -126,6 +127,29 @@ export default class GameManager {
             }
         });
 
+        this.socket.on('pair_result', (data) => {
+            const {
+                success,
+                playerId,
+                matchedHandCards,
+                matchedHandIndexes,
+                matchedTableCards,
+                matchedTableIndexes,
+                message,
+                selectedCards
+            } = data;
+        
+            if (success) {
+                console.log('配對成功');
+                this.handlePairSuccess(playerId, matchedHandCards, matchedHandIndexes, matchedTableCards, matchedTableIndexes);
+            } else {
+                console.log('配對失敗：', message);
+                this.handlePairFailure(playerId, selectedCards);
+            }
+        });
+        
+         
+
         // this.socket.on('player_hand', (data) => {
         //     const { playerId, hand } = data;
         //     if (playerId === this.playerId) {
@@ -138,6 +162,32 @@ export default class GameManager {
         
     }
 
+    handlePairSuccess(playerId, matchedHandCards, matchedHandIndexes, matchedTableCards, matchedTableIndexes) {
+        console.log(`玩家 ${playerId} 配對成功`); 
+        console.log('配對成功的手牌：', matchedHandCards);
+        console.log('配對成功的桌牌：', matchedTableCards);
+        console.log("========")
+        console.log(matchedTableIndexes)
+        if (!this.zone) return;
+        
+        matchedTableIndexes.forEach(zoneIndex => {
+            this.zone.highlightZone(zoneIndex);
+            setTimeout(() => { 
+                this.zone.clearHighlightZone(zoneIndex);
+            }, 2000); // 框框顯示2秒
+        });
+    
+        // 根據需要，更新手牌和其他遊戲狀態
+    }
+    
+    handlePairFailure(playerId, selectedCards) {
+        // 處理失敗的邏輯
+        console.log(`玩家 ${playerId} 配對失敗`);
+        console.log('選擇的卡牌：', selectedCards);
+        // 可以在這裡給玩家提示或進行其他操作
+    }
+
+    
     isPlayerTurn() {
         if (this.playerId === this.currentPlayer)
             return true;
@@ -238,9 +288,9 @@ export default class GameManager {
                 });
             })
             .then(() => {
-                if (pairSuccessIndex !== -1) {
-                    this.handlePairSuccess(this.tableCardsObj[pairSuccessIndex]);
-                }
+                // if (pairSuccessIndex !== -1) {
+                //     this.handlePairSuccess(this.tableCardsObj[pairSuccessIndex]);
+                // }
             })
             .catch((error) => {
                 console.error("更新遊戲狀態時發生錯誤:", error); 
@@ -487,7 +537,7 @@ export default class GameManager {
             card.destroy(); // 銷毀卡片對象的圖像
             console.log('highlightCard info:', cardInfo);
             console.log('highlightCard銷毀卡片圖像:', card.card);
-    
+     
             // 渲染新的高亮卡片
             const newCard = new Card(this.scene, cardInfo.cardId, cardInfo.isPlayerTurn);
             newCard.render(cardInfo.x, cardInfo.y, cardInfo.type, 'cyanCardFront'); // 重新渲染卡片
@@ -509,45 +559,45 @@ export default class GameManager {
         return this.scene.children.list.find(child => child.card && child.card.cardId === cardId);
     }
 
-    handlePairSuccess(cards) {
-        console.log("處理配對成功的卡片:", cards);
+    // handlePairSuccess(cards) {
+    //     console.log("處理配對成功的卡片:", cards);
     
-        // 確保有卡片需要高亮和移除
-        if (cards.length > 0) {
-            // 記住每張卡片的位置和類型資訊
-            const cardInfo = cards.map(card => ({
-                x: card.card.x,
-                y: card.card.y,
-                type: card.card.texture.key,
-                cardId: card.cardId,
-                isPlayerTurn: card.isPlayerTurn
-            }));
+    //     // 確保有卡片需要高亮和移除
+    //     if (cards.length > 0) {
+    //         // 記住每張卡片的位置和類型資訊
+    //         const cardInfo = cards.map(card => ({
+    //             x: card.card.x,
+    //             y: card.card.y,
+    //             type: card.card.texture.key,
+    //             cardId: card.cardId,
+    //             isPlayerTurn: card.isPlayerTurn
+    //         }));
     
-            // 先清除舊卡片
-            cards.forEach(card => {
-                card.card.destroy(); // 銷毀每個卡片對象的圖像
-                console.log('銷毀卡片圖像:', card.card);
-            });
+    //         // 先清除舊卡片
+    //         cards.forEach(card => {
+    //             card.card.destroy(); // 銷毀每個卡片對象的圖像
+    //             console.log('銷毀卡片圖像:', card.card);
+    //         });
     
-            // 渲染新的高亮卡片
-            const newCards = cardInfo.map(info => {
-                const newCard = new Card(this.scene, info.cardId, info.isPlayerTurn);
-                newCard.render(info.x, info.y, info.type, 'cyanCardFront'); // 重新渲染卡片
-                newCard.card.setTint(0xff0000); // 設置為紅色高亮
-                console.log('設置卡片為紅色高亮:', newCard.card); 
-                return newCard; 
-            });
+    //         // 渲染新的高亮卡片
+    //         const newCards = cardInfo.map(info => {
+    //             const newCard = new Card(this.scene, info.cardId, info.isPlayerTurn);
+    //             newCard.render(info.x, info.y, info.type, 'cyanCardFront'); // 重新渲染卡片
+    //             newCard.card.setTint(0xff0000); // 設置為紅色高亮
+    //             console.log('設置卡片為紅色高亮:', newCard.card); 
+    //             return newCard; 
+    //         });
     
-            // 使用計時器在一秒後移除高亮卡片
-            this.scene.time.delayedCall(1000, () => {
-                console.log('移除高亮顯示的卡片');
-                newCards.forEach(card => {
-                    card.card.destroy(); // 銷毀每個卡片對象的圖像
-                    console.log('銷毀卡片圖像:', card.card);
-                });
-            });
-        }
-    }
+    //         // 使用計時器在一秒後移除高亮卡片
+    //         this.scene.time.delayedCall(1000, () => {
+    //             console.log('移除高亮顯示的卡片');
+    //             newCards.forEach(card => {
+    //                 card.card.destroy(); // 銷毀每個卡片對象的圖像
+    //                 console.log('銷毀卡片圖像:', card.card);
+    //             });
+    //         });
+    //     }
+    // }
     
     updatePlayerList(players) {
         const playerListContainer = document.getElementById('playerListContainer');
@@ -587,12 +637,29 @@ export default class GameManager {
             }
         });
     
-        if (!clickedOnCard) {
-            this.clearAllSelections();
-        } else {
-            // 發送卡片資訊給 socket server
-            const selectedCard = this.selectedCards[this.selectedCards.length - 1].card;
-            console.log('selectedddd', selectedCard)
+        // if (!clickedOnCard) {
+        //     this.clearAllSelections();  
+        // } else {
+        //     // 發送卡片資訊給 socket server
+        //     if (this.selectedCards.length === 0) return;
+        //     const selectedCard = this.selectedCards[this.selectedCards.length - 1].card;
+        //     console.log('selectedddd', selectedCard);
+            
+        //     if (selectedCard) {
+        //         this.socket.emit('update_selected', { roomId: this.roomId, card: { id: selectedCard.cardId, type: selectedCard.type } });
+        //     }
+        // }
+        console.log('clicked 0', this.selectedCards)
+        // 發送卡片資訊給 socket server
+        if (this.selectedCards.length === 0) {
+            return;
+        }
+        const selectedCard = this.selectedCards[this.selectedCards.length - 1].card;
+        console.log('selectedddd', selectedCard);
+        
+        
+        if (selectedCard) {
+            console.log('clicked 1')
             this.socket.emit('update_selected', { roomId: this.roomId, card: { id: selectedCard.cardId, type: selectedCard.type } });
         }
     }
@@ -626,43 +693,48 @@ export default class GameManager {
     }
     
     clearAllSelections() {
-        if (this.selectedCards && this.selectedCards.length > 0) {
-            this.selectedCards.forEach(card => {
-                card.clearTint();
+        if (this.selectedCards && this.selectedCards.length > 0) { 
+            this.selectedCards.forEach(card => { 
+                if (card)
+                card.clearTint(); 
             });
             this.selectedCards = [];
         }
-    }
+    }  
     
     
-    clearAllSelections() {
-        if (this.selectedCards && this.selectedCards.length > 0) {
-            this.selectedCards.forEach(card => {
-                card.clearTint();
-            });
-            this.selectedCards = [];
-        }
-    }
+    // clearAllSelections() {
+    //     if (this.selectedCards && this.selectedCards.length > 0) {
+    //         this.selectedCards.forEach(card => {
+    //             card.clearTint();
+    //         });
+    //         this.selectedCards = [];
+    //     }
+    // }
 
     
     toggleCardSelection(card) {
         const index = this.selectedCards.indexOf(card);
         if (index === -1) {
-            card.setTint(0xff69b4); 
+            card.setTint(0xff69b4);  
             this.selectedCards.push(card);
         } else {
             card.clearTint(); 
-            this.selectedCards.splice(index, 1); 
+            // this.selectedCards.splice(index, 1);   
         }
-    }
-    
+    }  
+     
     handleDropZoneClick() {
         this.selectedCards.forEach(card => {
             card.clearTint();
             card.setInteractive(false);
-            this.dealCards(card, this.dropZones.indexOf(card.zone));
+            this.dealCards(card, this.dropZones.indexOf(card.zone)); 
         });
         this.selectedCards = [];
+    }
+
+    pairCards() {
+        this.socket.emit('pair_cards', { roomId: this.roomId, playerId: this.playerId });
     }
     
 

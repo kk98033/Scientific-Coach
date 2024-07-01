@@ -33,7 +33,8 @@ class GameRoomManager {
                 hands: {},
                 currentSelected: [],
                 state: 0,
-                timer: null
+                timer: null,
+                usedCards: [],
             }
         }; // for debug
     }
@@ -53,7 +54,8 @@ class GameRoomManager {
                 hands: {},      // 每個玩家的手牌，使用玩家 ID 為 key
                 state: 0,
                 currentSelected: [],
-                timer: null
+                timer: null,
+                usedCards: [],
             };
             console.log(`Room ${roomId} created.`);
             return true;

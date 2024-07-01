@@ -32,6 +32,7 @@ export class GameTable extends Scene {
         this.dropZones = this.zone.renderZone();
         this.outline = this.dropZones.forEach(zone => this.zone.renderOutline(zone));
         this.gameManager.dropZones = this.dropZones;
+        this.gameManager.zone = this.zone;
 
         // this.gameManager.setupDragEvents();
         this.gameManager.setupPointerEvents();
@@ -40,9 +41,9 @@ export class GameTable extends Scene {
 
         this.setupDragEvents();
 
-        this.currentPlayerText = this.add.text(10, 15, 'TABLE ', { fontSize: '36px', fill: '#fff' });
-        this.currentPlayerText = this.add.text(10, 5, 'Current Player: ', { fontSize: '36px', fill: '#fff' });
-        this.timerText = this.add.text(10, 30, '', { fontSize: '36px', fill: '#fff' });
+        this.currentPlayerText = this.add.text(10, 15, 'TABLE ', { fontSize: '24px', fill: '#fff' });
+        this.currentPlayerText = this.add.text(10, 5, 'Current Player: ', { fontSize: '24px', fill: '#fff' });
+        this.timerText = this.add.text(10, 30, '', { fontSize: '24px', fill: '#fff' });
 
         // this.dealer = new Dealer(this);
 
@@ -120,6 +121,8 @@ export class GameTable extends Scene {
         //     }
         // });
     }
+
+    
 
     isPointerInZone(pointer, zone) {
         const bounds = zone.getBounds();

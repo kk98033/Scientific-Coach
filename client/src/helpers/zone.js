@@ -44,14 +44,15 @@ export default class Zone {
 
     highlightZone(index) {
         this.zoneOutlines[index].clear();
-        this.zoneOutlines[index].lineStyle(4, 0xffff00); // 高亮顯示的顏色 (黃色)
-        this.zoneOutlines[index].strokeRect(
+        this.zoneOutlines[index].lineStyle(6, 0xff0000); // 高亮顯示的顏色 (紅色)，線條加粗
+        this.zoneOutlines[index].strokeRect( 
             this.gridZones[index].x - this.gridZones[index].input.hitArea.width / 2,
             this.gridZones[index].y - this.gridZones[index].input.hitArea.height / 2,
             this.gridZones[index].input.hitArea.width,
             this.gridZones[index].input.hitArea.height
         );
     }
+    
 
     clearHighlightZone(index) {
         this.zoneOutlines[index].clear();

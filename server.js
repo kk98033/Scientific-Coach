@@ -197,6 +197,31 @@ io.on('connection', (socket) => {
         console.log("-=-=-=-=-=-=-=-=-=-=-=-==--=update_selected-=-=-=-=-=-=-=-=-=-=-=-==--=", data, card)
         gameManager.appendCurrentSelectedCards(roomId, card);
     });
+
+    socket.on('pair_cards', (data) => {
+        const { roomId, playerId } = data;
+        const result = gameManager.pairCards(roomId, playerId);
+    
+        if (result.error) {
+            io.to(roomId).emit('pair_result', {
+                success: false,
+                message: result.error,
+                playerId: result.playerId,
+                selectedCards: result.selectedCards
+            });
+        } else {
+            io.to(roomId).emit('pair_result', {
+                success: true,
+                playerId: result.playerId,
+                matchedHandCards: result.matchedHandCards,
+                matchedHandIndexes: result.matchedHandIndexes,
+                matchedTableCards: result.matchedTableCards,
+                matchedTableIndexes: result.matchedTableIndexes,
+                selectedCards: result.selectedCards
+            });
+        }
+    });
+    
 });
 
 http.listen(3000, function () {

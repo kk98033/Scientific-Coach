@@ -357,7 +357,7 @@ export default class GameManager {
 
         this.tableCardsObj.forEach(cardGroup => {
             cardGroup.forEach(card => {
-                card.destroy(); 
+                card.card.destroy(); 
             });
         });
     
@@ -702,10 +702,12 @@ export default class GameManager {
     handlePointerDown(pointer) {
         const { x, y } = pointer;
         let clickedOnCard = false;
+        let selectedCard = null;
+        let selectedCardObj = null;
     
         this.scene.children.list.forEach(child => {
             if (child.texture && child.texture.key.includes('Card') && child.getBounds().contains(x, y)) {
-                this.toggleCardSelection(child);
+                selectedCardObj = this.toggleCardSelection(child);
                 clickedOnCard = true;
     
                 console.log('------------');
@@ -730,19 +732,18 @@ export default class GameManager {
         //         this.socket.emit('update_selected', { roomId: this.roomId, card: { id: selectedCard.cardId, type: selectedCard.type } });
         //     }
         // }
-        console.log('"SELECTED CARDS",  clicked 0', this.selectedCards)
+        console.log('"debug-3 SELECTED CARDS",  clicked 0', this.selectedCards)
         // 發送卡片資訊給 socket server
-        if (this.selectedCards.length === 0) {
+        if (!selectedCardObj) {
             return;
         }
-        const selectedCard = this.selectedCards[this.selectedCards.length - 1].card;
-        console.log('selectedddd', selectedCard);
-        
-        
-        if (selectedCard) {
-            console.log('clicked 1')
-            this.socket.emit('update_selected', { roomId: this.roomId, card: { id: selectedCard.cardId, type: selectedCard.type } });
-        }
+        // selectedCard = this.selectedCards[this.selectedCards.length - 1].card;
+        selectedCard = selectedCardObj.card;
+        console.log('debug-3 selectedddd', selectedCard);
+         
+        console.log('debug-3 clicked 1') 
+        this.socket.emit('update_selected', { roomId: this.roomId, card: { id: selectedCard.cardId, type: selectedCard.type } });
+    
     }
 
     highlightSelectedCards() { 
@@ -812,7 +813,7 @@ export default class GameManager {
         console.log('debug: ', this.selectedCards, card)
         console.log('debug: ', index)
         if (index === -1) {
-            console.log('debug: selected!!+++==++=++++=+===+==++=++++++=+')
+            console.log('debug-3: selected!!+++==++=++++=+===+==++=++++++=+')
             // 如果卡片未被選中，將其設置為高亮並向上移動
             card.setTint(0xff69b4);
             this.selectedCards.push(card);
@@ -824,7 +825,7 @@ export default class GameManager {
                 ease: 'Power2'
             });
         } else {
-            console.log('debug: clear+++==++=++++=+===+==++=++++++=+')
+            console.log('debug-3: clear+++==++=++++=+===+==++=++++++=+')
             // 如果卡片已被選中，將其取消高亮並歸位
             card.clearTint();
             this.selectedCards.splice(index, 1); // 從選中列表中移除卡片
@@ -841,6 +842,8 @@ export default class GameManager {
         }
         console.log('debug(after): ', this.selectedCards)
         console.log('debug(after): ', index)
+
+        return card;
     }
     
     

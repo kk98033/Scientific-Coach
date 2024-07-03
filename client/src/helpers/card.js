@@ -4,6 +4,7 @@ export default class Card {
         this.cardId = cardId;
         this.type = ""
         this.isPlayerTurn = isPlayerTurn;
+        this.typeText = null;
     }
 
     render(x, y, sprite, type) {
@@ -45,10 +46,13 @@ export default class Card {
         }
     }
 
-    destroy() {
+    destroyCard() {
+        console.log('debug-b', this.typeText)
         if (this.typeText) {
             this.typeText.destroy();
         }
-        this.card.destroy();
+        if (this.card) {
+            this.card.destroy();
+        }
     }
 }

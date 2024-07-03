@@ -52,7 +52,7 @@ class GameManager {
 
     startTurnTimer(roomId) {
         const room = this.gameRoomManager.rooms[roomId];
-        room.turnTimer = 10 // TODO: 設定時間
+        room.turnTimer = 30 // TODO: 設定時間
         room.timer = setInterval(() => {
             room.turnTimer--;
             console.log(`Remaining time for player ${room.currentPlayerIndex} in room ${roomId}: ${room.turnTimer} seconds`);

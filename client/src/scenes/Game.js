@@ -35,7 +35,7 @@ export class Game extends Scene {
         // this.outline = this.dropZones.forEach(zone => this.zone.renderOutline(zone));
         // this.gameManager.dropZones = this.dropZones;
 
-        // this.gameManager.setupDragEvents();
+        this.gameManager.setupDragEvents();
         this.gameManager.setupPointerEvents();
 
         this.createHTMLUI();

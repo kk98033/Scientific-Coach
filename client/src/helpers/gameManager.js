@@ -1,11 +1,12 @@
 import { io } from 'socket.io-client';
 import Card from './card';
 import Zone from '../helpers/zone';
+import { NONE } from 'phaser';
 
 export default class GameManager {
     constructor(scene) {
         this.serverIP = '192.168.31.202';
-        this.socketIP = '192.168.31.202';
+        this.socketIP = '192.168.31.202'; 
 
         this.scene = scene;
         this.dropZones = null;
@@ -27,9 +28,15 @@ export default class GameManager {
 
         this.selectedCards = [];
 
+        this.currentDraggedCard = null;
+        
+
         this.connectSocket();
         this.setupEventListeners();
         this.setupBeforeUnloadListener();
+   
+        // this.setupDragEvents();
+        // this.setupPointerEvents();
     }
 
     setIP(serverIP, socketIP) {
@@ -224,8 +231,8 @@ export default class GameManager {
         // TODO: ui
     }
 
-    createRoom() {
-        this.socket.emit('create_room'); 
+    createRoom() { 
+        this.socket.emit('create_room');  
     }
 
     joinRoom(roomId, isTable) {
@@ -239,15 +246,16 @@ export default class GameManager {
     }
 
     updateGameState(data) {
-        console.log("更新遊戲狀態");
+        console.log("debug: 更新遊戲狀態!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         const { roomId, currentPlayer, gameState, table, pairSuccessIndex, cards, selected } = data;
         console.log("接收到的資料:", data);
         this.currentPlayer = currentPlayer;
         this.gameState = gameState;
-        this.selectedCards = selected;
+        // this.selectedCards = selected;
+        this.selectedCards = []
 
         console.log('HIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHT')
-        console.log(this.selectedCards)
+        console.log("SELECTED CARDS", this.selectedCards)
         console.log('HIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHT')
 
         this.highlightSelectedCards();
@@ -410,39 +418,99 @@ export default class GameManager {
         // }
     }
 
-    clearPlayerHandDisplay() {
-        console.log('this.handObj')
-        console.log(this.handObj);
-        this.handObj.forEach(card => {
-            card.destroy();
-        });
-        this.handObj = [];
-    }
+    // clearPlayerHandDisplay() {
+    //     console.log('this.handObj')
+    //     console.log(this.handObj);
+    //     this.handObj.forEach(card => {
+    //         card.destroy();
+    //     });
+    //     this.handObj = [];
+    // }
 
-    setupPointerEvents() {
-        this.scene.input.on('pointerdown', (pointer) => {
-            this.handlePointerDown(pointer);
-        });
-    }
-    
     setupDragEvents() {
+        this.scene.input.on('dragstart', (pointer, gameObject) => {
+            this.isDragging = true;
+            gameObject.setTint(0xff69b4);
+            this.currentDraggedCard = gameObject;
+        });
+    
         this.scene.input.on('drag', (pointer, gameObject, dragX, dragY) => {
             gameObject.x = dragX;
             gameObject.y = dragY;
         });
-
+    
         this.scene.input.on('dragend', (pointer, gameObject, dropped) => {
+            this.isDragging = false; // 重置拖動狀態
             gameObject.clearTint();
-            if (!dropped) {
-                this.insertCardInHand(gameObject);
-                // this.displayPlayerHand();
-                if (!this.isGameTable) {
-                    this.displayPlayerHand();
+
+            // 更新卡片 objcet 位置
+            const finalX = gameObject.x;
+            const finalY = gameObject.y;
+    
+            if (gameObject.card) {
+                gameObject.card.updatePosition(finalX, finalY);
+            }            
+            this.currentDraggedCard = null;
+            // if (!dropped) {
+            //     console.log('debug-a this.insertCardInHand(gameObject);')
+            //     this.insertCardInHand(gameObject);
+            // } else {
+            //     console.log('debug-a this.checkForCardSwap(gameObject);')
+            //     this.checkForCardSwap(gameObject);
+            // }
+            // this.displayPlayerHand(); // 更新手牌顯示
+        });
+    }
+    
+    setupPointerEvents() {
+        this.scene.input.on('pointerdown', (pointer, gameObject) => {
+            this.isDragging = false; // 每次點擊時重置拖動狀態
+            this.pointerDownTime = this.scene.time.now; // 記錄點擊時間
+        });
+    
+        this.scene.input.on('pointerup', (pointer, gameObject) => {
+            const clickDelay = 200; // 設置點擊延遲時間 (毫秒)
+            const timeSincePointerDown = this.scene.time.now - this.pointerDownTime;
+    
+            if (!this.isDragging && timeSincePointerDown < clickDelay) {
+                this.handlePointerDown(pointer);
+            }
+        });
+    }
+    
+    
+    
+    
+    
+    checkForCardSwap(draggedCard) {
+        const swapMargin = 100; // 定義更大的判定範圍
+    
+        this.handObj.forEach(card => {
+            if (card !== draggedCard) {
+                const distance = Phaser.Math.Distance.Between(draggedCard.x, draggedCard.y, card.x, card.y);
+                if (distance < swapMargin) {
+                    // 交換兩張卡片的位置
+                    let tempX = card.x;
+                    let tempY = card.y;
+                    card.x = draggedCard.x;
+                    card.y = draggedCard.y;
+                    draggedCard.x = tempX;
+                    draggedCard.y = tempY;
+    
+                    // 更新卡片數組中的位置
+                    const draggedIndex = this.handObj.indexOf(draggedCard);
+                    const targetIndex = this.handObj.indexOf(card);
+                    if (draggedIndex !== -1 && targetIndex !== -1) {
+                        [this.handObj[draggedIndex], this.handObj[targetIndex]] = [this.handObj[targetIndex], this.handObj[draggedIndex]];
+                    }
                 }
             }
         });
     }
+    
+    
 
+    // TODO: 重新寫一個
     insertCardInHand(card) {
         const baseX = 475;
         const baseY = 650;
@@ -491,8 +559,6 @@ export default class GameManager {
     }
     
     
-    
-    
     displayPlayerHand() {
         const screenWidth = this.scene.cameras.main.width;
         const screenHeight = this.scene.cameras.main.height;
@@ -503,17 +569,19 @@ export default class GameManager {
         const baseY = screenHeight / 2; // 將卡片顯示在螢幕的正中央下方
     
         // 重新渲染所有卡片
+        console.log('debug debug debug debug debug debug debug debug debug debug debug debug debug ')
+
         this.clearPlayerHandDisplay();
     
         this.handObj = this.hand.map((card, index) => {
             const row = Math.floor(index / cardsPerRow); // 計算卡片所在的 row
-            const col = index % cardsPerRow; // 計算卡片所在的 column
+            const col = index % cardsPerRow; // 計算卡片所在的 column 
             const totalCardWidth = cardOffset * (Math.min(cardsPerRow, this.hand.length) - 1) + cardWidth;
             const baseX = (screenWidth - totalCardWidth) / 2; // 計算每 row 的起始X座標，讓卡片在螢幕中央
     
             let playerCard = new Card(this.scene, card.id, this.isPlayerTurn());
             playerCard.render(baseX + (col * cardOffset), baseY + (row * rowHeight), 'cyanCardFront', card.type);
-            return playerCard.card; 
+            return playerCard.card;  
         });
     }
     
@@ -521,7 +589,8 @@ export default class GameManager {
 
     clearPlayerHandDisplay() {
         this.handObj.forEach(card => {
-            card.destroy();
+            console.log('debug-b', card)
+            card.card.destroyCard();
         });
         this.handObj = [];
     }
@@ -551,10 +620,10 @@ export default class GameManager {
             console.log('highlightCard銷毀卡片圖像:', card.card);
      
             // 渲染新的高亮卡片
-            const newCard = new Card(this.scene, cardInfo.cardId, cardInfo.isPlayerTurn);
-            newCard.render(cardInfo.x, cardInfo.y, cardInfo.type, 'cyanCardFront'); // 重新渲染卡片
-            newCard.card.setTint(0xff0000); // 設置為紅色高亮
-            console.log('highlightCard設置卡片為紅色高亮:', newCard.card);
+            // const newCard = new Card(this.scene, cardInfo.cardId, cardInfo.isPlayerTurn);
+            // newCard.render(cardInfo.x, cardInfo.y, cardInfo.type, 'cyanCardFront'); // 重新渲染卡片
+            // newCard.card.setTint(0xff0000); // 設置為紅色高亮
+            // console.log('highlightCard設置卡片為紅色高亮:', newCard.card);
     
             // 使用計時器在一秒後移除高亮卡片
             // this.scene.time.delayedCall(1000, () => {
@@ -655,13 +724,13 @@ export default class GameManager {
         //     // 發送卡片資訊給 socket server
         //     if (this.selectedCards.length === 0) return;
         //     const selectedCard = this.selectedCards[this.selectedCards.length - 1].card;
-        //     console.log('selectedddd', selectedCard);
+        //     console.log('selectedddd', selectedCard);   
             
         //     if (selectedCard) {
         //         this.socket.emit('update_selected', { roomId: this.roomId, card: { id: selectedCard.cardId, type: selectedCard.type } });
         //     }
         // }
-        console.log('clicked 0', this.selectedCards)
+        console.log('"SELECTED CARDS",  clicked 0', this.selectedCards)
         // 發送卡片資訊給 socket server
         if (this.selectedCards.length === 0) {
             return;
@@ -716,7 +785,7 @@ export default class GameManager {
     
     
     // clearAllSelections() {
-    //     if (this.selectedCards && this.selectedCards.length > 0) {
+    //     if (this.selectedCards && this.selectedCards.length > 0) { 
     //         this.selectedCards.forEach(card => {
     //             card.clearTint();
     //         });
@@ -726,24 +795,42 @@ export default class GameManager {
 
     
     toggleCardSelection(card) {
-        const index = this.selectedCards.indexOf(card);
+        if (this.isDragging) return; // 如果正在拖動，不進行點擊處理
+        
+        if (this.selectedCards[0]) {
+            console.log('debug: -=-=-=-=-=-==--=-=-=-=-=-=-=-=-=')
+            console.log('debug: | ', this.selectedCards[0])
+            console.log('debug: | ', this.selectedCards[0].card)
+            console.log('debug: | ', this.selectedCards[0].card.cardId)
+            console.log('debug: | ', card.card.cardId)
+            console.log('debug: | ', card.x, card.y)
+            console.log('debug: -=-=-=-=-=-==--=-=-=-=-=-=-=-=-=') 
+        }
+
+        const index = this.selectedCards.findIndex(selectedCard => selectedCard.card && selectedCard.card.cardId === card.card.cardId);
         const moveUpDistance = 50; // 卡片向上移動的距離
-    
+        console.log('debug: ', this.selectedCards, card)
+        console.log('debug: ', index)
         if (index === -1) {
+            console.log('debug: selected!!+++==++=++++=+===+==++=++++++=+')
             // 如果卡片未被選中，將其設置為高亮並向上移動
             card.setTint(0xff69b4);
             this.selectedCards.push(card);
     
             this.scene.tweens.add({
-                targets: card,
+                targets: card, 
                 y: card.y - moveUpDistance,
                 duration: 300,
                 ease: 'Power2'
             });
         } else {
+            console.log('debug: clear+++==++=++++=+===+==++=++++++=+')
             // 如果卡片已被選中，將其取消高亮並歸位
             card.clearTint();
-            this.selectedCards.splice(index, 1);
+            this.selectedCards.splice(index, 1); // 從選中列表中移除卡片
+    
+            // 清除所有針對該卡片的動畫
+            this.scene.tweens.killTweensOf(card);
     
             this.scene.tweens.add({
                 targets: card,
@@ -752,10 +839,17 @@ export default class GameManager {
                 ease: 'Power2'
             });
         }
+        console.log('debug(after): ', this.selectedCards)
+        console.log('debug(after): ', index)
     }
+    
+    
+    
+    
     
      
     handleDropZoneClick() {
+        console.log('debug: drop zone click!!!!')
         this.selectedCards.forEach(card => {
             card.clearTint();
             card.setInteractive(false);

@@ -854,13 +854,13 @@ export default class GameManager {
     handleDropZoneClick() {
         console.log('debug: drop zone click!!!!')
         this.selectedCards.forEach(card => {
-            card.clearTint();
+            card.clearTint(); 
             card.setInteractive(false);
             this.dealCards(card, this.dropZones.indexOf(card.zone)); 
         });
-        this.selectedCards = [];
+        this.selectedCards = []; 
     }
-
+ 
     pairCards() {
         this.socket.emit('pair_cards', { roomId: this.roomId, playerId: this.playerId });
     }

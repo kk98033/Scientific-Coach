@@ -407,7 +407,9 @@ class GameManager {
             }
             room.usedCards.push(...usedCards);
     
-            this.endTurn(roomId);
+            // this.endTurn(roomId);
+            this.dealCardsToDeck(roomId)
+            this.updateGameState(roomId);
     
             return {
                 playerId: playerId,

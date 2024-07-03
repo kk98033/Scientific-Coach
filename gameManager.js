@@ -18,7 +18,7 @@ class GameManager {
                 type: (i % 20).toString() 
             });
         }
-        console.log(this.debugCards); 
+        // console.log(this.debugCards); 
     }
 
     changeState(newState) {
@@ -52,14 +52,15 @@ class GameManager {
 
     startTurnTimer(roomId) {
         const room = this.gameRoomManager.rooms[roomId];
-        room.turnTimer = 30 // TODO: 設定時間
+        room.turnTimer = 10 // TODO: 設定時間
         room.timer = setInterval(() => {
             room.turnTimer--;
             console.log(`Remaining time for player ${room.currentPlayerIndex} in room ${roomId}: ${room.turnTimer} seconds`);
             this.io.to(roomId).emit('update_timer', { turnTimer: room.turnTimer });
             if (room.turnTimer <= 0) {
                 clearInterval(room.timer);
-                this.endTurn(roomId);
+                this.io.to(roomId).emit('time_to_discard_some_cards', { turnTimer: room.turnTimer });
+                // this.endTurn(roomId);
             }
         }, 1000);   
     }
@@ -100,8 +101,8 @@ class GameManager {
     dealCards(roomId, playerId, cardId, zoneIndex) {
         console.log(roomId, playerId, cardId)
         const room = this.gameRoomManager.rooms[roomId];
-        console.log("--=-=-=-=-=-=-=-=")
-        console.log(room, "before")
+        // console.log("--=-=-=-=-=-=-=-=")
+        // console.log(room, "before")
 
         if (!room || !room.players.includes(playerId) || !room.hands[playerId]) {
             console.log(`Invalid room or player.`);
@@ -142,9 +143,9 @@ class GameManager {
             room.hands[playerId].push(card);
         }
 
-        console.log(`Player ${playerId} played card ${cardId} onto the table.`);
-        console.log(room, "after")
-        console.log("-=-=-=-=-=-=-=-=")  
+        // console.log(`Player ${playerId} played card ${cardId} onto the table.`);
+        // console.log(room, "after")
+        // console.log("-=-=-=-=-=-=-=-=")  
         // this.io.to(roomId).emit('update_game_state', { roomId: roomId });
         this.updateGameState(roomId);      
     } 
@@ -311,10 +312,10 @@ class GameManager {
     getCardsOnTable(roomId, playerId) {
         const room = this.gameRoomManager.rooms[roomId];
         if (room) {
-            console.log('===debug===')
-            console.log(room.table)
-            console.log(room.hands)
-            console.log('===debug===')
+            // console.log('===debug===')
+            // console.log(room.table)
+            // console.log(room.hands)
+            // console.log('===debug===')
             return room.table;
         } else {
             return []; // 如果房間或玩家不存在，返回空數組
@@ -361,6 +362,95 @@ class GameManager {
         }
 
         room.currentSelected = [];
+    }
+
+    discardCards(roomId, playerId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        console.log(room.currentSelected);
+        console.log(room.table)
+        if (room.currentSelected.length != 2) {
+            return {
+                success: false,
+                error: '你沒有選擇剛好二張牌啦',
+                playerId: playerId,
+                selectedCards: room.currentSelected
+            };
+        }
+        
+
+        let result = this.removeCardFromPlayerHand(roomId, playerId, room.currentSelected);
+
+        if (result.success) {
+            console.log('Cards removed successfully');
+            
+        } else {
+            console.error('Error:', result.message);
+            return {
+                success: false,
+                error: '你沒有選擇剛好二張牌啦',
+                playerId: playerId,
+                selectedCards: room.currentSelected
+            };
+        }
+
+        this.pushCardsToTable(roomId);
+
+        this.drawCards(roomId, playerId);
+        this.drawCards(roomId, playerId);
+
+        this.endTurn(roomId);
+
+        return {
+            success: true,
+            result: 'success',
+            playerId: playerId,
+        }; 
+    }
+
+    pushCardsToTable(roomId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        // 將 currentSelected 的每個元素推入 table 的頭兩位
+        room.currentSelected.forEach(item => {
+            room.table.unshift([item]);
+        });
+
+        // 刪除最後兩個子陣列
+        while (room.table.length > 8) {
+            let temp = room.table.pop();
+            room.usedCards.push(...temp)
+        }
+        console.log('==========PUSHED==========');
+        console.log(`|          ${room.usedCards}              |`)
+        console.log('==========PUSHED==========');
+        console.log(room.table);
+    }
+
+    removeCardFromPlayerHand(roomId, playerId, cards) {
+        const room = this.gameRoomManager.rooms[roomId];
+        if (!room || !room.hands[playerId]) {
+            return { success: false, message: 'Room or player not found' };
+        }
+
+        // console.log("===A===")
+        // console.log(room.usedCards)
+        // room.usedCards.push(...cards)
+        // console.log("===A===")
+        // console.log(room.usedCards)
+        // console.log("===A===")
+        // console.log('==========AAAAA==========');
+        // console.log(`|          ${room.usedCards}              |`)
+        // console.log('==========AAAAA==========');
+
+        const playerHand = room.hands[playerId];
+        const cardIds = cards.map(card => card.id);
+        const allCardsExist = cardIds.every(cardId => playerHand.some(card => card.id === cardId));
+
+        if (!allCardsExist) {
+            return { success: false, message: 'One or more cards not found in player\'s hand' };
+        }
+
+        room.hands[playerId] = playerHand.filter(card => !cardIds.includes(card.id));
+        return { success: true };
     }
 
     pairCards(roomId, playerId) {

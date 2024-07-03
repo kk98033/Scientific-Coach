@@ -181,20 +181,20 @@ io.on('connection', (socket) => {
     
     socket.on('update_player_list', (data) => {
         const roomId = data.roomId;
-        console.log("data", data)
+        // console.log("data", data)
         const players = gameRoomManager.getPlayersInRoom(roomId);
         io.to(roomId).emit('update_player_list', { players });
     });
 
     socket.on('update_hand', (data) => {
         const { roomId, playerId, hand } = data;
-        console.log("data", data)
+        // console.log("data", data)
         gameManager.updatePlayersHand(roomId, playerId, hand);
     });
     
     socket.on('update_selected', (data) => {
         const { roomId, card } = data;
-        console.log("-=-=-=-=-=-=-=-=-=-=-=-==--=update_selected-=-=-=-=-=-=-=-=-=-=-=-==--=", data, card)
+        // console.log("-=-=-=-=-=-=-=-=-=-=-=-==--=update_selected-=-=-=-=-=-=-=-=-=-=-=-==--=", data, card)
         gameManager.appendCurrentSelectedCards(roomId, card);
     });
 
@@ -211,6 +211,32 @@ io.on('connection', (socket) => {
             });
         } else {
             io.to(roomId).emit('pair_result', {
+                success: true,
+                playerId: result.playerId,
+                matchedHandCards: result.matchedHandCards,
+                matchedHandIndexes: result.matchedHandIndexes,
+                matchedTableCards: result.matchedTableCards,
+                matchedTableIndexes: result.matchedTableIndexes,
+                selectedCards: result.selectedCards
+            });
+        }
+    });
+
+    socket.on('discard_cards', (data) => {
+        const { roomId, playerId } = data;
+
+        gameManager.clearCurrentSelectedCards(roomId)
+        const result = gameManager.discardCards(roomId, playerId);
+    
+        if (result.error) {
+            io.to(roomId).emit('discard_cards', {
+                success: false,
+                message: result.error,
+                playerId: result.playerId,
+                selectedCards: result.selectedCards
+            });
+        } else {
+            io.to(roomId).emit('discard_cards', {
                 success: true,
                 playerId: result.playerId,
                 matchedHandCards: result.matchedHandCards,

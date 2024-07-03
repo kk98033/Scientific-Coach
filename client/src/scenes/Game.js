@@ -133,23 +133,31 @@ export class Game extends Scene {
         });
         // DEBUG for get card
         document.getElementById('get-card').addEventListener('click', () => { 
-            this.gameManager.getPlayerHand();
+            this.gameManager.getPlayerHand(); 
         }); 
 
         document.getElementById('pair-button').addEventListener('click', () => {
             console.log('配對按鈕被按下');
+            // this.gameManager.clearTexts()
             if (!this.gameManager.isPlayerTurn()) return;
             this.gameManager.pairCards(); 
+        });
+        
+        document.getElementById('discard-button').addEventListener('click', () => {
+            console.log('丟棄按鈕被按下'); 
+            // this.gameManager.showText('hello')
+            if (!this.gameManager.isPlayerTurn()) return;  
+            this.gameManager.discardCards(); 
         });
 
         document.getElementById('draw-card').addEventListener('click', () => {
             // TODO: draw card and end turn
-            if (!this.gameManager.isPlayerTurn()) return;
+            if (!this.gameManager.isPlayerTurn()) return; 
 
             this.gameManager.drawCards();
             this.gameManager.drawCards();
             // 丟棄兩張牌
-            this.gameManager.endTurn()
+            this.gameManager.endTurn() 
         });
  
         this.isPlayerA = false; 
@@ -352,9 +360,19 @@ export class Game extends Scene {
         pairButton.textContent = '配對';
         pairButton.style.position = 'absolute';
         pairButton.style.top = '50%';
-        pairButton.style.left = '0%';
+        pairButton.style.left = '5%';
         pairButton.style.transform = 'translateY(-50%)'; // 垂直居中
         document.body.appendChild(pairButton);
+
+        // 配對按鈕
+        let discardButton = document.createElement('button');
+        discardButton.id = 'discard-button';
+        discardButton.textContent = '丟棄';
+        discardButton.style.position = 'absolute';
+        discardButton.style.top = '60%';
+        discardButton.style.left = '5%';
+        discardButton.style.transform = 'translateY(-50%)'; // 垂直居中
+        document.body.appendChild(discardButton);
 
         // button
         let createRoomBtn = document.createElement('button');

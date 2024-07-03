@@ -37,6 +37,8 @@ export default class GameManager {
    
         // this.setupDragEvents();
         // this.setupPointerEvents();
+
+        
     }
 
     setIP(serverIP, socketIP) {
@@ -159,6 +161,10 @@ export default class GameManager {
                 console.log('配對失敗：', message);
                 this.handlePairFailure(playerId, selectedCards);
             }
+        });
+
+        this.socket.on('time_to_discard_some_cards', (data) => {
+            this.showText('選擇兩張卡片丟棄', 10, 500);
         });
         
          
@@ -553,7 +559,7 @@ export default class GameManager {
         this.handObj.forEach(card => {
             console.log(card)
             card.card.destroy(); 
-        });
+        }); 
         console.log("update", this.hand)
         this.socket.emit('update_hand', { roomId: this.roomId, playerId: this.playerId, hand: this.hand });
     }
@@ -579,7 +585,8 @@ export default class GameManager {
             const totalCardWidth = cardOffset * (Math.min(cardsPerRow, this.hand.length) - 1) + cardWidth;
             const baseX = (screenWidth - totalCardWidth) / 2; // 計算每 row 的起始X座標，讓卡片在螢幕中央
     
-            let playerCard = new Card(this.scene, card.id, this.isPlayerTurn());
+            // let playerCard = new Card(this.scene, card.id, this.isPlayerTurn());
+            let playerCard = new Card(this.scene, card.id, true); // 可以隨意移動卡牌，無論使否是自己的回合
             playerCard.render(baseX + (col * cardOffset), baseY + (row * rowHeight), 'cyanCardFront', card.type);
             return playerCard.card;  
         });
@@ -700,6 +707,8 @@ export default class GameManager {
     }
 
     handlePointerDown(pointer) {
+        if (!this.isPlayerTurn() && !this.isGameTable) return;
+        
         const { x, y } = pointer;
         let clickedOnCard = false;
         let selectedCard = null;
@@ -734,6 +743,7 @@ export default class GameManager {
         // }
         console.log('"debug-3 SELECTED CARDS",  clicked 0', this.selectedCards)
         // 發送卡片資訊給 socket server
+        
         if (!selectedCardObj) {
             return;
         }
@@ -846,11 +856,7 @@ export default class GameManager {
         return card;
     }
     
-    
-    
-    
-    
-     
+
     handleDropZoneClick() {
         console.log('debug: drop zone click!!!!')
         this.selectedCards.forEach(card => {
@@ -864,6 +870,28 @@ export default class GameManager {
     pairCards() {
         this.socket.emit('pair_cards', { roomId: this.roomId, playerId: this.playerId });
     }
-    
 
+    discardCards() {
+        this.socket.emit('discard_cards', { roomId: this.roomId, playerId: this.playerId });
+    }
+    
+    showText(text, x = 10, y = 10, style = { font: '16px Arial', fill: '#ffffff' }) {
+        console.log("a")
+        if (!this.scene.displayedTexts) {
+            this.scene.displayedTexts = [];
+        }
+        let newText = this.scene.add.text(x, y + this.scene.displayedTexts.length * 20, text, style);
+        this.scene.displayedTexts.push(newText);
+        return newText; 
+    }
+
+    clearTexts() { 
+        if (this.scene.displayedTexts) {
+            this.scene.displayedTexts.forEach(text => {
+                text.destroy(); 
+            });
+            this.scene.displayedTexts = [];
+        }
+    }  
 }
+        

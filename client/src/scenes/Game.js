@@ -387,7 +387,7 @@ export class Game extends Scene {
     
         // Card deck selection display
         let cardDeckContainer = document.createElement('div');
-        cardDeckContainer.id = 'cardDeckContainer';
+        cardDeckContainer.id = 'cardDeckContainer'; 
         cardDeckContainer.style.position = 'absolute';
         cardDeckContainer.style.top = '40%';
         cardDeckContainer.style.left = '10px';
@@ -402,17 +402,17 @@ export class Game extends Scene {
     
             let deckLabel = document.createElement('span');
             deckLabel.textContent = `排組 ${i}: `;
-            deckLabel.style.marginRight = '10px';
+            deckLabel.style.marginRight = '10px'; 
      
             let addButton = document.createElement('button');
             addButton.textContent = '+';
             addButton.style.marginRight = '5px';
-            addButton.disabled = true;
+            addButton.disabled = true; 
      
             let deckCount = document.createElement('span');
             deckCount.id = `deckCount_${i}`;
             deckCount.textContent = i === 1 ? '1' : '0';
-            deckCount.style.marginRight = '5px';
+            deckCount.style.marginRight = '5px'; 
     
             let subtractButton = document.createElement('button');
             subtractButton.textContent = '-';

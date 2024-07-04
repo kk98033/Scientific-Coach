@@ -270,22 +270,25 @@ class GameManager {
 
     applySettings(room, settings) {
         room.settings = settings;
-
-        // 新增各類型的排組
+    
         // 清空 room 的 deck
         room.deck = [];
+        let currentId = 1; // 初始化唯一 ID 計數器
     
         // 根據 settings 將卡片加入 room 的 deck
         for (let i = 1; i <= 4; i++) {
             const deckCount = settings[`deck_${i}`];
             if (deckCount > 0) {
-                const cardsInDeck = this.cardDeckManager.getCardsInDeck(i);
+                const cardTypesInDeck = this.cardDeckManager.getCardsInDeck(i);
                 for (let j = 0; j < deckCount; j++) {
-                    room.deck.push(...cardsInDeck);
+                    cardTypesInDeck.forEach(type => {
+                        room.deck.push({ id: currentId++, type });
+                    });
                 }
             }
         }
-    }
+    }    
+    
 
     dealCardsToDeck(roomId) {
         const room = this.gameRoomManager.rooms[roomId];

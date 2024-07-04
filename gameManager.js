@@ -1,23 +1,27 @@
 const PairingManager = require('./pairingManager');
+const CardDeck = require('./CardDeck');
 
 class GameManager {
     constructor(io, gameRoomManager) {
         this.io = io;
         this.gameRoomManager = gameRoomManager;
-        this.currentState = 'PlayerTurn'
+        this.currentState = 'PlayerTurn';
         this.pairingManager = new PairingManager();
+        this.cardDeckManager = new CardDeck();
 
+        // DEBUG //
         // { 
         //     id: [唯一的數字ID, 從1到50], 
         //     type: '[卡片的類型，‘0’, ‘1’, ‘2’, ‘3’, ‘4’...]' 
         // }
-        this.debugCards = [];
-        for (let i = 0; i <= 60; i++) {
-            this.debugCards.push({ 
-                id: i, 
-                type: (i % 20).toString() 
-            });
-        }
+
+        // this.debugCards = [];
+        // for (let i = 0; i <= 60; i++) {
+        //     this.debugCards.push({ 
+        //         id: i, 
+        //         type: (i % 20).toString() 
+        //     });
+        // }
         // console.log(this.debugCards); 
     }
 
@@ -247,7 +251,7 @@ class GameManager {
         this.shuffleDeck(roomId);
         if (room) {
             room.players.forEach(playerId => {
-                this.dealCardsToPlayer(roomId, playerId, 2); // 每人發兩張卡
+                this.dealCardsToPlayer(roomId, playerId, 8); // 每人發八張卡
             });
 
             room.currentPlayer = 0;  // 從第一個玩家開始
@@ -266,7 +270,21 @@ class GameManager {
 
     applySettings(room, settings) {
         room.settings = settings;
-        
+
+        // 新增各類型的排組
+        // 清空 room 的 deck
+        room.deck = [];
+    
+        // 根據 settings 將卡片加入 room 的 deck
+        for (let i = 1; i <= 4; i++) {
+            const deckCount = settings[`deck_${i}`];
+            if (deckCount > 0) {
+                const cardsInDeck = this.cardDeckManager.getCardsInDeck(i);
+                for (let j = 0; j < deckCount; j++) {
+                    room.deck.push(...cardsInDeck);
+                }
+            }
+        }
     }
 
     dealCardsToDeck(roomId) {
@@ -486,15 +504,21 @@ class GameManager {
             });
     
             // 移除 hands 中該玩家的配對卡牌
+            let removedCards = 0;
             room.currentSelected.forEach(selectedCard => {
                 const index = room.hands[playerId].findIndex(card => card.id === selectedCard.id);
                 if (index !== -1) {
+                    removedCards ++;
                     matchedHandCards.push(room.hands[playerId][index]);
                     matchedHandIndexes.push(index);
                     usedCards.push(room.hands[playerId][index]); // 將配對卡牌添加到 usedCards
                     room.hands[playerId].splice(index, 1);
                 }
             });
+
+            for (let i=0; i<removedCards; i++) {
+                this.drawCards(roomId, playerId);
+            }
     
             // 清空 currentSelected
             room.currentSelected = [];
@@ -532,6 +556,12 @@ class GameManager {
 
     onCancelReady(roomId, playerId) {
         this.gameRoomManager.onCancelReady(roomId, playerId);
+    }
+
+    updateSettings(roomId, settings) {
+        const room = this.gameRoomManager.rooms[roomId]; 
+        room.settings = settings;
+        this.io.to(roomId).emit('update_settings', { turnTimer: room.turnTimer });
     }
     
 

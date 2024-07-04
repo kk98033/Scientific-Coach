@@ -195,6 +195,15 @@ export class GameTable extends Scene {
         timeSettingContainer.appendChild(timeSettingLabel);
         timeSettingContainer.appendChild(timeSettingInput);
         document.body.appendChild(timeSettingContainer);
+
+        timeSettingInput.addEventListener('input', (event) => {
+            console.log(this.gameManager);
+            this.gameManager.updateSettings();
+        });
+
+        timeSettingInput.onclick = () => {
+            this.gameManager.updateSettings();
+        };
     
         // Card deck selection
         let cardDeckContainer = document.createElement('div');
@@ -224,6 +233,7 @@ export class GameTable extends Scene {
                 let deckCount = document.getElementById(`deckCount_${i}`);
                 let currentCount = parseInt(deckCount.textContent, 10);
                 deckCount.textContent = currentCount + 1;
+                this.gameManager.updateSettings();
             };
         
             let deckCount = document.createElement('span');
@@ -240,6 +250,7 @@ export class GameTable extends Scene {
                 if (currentCount > 0) {
                     deckCount.textContent = currentCount - 1;
                 }
+                this.gameManager.updateSettings();
             };
         
             deckContainer.appendChild(deckLabel);
@@ -267,7 +278,7 @@ export class GameTable extends Scene {
         playerReadyCount.id = 'playerReadyCount';
         playerReadyCount.textContent = '0/4 玩家已準備好';
         playerReadyCount.style.marginBottom = '10px';
-        startGameContainer.appendChild(playerReadyCount);
+        startGameContainer.appendChild(playerReadyCount); 
     
         let createRoomBtn = document.createElement('button');
         createRoomBtn.id = 'start-game';
@@ -276,11 +287,11 @@ export class GameTable extends Scene {
         createRoomBtn.style.backgroundColor = 'gray'; // 默認顯示為灰色
         createRoomBtn.onclick = () => {
             this.initializeAndStartGame();
-        };
+        }; 
         startGameContainer.appendChild(createRoomBtn);
      
-        document.body.appendChild(startGameContainer);
-    }
+        document.body.appendChild(startGameContainer); 
+    } 
     
     
     initializeAndStartGame() { 

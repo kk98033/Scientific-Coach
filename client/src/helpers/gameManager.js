@@ -184,7 +184,14 @@ export default class GameManager {
             // this.showText('選擇兩張卡片丟棄', 10, 500);
             // this.canPairCards = false;
         });
-         
+        
+        this.socket.on('update_settings', (data) => {
+            const { settings } = data;
+            console.log('debug-4', settings, data)
+
+            this.updateSettingsUI(settings)
+
+        });
          
 
         // this.socket.on('player_hand', (data) => {
@@ -939,6 +946,32 @@ export default class GameManager {
         playerReadyCount.textContent = `${readyPlayers}/${totalPlayers} 玩家已準備好`;
     }
 
+    updateSettingsUI(settings) {
+        if (!settings) return;
+        // 更新時間設定
+        let timeSettingInput = document.querySelector('#timeSettingContainer input');
+        console.log(settings)
+        console.log('debug-9', settings.roundTime)
+        console.log('debug-10', timeSettingInput)
+        if (timeSettingInput) {
+            timeSettingInput.value = settings.roundTime;
+        }
+
+        // 更新各個牌組的數量
+        for (let i = 1; i <= 4; i++) {
+            let deckCountElement = document.getElementById(`deckCount_${i}`); 
+            if (deckCountElement) {
+                deckCountElement.textContent = settings[`deck_${i}`];
+            } else {
+                console.log("NONOONONNOON")
+            }
+        }
+
+        
+    }
+
+    
+
     enableStartGameButton() {
         let createRoomBtn = document.getElementById('start-game');
         if (createRoomBtn) {
@@ -980,5 +1013,12 @@ export default class GameManager {
         return settings;
     }
 
+    updateSettings() {
+        let settings = this.getGameSettings();
+        console.log('debug-6', settings)
+        this.socket.emit('update_settings', { roomId: this.roomId, settings: settings }); 
+
+    }
+ 
 } 
-         
+          

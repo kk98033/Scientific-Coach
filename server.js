@@ -296,7 +296,18 @@ io.on('connection', (socket) => {
         });
     });
     
-    
+    socket.on('update_settings', (data) => {
+        const { roomId, settings } = data;
+        gameManager.updateSettings(roomId, settings);
+        // return {
+        //     readyPlayers: room.readyPlayers,
+        //     count: room.readyPlayers.length
+        // };
+        console.log(settings)
+        io.to(roomId).emit('update_settings', {
+            settings: settings,
+        });
+    });
 });
 
 http.listen(3000, function () {

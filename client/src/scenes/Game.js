@@ -403,13 +403,14 @@ export class Game extends Scene {
             let deckLabel = document.createElement('span');
             deckLabel.textContent = `排組 ${i}: `;
             deckLabel.style.marginRight = '10px';
-    
+     
             let addButton = document.createElement('button');
             addButton.textContent = '+';
             addButton.style.marginRight = '5px';
             addButton.disabled = true;
-    
+     
             let deckCount = document.createElement('span');
+            deckCount.id = `deckCount_${i}`;
             deckCount.textContent = i === 1 ? '1' : '0';
             deckCount.style.marginRight = '5px';
     
@@ -422,7 +423,7 @@ export class Game extends Scene {
             deckContainer.appendChild(deckCount);
             deckContainer.appendChild(subtractButton);
             cardDeckContainer.appendChild(deckContainer);
-        }
+        } 
     
         document.body.appendChild(cardDeckContainer);
     

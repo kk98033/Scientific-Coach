@@ -140,6 +140,7 @@ export class Game extends Scene {
             console.log('配對按鈕被按下');
             // this.gameManager.clearTexts()
             if (!this.gameManager.isPlayerTurn()) return;
+            if (!this.gameManager.canPairCards) return;
             this.gameManager.pairCards(); 
         });
         

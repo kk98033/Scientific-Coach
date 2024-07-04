@@ -20,6 +20,7 @@ export default class GameManager {
         this.gameState = null;
 
         this.isGameTable = false;
+        this.canPairCards = false;
 
         this.hand = [];  // Store player's hand locally
         this.handObj = [];  // Card object to store cards on hands
@@ -165,6 +166,7 @@ export default class GameManager {
 
         this.socket.on('time_to_discard_some_cards', (data) => {
             this.showText('選擇兩張卡片丟棄', 10, 500);
+            this.canPairCards = false;
         });
         
          
@@ -252,6 +254,7 @@ export default class GameManager {
     }
 
     updateGameState(data) {
+        this.clearTexts();
         console.log("debug: 更新遊戲狀態!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         const { roomId, currentPlayer, gameState, table, pairSuccessIndex, cards, selected } = data;
         console.log("接收到的資料:", data);
@@ -259,6 +262,15 @@ export default class GameManager {
         this.gameState = gameState;
         // this.selectedCards = selected;
         this.selectedCards = []
+
+        if (this.isGameTable) {
+            this.canPairCards = true;
+        } else if (this.isPlayerTurn()) {
+            this.canPairCards = true;
+        } else {
+            this.canPairCards = false;
+        }
+
 
         console.log('HIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHT')
         console.log("SELECTED CARDS", this.selectedCards)
@@ -750,7 +762,7 @@ export default class GameManager {
         // selectedCard = this.selectedCards[this.selectedCards.length - 1].card;
         selectedCard = selectedCardObj.card;
         console.log('debug-3 selectedddd', selectedCard);
-         
+          
         console.log('debug-3 clicked 1') 
         this.socket.emit('update_selected', { roomId: this.roomId, card: { id: selectedCard.cardId, type: selectedCard.type } });
     

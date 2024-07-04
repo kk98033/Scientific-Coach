@@ -52,7 +52,7 @@ class GameManager {
 
     startTurnTimer(roomId) {
         const room = this.gameRoomManager.rooms[roomId];
-        room.turnTimer = 10 // TODO: 設定時間
+        room.turnTimer = room.settings.roundTime; // TODO: 設定時間
         room.timer = setInterval(() => {
             room.turnTimer--;
             console.log(`Remaining time for player ${room.currentPlayerIndex} in room ${roomId}: ${room.turnTimer} seconds`);
@@ -240,9 +240,11 @@ class GameManager {
     }
 
     // 初始化遊戲
-    initializeGame(roomId) {
-        this.shuffleDeck(roomId);
+    initializeGame(roomId, settings) {
         const room = this.gameRoomManager.rooms[roomId];
+        
+        this.applySettings(room, settings);
+        this.shuffleDeck(roomId);
         if (room) {
             room.players.forEach(playerId => {
                 this.dealCardsToPlayer(roomId, playerId, 2); // 每人發兩張卡
@@ -250,6 +252,7 @@ class GameManager {
 
             room.currentPlayer = 0;  // 從第一個玩家開始
             room.state = 1;  // 遊戲開始
+            
             // this.io.to(roomId).emit('game_started', { currentPlayerId: room.players[room.currentPlayer] });
             this.changeState('PlayerTurn');
             this.startTurnTimer(roomId);
@@ -259,6 +262,11 @@ class GameManager {
         console.log(room)
         this.dealCardsToDeck(roomId);
         this.updateGameState(roomId);
+    }
+
+    applySettings(room, settings) {
+        room.settings = settings;
+        
     }
 
     dealCardsToDeck(roomId) {
@@ -518,6 +526,13 @@ class GameManager {
         }
     }
     
+    onReady(roomId, playerId) {
+        this.gameRoomManager.onReady(roomId, playerId);
+    }
+
+    onCancelReady(roomId, playerId) {
+        this.gameRoomManager.onCancelReady(roomId, playerId);
+    }
     
 
 }

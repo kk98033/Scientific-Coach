@@ -100,8 +100,9 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('get_cards_on_table', { playerId: playerId, cards: cards });
     });
 
-    socket.on('initialize_game', (roomId) => {
-        gameManager.initializeGame(roomId);
+    socket.on('initialize_game', (data) => {
+        const { roomId, settings } = data;
+        gameManager.initializeGame(roomId, settings);
         console.log(`Game initialized in room ${roomId}`);
         io.to(roomId).emit('game_started');
     });
@@ -113,7 +114,7 @@ io.on('connection', (socket) => {
         console.log(`Cards added to deck in room ${roomId}`);
         let rooms = gameRoomManager.getRoomIds(); // debug, TODO: delete it
         if (gameRoomManager.createRoom(roomId)) {
-            gameManager.addCardsToDeck(roomId, gameManager.debugCards);
+            // gameManager.addCardsToDeck(roomId, gameManager.debugCards);
             console.log(gameRoomManager.rooms[roomId])
             socket.join(roomId);
             io.to(roomId).emit('room_created', { roomId, rooms });
@@ -247,6 +248,54 @@ io.on('connection', (socket) => {
             });
         }
     });
+
+    socket.on('player_ready', (data) => {
+        const { roomId, playerId } = data;
+        gameManager.onReady(roomId, playerId);
+
+        const { readyPlayers, count, total } = gameRoomManager.getReadyPlayers(roomId);
+        // return {
+        //     readyPlayers: room.readyPlayers,
+        //     count: room.readyPlayers.length
+        // };
+        console.log(readyPlayers, count)
+        io.to(roomId).emit('get_ready_players', {
+            readyPlayers: readyPlayers,
+            count: count,
+            total: total
+        });
+    });
+
+    socket.on('player_not_ready', (data) => {
+        const { roomId, playerId } = data;
+        gameManager.onCancelReady(roomId, playerId);
+
+        const { readyPlayers, count, total } = gameRoomManager.getReadyPlayers(roomId);
+        // return {
+        //     readyPlayers: room.readyPlayers,
+        //     count: room.readyPlayers.length
+        // };
+        io.to(roomId).emit('get_ready_players', {
+            readyPlayers: readyPlayers,
+            count: count,
+            total: total
+        });
+    });
+    
+    socket.on('get_ready_players', (data) => {
+        const { roomId, playerId } = data;
+        const { readyPlayers, count, total } = gameRoomManager.getReadyPlayers(roomId);
+        // return {
+        //     readyPlayers: room.readyPlayers,
+        //     count: room.readyPlayers.length
+        // };
+        io.to(roomId).emit('get_ready_players', {
+            readyPlayers: readyPlayers,
+            count: count,
+            total: total
+        });
+    });
+    
     
 });
 

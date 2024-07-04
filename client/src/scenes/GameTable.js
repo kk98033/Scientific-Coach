@@ -39,6 +39,9 @@ export class GameTable extends Scene {
 
         this.createHTMLUI();
 
+        // 更新準備玩家 UI
+        this.gameManager.updateReadyPlayers();
+
         this.setupDragEvents();
 
         this.currentPlayerText = this.add.text(10, 15, 'TABLE ', { fontSize: '24px', fill: '#fff' });
@@ -165,31 +168,130 @@ export class GameTable extends Scene {
         playerListContainer.style.color = '#fff';
         playerListContainer.style.padding = '10px';
         playerListContainer.style.borderRadius = '10px';
-
+    
         document.body.appendChild(playerListContainer);
+    
+        // Time setting input
+        let timeSettingContainer = document.createElement('div');
+        timeSettingContainer.id = 'timeSettingContainer';
+        timeSettingContainer.style.position = 'absolute';
+        timeSettingContainer.style.top = '30%';
+        timeSettingContainer.style.left = '10px';
+        timeSettingContainer.style.backgroundColor = '#333';
+        timeSettingContainer.style.color = '#fff';
+        timeSettingContainer.style.padding = '10px';
+        timeSettingContainer.style.borderRadius = '10px';
 
+        let timeSettingLabel = document.createElement('label');
+        timeSettingLabel.textContent = '時間設定 (秒):';
+        timeSettingLabel.style.marginRight = '10px';
+
+        let timeSettingInput = document.createElement('input');
+        timeSettingInput.id = 'roundTimeInput';
+        timeSettingInput.type = 'number';
+        timeSettingInput.value = '30';
+        timeSettingInput.min = '1';
+
+        timeSettingContainer.appendChild(timeSettingLabel);
+        timeSettingContainer.appendChild(timeSettingInput);
+        document.body.appendChild(timeSettingContainer);
+    
+        // Card deck selection
+        let cardDeckContainer = document.createElement('div');
+        cardDeckContainer.id = 'cardDeckContainer';
+        cardDeckContainer.style.position = 'absolute';
+        cardDeckContainer.style.top = '40%';
+        cardDeckContainer.style.left = '10px';
+        cardDeckContainer.style.backgroundColor = '#333';
+        cardDeckContainer.style.color = '#fff';
+        cardDeckContainer.style.padding = '10px';
+        cardDeckContainer.style.borderRadius = '10px';
+    
+        for (let i = 1; i <= 4; i++) {
+            let deckContainer = document.createElement('div');
+            deckContainer.id = `deckContainer_${i}`;
+            deckContainer.style.marginBottom = '10px';
+        
+            let deckLabel = document.createElement('span');
+            deckLabel.textContent = `排組 ${i}: `;
+            deckLabel.style.marginRight = '10px';
+        
+            let addButton = document.createElement('button');
+            addButton.id = `addButton_${i}`;
+            addButton.textContent = '+';
+            addButton.style.marginRight = '5px';
+            addButton.onclick = () => {
+                let deckCount = document.getElementById(`deckCount_${i}`);
+                let currentCount = parseInt(deckCount.textContent, 10);
+                deckCount.textContent = currentCount + 1;
+            };
+        
+            let deckCount = document.createElement('span');
+            deckCount.id = `deckCount_${i}`;
+            deckCount.textContent = i === 1 ? '1' : '0';
+            deckCount.style.marginRight = '5px';
+        
+            let subtractButton = document.createElement('button');
+            subtractButton.id = `subtractButton_${i}`;
+            subtractButton.textContent = '-';
+            subtractButton.onclick = () => {
+                let deckCount = document.getElementById(`deckCount_${i}`);
+                let currentCount = parseInt(deckCount.textContent, 10);
+                if (currentCount > 0) {
+                    deckCount.textContent = currentCount - 1;
+                }
+            };
+        
+            deckContainer.appendChild(deckLabel);
+            deckContainer.appendChild(addButton);
+            deckContainer.appendChild(deckCount);
+            deckContainer.appendChild(subtractButton);
+            cardDeckContainer.appendChild(deckContainer);
+        }
+        
+        document.body.appendChild(cardDeckContainer);
+        
+    
+        // Game start button with player ready count
+        let startGameContainer = document.createElement('div');
+        startGameContainer.id = 'startGameContainer';
+        startGameContainer.style.position = 'absolute';
+        startGameContainer.style.top = '60%';
+        startGameContainer.style.left = '10px';
+        startGameContainer.style.backgroundColor = '#333';
+        startGameContainer.style.color = '#fff';
+        startGameContainer.style.padding = '10px';
+        startGameContainer.style.borderRadius = '10px';
+    
+        let playerReadyCount = document.createElement('div');
+        playerReadyCount.id = 'playerReadyCount';
+        playerReadyCount.textContent = '0/4 玩家已準備好';
+        playerReadyCount.style.marginBottom = '10px';
+        startGameContainer.appendChild(playerReadyCount);
+    
         let createRoomBtn = document.createElement('button');
         createRoomBtn.id = 'start-game';
         createRoomBtn.textContent = '開始遊戲';
-        createRoomBtn.style.position = 'absolute';
-        createRoomBtn.style.top = '60%';
-        createRoomBtn.style.left = '45%';
-        document.body.appendChild(createRoomBtn);
-
-        let getCardBtn = document.createElement('button');
-        getCardBtn.id = 'get-card';
-        getCardBtn.textContent = '取得手牌';
-        getCardBtn.style.position = 'absolute';
-        getCardBtn.style.top = '60%';
-        getCardBtn.style.left = '55%';
-        document.body.appendChild(getCardBtn);
-
-        let drawCardBtn = document.createElement('button');
-        drawCardBtn.id = 'draw-card';
-        drawCardBtn.textContent = '抽牌';
-        drawCardBtn.style.position = 'absolute';
-        drawCardBtn.style.top = '60%';
-        drawCardBtn.style.left = '65%';
-        document.body.appendChild(drawCardBtn);
+        createRoomBtn.disabled = true; // 設置為不能點及
+        createRoomBtn.style.backgroundColor = 'gray'; // 默認顯示為灰色
+        createRoomBtn.onclick = () => {
+            this.initializeAndStartGame();
+        };
+        startGameContainer.appendChild(createRoomBtn);
+     
+        document.body.appendChild(startGameContainer);
     }
-}
+    
+    
+    initializeAndStartGame() { 
+        const settings = this.gameManager.getGameSettings();  
+        console.log(settings)
+
+        document.body.removeChild(timeSettingContainer);
+        document.body.removeChild(cardDeckContainer);
+        document.body.removeChild(startGameContainer);
+
+        const roomId = this.gameManager.roomId
+        this.gameManager.socket.emit('initialize_game', { roomId, settings });
+    }
+} 

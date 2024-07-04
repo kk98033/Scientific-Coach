@@ -35,6 +35,14 @@ class GameRoomManager {
                 state: 0,
                 timer: null,
                 usedCards: [],
+                readyPlayers: [],
+                settings: {
+                    roundTime: 10,
+                    deck_1: 1,
+                    deck_2: 0,
+                    deck_3: 0,
+                    deck_4: 0,
+                }
             }
         }; // for debug
     }
@@ -56,6 +64,14 @@ class GameRoomManager {
                 currentSelected: [],
                 timer: null,
                 usedCards: [],
+                readyPlayers: [],
+                settings: {
+                    roundTime: 30,
+                    deck_1: 0,
+                    deck_2: 0,
+                    deck_3: 0,
+                    deck_4: 0,
+                }
             };
             console.log(`Room ${roomId} created.`);
             return true;
@@ -134,6 +150,38 @@ class GameRoomManager {
 
     getRoomIds() {
         return Object.keys(this.rooms);
+    }
+
+    onReady(roomId, playerId) {
+        const room = this.rooms[roomId];
+        if (!room.readyPlayers.includes(playerId)) {
+            room.readyPlayers.push(playerId);
+        }
+    }
+
+    onCancelReady(roomId, playerId) {
+        const room = this.rooms[roomId];
+        const playerIndex = room.readyPlayers.indexOf(playerId);
+        if (playerIndex !== -1) {
+            room.readyPlayers.splice(playerIndex, 1);
+        }
+    }
+
+    getReadyPlayers(roomId) {
+        const room = this.rooms[roomId];
+        if (room) {
+            return {
+                readyPlayers: room.readyPlayers,
+                count: room.readyPlayers.length,
+                total: room.players.length
+            };
+        } else {
+            return {
+                readyPlayers: [],
+                count: 0,
+                total: room.players.length
+            };
+        }
     }
 
 }

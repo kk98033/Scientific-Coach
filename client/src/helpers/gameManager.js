@@ -168,7 +168,23 @@ export default class GameManager {
             this.showText('選擇兩張卡片丟棄', 10, 500);
             this.canPairCards = false;
         });
-        
+
+        this.socket.on('get_ready_players', (data) => {
+            const { readyPlayers, count, total } = data;
+            console.log('debug-4', readyPlayers)
+            console.log('debug-4', count)
+            console.log('debug-4', total)
+            this.updatePlayerReadyCountUI(count, total)
+
+            if (count === total) {
+                this.enableStartGameButton()
+            } else {
+                this.disableStartGameButton()
+            }
+            // this.showText('選擇兩張卡片丟棄', 10, 500);
+            // this.canPairCards = false;
+        });
+         
          
 
         // this.socket.on('player_hand', (data) => {
@@ -895,7 +911,7 @@ export default class GameManager {
         let newText = this.scene.add.text(x, y + this.scene.displayedTexts.length * 20, text, style);
         this.scene.displayedTexts.push(newText);
         return newText; 
-    }
+    } 
 
     clearTexts() { 
         if (this.scene.displayedTexts) {
@@ -905,5 +921,64 @@ export default class GameManager {
             this.scene.displayedTexts = [];
         }
     }  
-}
-        
+
+    playerReady() {
+        this.socket.emit('player_ready', { roomId: this.roomId, playerId: this.playerId });
+    }
+
+    playerNotReady() {
+        this.socket.emit('player_not_ready', { roomId: this.roomId, playerId: this.playerId });
+    }
+
+    updateReadyPlayers() {
+        this.socket.emit('get_ready_players', { roomId: this.roomId, playerId: this.playerId });
+    }
+
+    updatePlayerReadyCountUI(readyPlayers, totalPlayers) {
+        const playerReadyCount = document.getElementById('playerReadyCount');
+        playerReadyCount.textContent = `${readyPlayers}/${totalPlayers} 玩家已準備好`;
+    }
+
+    enableStartGameButton() {
+        let createRoomBtn = document.getElementById('start-game');
+        if (createRoomBtn) {
+            createRoomBtn.disabled = false; // 允許點及
+            createRoomBtn.style.backgroundColor = 'green'; // 顯示為綠色
+        }
+    }
+
+    disableStartGameButton() {
+        let createRoomBtn = document.getElementById('start-game');
+        if (createRoomBtn) {
+            createRoomBtn.disabled = true; // 禁用按鈕
+            createRoomBtn.style.backgroundColor = 'gray'; // 顯示為灰色
+        }
+    }
+
+    getGameSettings() {
+        // 取得時間設定
+        let roundTimeInput = document.getElementById('roundTimeInput');
+        let roundTime = roundTimeInput ? parseInt(roundTimeInput.value, 10) : 30;
+
+        // 取得排組數量
+        let deckCounts = [];
+        for (let i = 1; i <= 4; i++) {
+            let deckCountElement = document.getElementById(`deckCount_${i}`);
+            let deckCount = deckCountElement ? parseInt(deckCountElement.textContent, 10) : 0;
+            deckCounts.push(deckCount);
+        }
+    
+        // 組成設定物件 
+        let settings = {
+            roundTime: roundTime,
+            deck_1: deckCounts[0],
+            deck_2: deckCounts[1],
+            deck_3: deckCounts[2],
+            deck_4: deckCounts[3]
+        };
+    
+        return settings;
+    }
+
+} 
+         

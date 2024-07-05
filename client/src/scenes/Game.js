@@ -464,7 +464,7 @@ export class Game extends Scene {
         });
     }
     
-    addWaveGradientBorder() {
+    addWaveGradientBorder(color = 0x00ff00) { // 默認顏色為綠色
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
         const thickness = 50; // 漸層的厚度
@@ -473,28 +473,28 @@ export class Game extends Scene {
         
         const maxWaveHeight = 30; // 波浪的最大高度，增加延伸幅度
         const waveSpeed = 500; // 波浪的速度，增加動畫速度
-        
+        console.log('DEBUG-COLOR', color)
         // 繪製初始漸層邊框
         for (let i = 0; i < thickness; i++) {
             let alpha = 1 - (i / thickness);
             
             // 上邊
-            this.gradient.fillStyle(0x00ff00, alpha); // 綠色
+            this.gradient.fillStyle(color, alpha); // 使用參數顏色
             this.gradient.fillRect(0, i, width, 1);
             
             // 下邊
-            this.gradient.fillStyle(0x00ff00, alpha); // 綠色
+            this.gradient.fillStyle(color, alpha); // 使用參數顏色
             this.gradient.fillRect(0, height - i, width, 1);
             
             // 左邊
-            this.gradient.fillStyle(0x00ff00, alpha); // 綠色
+            this.gradient.fillStyle(color, alpha); // 使用參數顏色
             this.gradient.fillRect(i, 0, 1, height);
             
             // 右邊
-            this.gradient.fillStyle(0x00ff00, alpha); // 綠色
+            this.gradient.fillStyle(color, alpha); // 使用參數顏色
             this.gradient.fillRect(width - i, 0, 1, height);
         }
-    
+
         // 創建波浪動畫
         this.waveTween = this.tweens.add({
             targets: this.gradient,
@@ -510,51 +510,67 @@ export class Game extends Scene {
                     let waveOffset = Math.sin((i / thickness) * Math.PI * 2 + tween.progress * Math.PI * 2) * waveHeight;
                     
                     // 上邊
-                    this.gradient.fillStyle(0x00ff00, alpha); // 綠色
+                    this.gradient.fillStyle(color, alpha); // 使用參數顏色
                     this.gradient.fillRect(0, i + waveOffset, width, 1);
                     
                     // 下邊
-                    this.gradient.fillStyle(0x00ff00, alpha); // 綠色
+                    this.gradient.fillStyle(color, alpha); // 使用參數顏色
                     this.gradient.fillRect(0, height - i - waveOffset, width, 1);
                     
                     // 左邊
-                    this.gradient.fillStyle(0x00ff00, alpha); // 綠色
+                    this.gradient.fillStyle(color, alpha); // 使用參數顏色
                     this.gradient.fillRect(i + waveOffset, 0, 1, height);
                     
                     // 右邊
-                    this.gradient.fillStyle(0x00ff00, alpha); // 綠色
+                    this.gradient.fillStyle(color, alpha); // 使用參數顏色
                     this.gradient.fillRect(width - i - waveOffset, 0, 1, height);
                 }
             }
         });
-    
+
         console.log("Wave tween created: ", this.waveTween);
         // 設置透明度
-        this.gradient.setAlpha(0.9); // 設置更高的透明度以使其更明顯
+        this.gradient.setAlpha(0.7);
     }
-    
 
-    toggleGradientBorder(visible) {
+    toggleGradientBorder(visible, color = 0x00ff00) { // 默認顏色為綠色
         if (visible) {
-            if (!this.gradient) {
-                this.addWaveGradientBorder();
+            if (this.gradient) {
+                this.gradient.destroy(); // 刪除舊的 gradient
+                if (this.waveTween) {
+                    this.waveTween.stop(); // 停止舊的 waveTween
+                }
             }
+            this.addWaveGradientBorder(color); // 重新設置新的 gradient
             this.gradient.setVisible(true);
-            if (this.waveTween && this.waveTween.isPlaying()) {
-                this.waveTween.resume();
+            if (this.waveTween) {
+                try {
+                    this.waveTween.resume();
+                } catch (error) {
+                    console.error('Failed to resume waveTween:', error);
+                }
             }
         } else {
             if (this.gradient) {
                 this.gradient.setVisible(false); 
-                if (this.waveTween && this.waveTween.isPlaying()) {
-                    this.waveTween.pause();
+                if (this.waveTween) {
+                    try {
+                        this.waveTween.pause();
+                    } catch (error) {
+                        console.error('Failed to pause waveTween:', error);
+                    }
                 }
-            } 
+            }
         }
         this.gradientVisible = visible;
     }
  
-    
+    changeGradientColor(newColor) {
+        if (this.gradient) {
+            this.gradient.destroy(); // 刪除舊的 gradient
+            this.addWaveGradientBorder(newColor); // 重新設置顏色
+        }
+    }
  
     
      

@@ -61,10 +61,41 @@ class GameManager {
             room.turnTimer--;
             console.log(`Remaining time for player ${room.currentPlayerIndex} in room ${roomId}: ${room.turnTimer} seconds`);
             this.io.to(roomId).emit('update_timer', { turnTimer: room.turnTimer });
+
             if (room.turnTimer <= 0) {
                 clearInterval(room.timer);
                 this.io.to(roomId).emit('time_to_discard_some_cards', { turnTimer: room.turnTimer });
-                // this.endTurn(roomId);
+                
+                // 新增 10 秒的計時器
+                let discardTimer = 10;
+                room.discardTimer = setInterval(() => {
+                    discardTimer--;
+                    this.io.to(roomId).emit('discard_timer', { discardTimer: discardTimer });
+                    if (discardTimer <= 0) {
+                        clearInterval(room.discardTimer);
+                        
+                        // 清空 room.currentSelected
+                        room.currentSelected = [];
+    
+                        // 隨機選擇兩張卡片加入 currentSelected
+                        const playerId = room.players[room.currentPlayer];
+                        const playerHand = room.hands[playerId];
+                        if (playerHand.length >= 2) {
+                            let selectedCards = [];
+                            while (selectedCards.length < 2) {
+                                const randomIndex = Math.floor(Math.random() * playerHand.length);
+                                const selectedCard = playerHand[randomIndex];
+                                if (!selectedCards.includes(selectedCard)) {
+                                    selectedCards.push(selectedCard);
+                                }
+                            }
+                            room.currentSelected = selectedCards;
+                        }
+    
+                        // 呼叫 discardCards 函數
+                        this.discardCards(roomId, playerId);
+                    }
+                }, 1000);
             }
         }, 1000);   
     }
@@ -74,13 +105,10 @@ class GameManager {
         const room = this.gameRoomManager.rooms[roomId];
         if (room.timer) clearInterval(room.timer);
 
-        console.log('+')
-        console.log('+')
-        console.log('+')
+        // 新增中斷 discardTimer 的邏輯
+        if (room.discardTimer) clearInterval(room.discardTimer);
+
         this.checkCardPositions(roomId, room.players[room.currentPlayer]);
-        console.log('+')
-        console.log('+')
-        console.log('+')
 
         room.currentPlayer = (room.currentPlayer + 1) % room.players.length;
         this.dealCardsToDeck(roomId);
@@ -141,14 +169,14 @@ class GameManager {
                 console.log(`Removed card with ID ${cardId} from cardPositions of player ${playerId} in room ${roomId}.`);
             }
         }
-        console.log('RESULT: ')
-        console.log('')
-        console.log('')
-        console.log('')
-        console.log(room.hands[playerId])
-        console.log('')
-        console.log('')
-        console.log('')
+        // console.log('RESULT: ')
+        // console.log('')
+        // console.log('')
+        // console.log('')
+        // console.log(room.hands[playerId])
+        // console.log('')
+        // console.log('')
+        // console.log('')
     }
 
     dealCards(roomId, playerId, cardId, zoneIndex) {

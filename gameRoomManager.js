@@ -35,6 +35,7 @@ class GameRoomManager {
                 currentSelected: [],
                 state: 0,
                 timer: null,
+                discardTimer: null,
                 usedCards: [],
                 readyPlayers: [],
                 settings: {
@@ -63,8 +64,9 @@ class GameRoomManager {
                 hands: {},      // 每個玩家的手牌，使用玩家 ID 為 key
                 cardPositions: {}, // { 'playerID': { 'cardId1': [x1, y1], 'cardId2': [x2, y2]...}, ... }
                 state: 0,
-                currentSelected: [],
+                currentSelected: [], // ex: [ { id: 20, type: '5' },  { id: 21, type: '6' }]
                 timer: null,
+                discardTimer: null,
                 usedCards: [],
                 readyPlayers: [],
                 settings: {

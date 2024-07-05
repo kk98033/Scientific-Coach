@@ -168,7 +168,34 @@ export default class GameManager {
         this.socket.on('time_to_discard_some_cards', (data) => {
             this.showText('選擇兩張卡片丟棄', 10, 500);
             this.canPairCards = false;
+
+            if (!this.isGameTable && this.isPlayerTurn()) {
+                this.triggerRedGradient();
+            }
+
         });
+
+        this.socket.on('auto_discarded_cards', (data) => {
+            const { selectedCards } = data;
+            this.showText('選擇兩張卡片丟棄', 10, 10, { font: '16px Arial', fill: '#ffffff' });
+            this.canPairCards = false;
+        
+            if (!this.isGameTable && this.isPlayerTurn()) {
+                this.triggerRedGradient();
+            }
+        
+            // 顯示自動丟棄的卡片資訊
+            selectedCards.forEach((card, index) => {
+                this.showText(`自動丟棄的卡片: ${card.type}`, 10, 30 + index * 20, { font: '16px Arial', fill: '#ffffff' });
+            });
+        
+            // 10秒後移除所有文本
+            setTimeout(() => {
+                this.clearTexts();
+            }, 10000);
+        });
+        
+        
 
         this.socket.on('get_ready_players', (data) => {
             const { readyPlayers, count, total } = data;
@@ -192,12 +219,25 @@ export default class GameManager {
 
             this.updateSettingsUI(settings)
 
+        }); 
+
+        this.socket.on('discard_timer', (data) => {
+            const { discardTimer } = data;
+            console.log('debug-discard', discardTimer)
+
+            // 格式化並設置定時器文字
+            const playerText = `Player: ${this.currentPlayer}`;
+            const roomText = `Room ID: ${this.roomId}`;
+            const timerText = `在 ${discardTimer} 內選擇兩張卡片丟棄`;
+        
+            // 設置顯示文字
+            this.scene.timerText.setText(`${playerText}\n${roomText}\n${timerText}`);
         });
          
 
         // this.socket.on('player_hand', (data) => {
         //     const { playerId, hand } = data;
-        //     if (playerId === this.playerId) {
+        //     if (playerId === this.playerId) { 
         //         this.hand = hand;  // Update local hand
         //         this.displayPlayerHand();
         //     }
@@ -1059,6 +1099,14 @@ export default class GameManager {
         console.log('debug-6', settings)
         this.socket.emit('update_settings', { roomId: this.roomId, settings: settings }); 
 
+    }
+
+    triggerRedGradient() {
+        if (this.scene) {
+            console.log('trigger red gradient')
+            // this.scene.toggleGradientBorder(false);
+            this.scene.changeGradientColor(0xff0000); // 將顏色改為紅色
+        }
     }
  
 } 

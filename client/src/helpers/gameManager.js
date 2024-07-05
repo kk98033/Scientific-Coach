@@ -291,20 +291,25 @@ export default class GameManager {
             this.canPairCards = true;
         } else if (this.isPlayerTurn()) {
             this.canPairCards = true;
+            this.handPositions = handPositions;
+            if (this.scene) {
+                console.log('DEBUG GRADIENTG: on')
+                this.scene.toggleGradientBorder(true); // 開啟漸層效果
+            }
         } else {
             this.canPairCards = false;
+            if (this.scene) {
+                console.log('DEBUG GRADIENTG: off')
+                this.scene.toggleGradientBorder(false); // 關閉漸層效果
+            }
         }
-
-        if (this.isPlayerTurn()) {
-            this.handPositions = handPositions;
-        } 
-
+ 
 
         console.log('HIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHT')
         console.log("SELECTED CARDS", this.selectedCards)
         console.log('HIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHT')
 
-        this.highlightSelectedCards();
+        this.highlightSelectedCards(); 
     
         const getCardsOnTablePromise = new Promise((resolve) => {
             this.getCardsOnTable(currentPlayer, cards);

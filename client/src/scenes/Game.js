@@ -27,7 +27,13 @@ export class Game extends Scene {
     }
 
     create() {
-        let self = this;
+        // let self = this;
+
+        this.waveIsVisable = true;
+
+        // 加入紅色漸層效果
+        this.addWaveGradientBorder();
+        this.toggleGradientBorder(false);
 
         // this.dealText = this.add.text(75, 350, ['DEAL CARDS']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         // this.zone = new Zone(this);
@@ -47,6 +53,8 @@ export class Game extends Scene {
 
         this.currentPlayerText = this.add.text(10, 5, 'Current Player: ', { fontSize: '36px', fill: '#fff' });
         this.timerText = this.add.text(10, 30, '', { fontSize: '36px', fill: '#fff' });
+
+        
 
         // this.input.on('pointerdown', (pointer) => {
         //     this.handlePointerDown(pointer);
@@ -175,79 +183,23 @@ export class Game extends Scene {
         //     self.dealText.disableInteractive(); 
         // })
  
-        this.gameManager.socket.on('update_player_list', function (data) {
+        this.gameManager.socket.on('update_player_list',  (data) => {
             console.log("AAAAA")
             console.log(data)
-            self.updatePlayerList(data.players);
+            this.updatePlayerList(data.players);
         }); 
-        this.gameManager.socket.on('game_started', function (data) {
+        this.gameManager.socket.on('game_started',  (data) => {
             // document.getElementById('start-game').remove();
             // document.getElementById('get-card').remove();
             // document.getElementById('draw-card').remove();
-            self.clearHTMLUI();
-            self.showActionButtons();
+            this.clearHTMLUI();
+            this.showActionButtons();
         });
 
-        
-
-        // this.socket.on('cardPlayed', function (gameObject, isPlayerA) {
-        //     // if (isPlayerA !== self.isPlayerA) {
-        //     //     let sprite = gameObject.textureKey; 
-        //     //     self.opponentCards.shift().destroy();
-        //     //     self.dropZone.data.values.cards++;
-        //     //     let card = new Card(self); 
-        //     //     card.render(((self.dropZone.x - 350) + (self.dropZone.data.values.cards * 50)), (self.dropZone.y), sprite).disableInteractive();
-        //     // }
-        // })
-
-        // this.dealText.on('pointerdown', function () {
-        //     self.socket.emit("dealCards");
-        // })
-
         this.gameManager.socket.emit('update_player_list', { roomId: this.gameManager.roomId });
+
+        
     }
-
-    // handlePointerDown(pointer) {
-    //     const { x, y } = pointer;
-    //     let clickedOnCard = false;
-
-    //     this.children.list.forEach(child => {
-    //         if (child.texture && child.texture.key.includes('Card') && child.getBounds().contains(x, y)) {
-    //             this.toggleCardSelection(child);
-    //             clickedOnCard = true;
-    //         }
-    //     });
-
-    //     if (!clickedOnCard) {
-    //         this.dropZones.forEach(zone => {
-    //             if (zone.getBounds().contains(x, y)) {
-    //                 this.handleDropZoneClick();
-    //             }
-    //         });
-    //     }
-    //     console.log(this.selectedCards)
-    // }
-
-    // toggleCardSelection(card) {
-    //     const index = this.selectedCards.indexOf(card);
-    //     if (index === -1) {
-    //         card.setTint(0xff69b4);
-    //         this.selectedCards.push(card);
-    //     } else {
-    //         card.clearTint();
-    //         this.selectedCards.splice(index, 1);
-    //     }
-    // }
-
-    // handleDropZoneClick() {
-    //     this.selectedCards.forEach(card => {
-    //         // 處理卡片加入卡桌的邏輯
-    //         card.clearTint();
-    //         card.setInteractive(false);
-    //         this.gameManager.dealCards(card, this.dropZones.indexOf(card.zone));
-    //     });
-    //     this.selectedCards = [];
-    // }
 
     update() {
     }
@@ -486,6 +438,7 @@ export class Game extends Scene {
         actionButtonsContainer.appendChild(discardButton);
     
         document.body.appendChild(actionButtonsContainer);
+        
     }
     
     // 顯示配對和丟棄按鈕的函數
@@ -511,7 +464,102 @@ export class Game extends Scene {
         });
     }
     
+    addWaveGradientBorder() {
+        const width = this.cameras.main.width;
+        const height = this.cameras.main.height;
+        const thickness = 50; // 漸層的厚度
+        this.gradient = this.add.graphics({ x: 0, y: 0 });
+        this.gradient.setDepth(-1); // 確保在最底層
+        
+        const maxWaveHeight = 30; // 波浪的最大高度，增加延伸幅度
+        const waveSpeed = 500; // 波浪的速度，增加動畫速度
+        
+        // 繪製初始漸層邊框
+        for (let i = 0; i < thickness; i++) {
+            let alpha = 1 - (i / thickness);
+            
+            // 上邊
+            this.gradient.fillStyle(0x00ff00, alpha); // 綠色
+            this.gradient.fillRect(0, i, width, 1);
+            
+            // 下邊
+            this.gradient.fillStyle(0x00ff00, alpha); // 綠色
+            this.gradient.fillRect(0, height - i, width, 1);
+            
+            // 左邊
+            this.gradient.fillStyle(0x00ff00, alpha); // 綠色
+            this.gradient.fillRect(i, 0, 1, height);
+            
+            // 右邊
+            this.gradient.fillStyle(0x00ff00, alpha); // 綠色
+            this.gradient.fillRect(width - i, 0, 1, height);
+        }
+    
+        // 創建波浪動畫
+        this.waveTween = this.tweens.add({
+            targets: this.gradient,
+            duration: waveSpeed,
+            repeat: -1,
+            yoyo: true,
+            onUpdate: (tween) => {
+                const waveHeight = Math.sin(tween.progress * Math.PI) * maxWaveHeight;
+                this.gradient.clear();
+                
+                for (let i = 0; i < thickness; i++) {
+                    let alpha = 1 - (i / thickness);
+                    let waveOffset = Math.sin((i / thickness) * Math.PI * 2 + tween.progress * Math.PI * 2) * waveHeight;
+                    
+                    // 上邊
+                    this.gradient.fillStyle(0x00ff00, alpha); // 綠色
+                    this.gradient.fillRect(0, i + waveOffset, width, 1);
+                    
+                    // 下邊
+                    this.gradient.fillStyle(0x00ff00, alpha); // 綠色
+                    this.gradient.fillRect(0, height - i - waveOffset, width, 1);
+                    
+                    // 左邊
+                    this.gradient.fillStyle(0x00ff00, alpha); // 綠色
+                    this.gradient.fillRect(i + waveOffset, 0, 1, height);
+                    
+                    // 右邊
+                    this.gradient.fillStyle(0x00ff00, alpha); // 綠色
+                    this.gradient.fillRect(width - i - waveOffset, 0, 1, height);
+                }
+            }
+        });
+    
+        console.log("Wave tween created: ", this.waveTween);
+        // 設置透明度
+        this.gradient.setAlpha(0.9); // 設置更高的透明度以使其更明顯
+    }
+    
+
+    toggleGradientBorder(visible) {
+        if (visible) {
+            if (!this.gradient) {
+                this.addWaveGradientBorder();
+            }
+            this.gradient.setVisible(true);
+            if (this.waveTween && this.waveTween.isPlaying()) {
+                this.waveTween.resume();
+            }
+        } else {
+            if (this.gradient) {
+                this.gradient.setVisible(false); 
+                if (this.waveTween && this.waveTween.isPlaying()) {
+                    this.waveTween.pause();
+                }
+            } 
+        }
+        this.gradientVisible = visible;
+    }
+ 
+    
+ 
+    
+     
+     
     
     
-    
-}
+} 
+  

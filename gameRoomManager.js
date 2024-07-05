@@ -31,7 +31,7 @@ class GameRoomManager {
                 table: Array.from({ length: 8 }, () => []), 
                 matchArea: [],
                 hands: {},
-                cardPositions: {}, // { 'playerID': [[x1, y1], [x2, y2]...], ... }
+                cardPositions: {}, // { 'playerID': [ 'cardid': [x1, y1], 'cardid': [x2, y2]...], ... }
                 currentSelected: [],
                 state: 0,
                 timer: null,

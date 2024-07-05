@@ -71,9 +71,17 @@ class GameManager {
 
     // 處理回合結束 
     endTurn(roomId) { 
-        
         const room = this.gameRoomManager.rooms[roomId];
         if (room.timer) clearInterval(room.timer);
+
+        console.log('+')
+        console.log('+')
+        console.log('+')
+        this.checkCardPositions(roomId, room.players[room.currentPlayer]);
+        console.log('+')
+        console.log('+')
+        console.log('+')
+
         room.currentPlayer = (room.currentPlayer + 1) % room.players.length;
         this.dealCardsToDeck(roomId);
 
@@ -100,6 +108,47 @@ class GameManager {
         // this.startTurnTimer(roomId);
         // // }
         // console.log(room.currentPlayer)
+    }
+
+    checkCardPositions(roomId, playerId) {
+        const room = this.gameRoomManager.rooms[roomId];
+    
+        if (!room) {
+            console.error(`Room with ID ${roomId} does not exist.`);
+            return;
+        }
+    
+        const cardPositions = room.cardPositions[playerId];
+        const playerHand = room.hands[playerId];
+    
+        if (!cardPositions) {
+            console.error(`Player with ID ${playerId} does not have card positions in room ${roomId}.`);
+            return;
+        }
+    
+        if (!playerHand) {
+            console.error(`Player with ID ${playerId} does not have a hand in room ${roomId}.`);
+            return;
+        }
+    
+        // 建立一個包含所有 hand 中卡片 id 的集合
+        const handCardIds = new Set(playerHand.map(card => card.id));
+    
+        // 遍歷 cardPositions 並移除不在 hand 中的卡片
+        for (const cardId in cardPositions) {
+            if (!handCardIds.has(parseInt(cardId))) {
+                delete cardPositions[cardId];
+                console.log(`Removed card with ID ${cardId} from cardPositions of player ${playerId} in room ${roomId}.`);
+            }
+        }
+        console.log('RESULT: ')
+        console.log('')
+        console.log('')
+        console.log('')
+        console.log(room.hands[playerId])
+        console.log('')
+        console.log('')
+        console.log('')
     }
 
     dealCards(roomId, playerId, cardId, zoneIndex) {
@@ -530,10 +579,10 @@ class GameManager {
             let removedCards = 0;
             room.currentSelected.forEach(selectedCard => {
                 const index = room.hands[playerId].findIndex(card => card.id === selectedCard.id);
-                const removedCard = this.removeCardFromCardPositions(roomId, playerId, selectedCard.id);
                 console.log('--=-=-=-=-=-==--=-=-afteragfaterafja;fjk;asdfjkasdj;f=-=-==--=-=-=-=-=-=-=-=-=-=-==-=-')
                 console.log(room.cardPositions[playerId])
                 if (index !== -1) {
+                    this.removeCardFromCardPositions(roomId, playerId, selectedCard.id);
                     removedCards ++;
                     matchedHandCards.push(room.hands[playerId][index]);
                     matchedHandIndexes.push(index);
@@ -602,6 +651,15 @@ class GameManager {
         delete playerHand[cardId];
         
         console.log(`Removed card with ID ${cardId} from player ${playerId}'s hand in room ${roomId}.`);
+
+        console.log("AFTER REMOVED:")
+        console.log("")
+        console.log("")
+        console.log("")
+        console.log(room.cardPositions[playerId])
+        console.log("")
+        console.log("")
+        console.log("")
     }
     
     organizePlayerHand(roomId, playerId) {

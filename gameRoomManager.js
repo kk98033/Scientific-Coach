@@ -31,6 +31,7 @@ class GameRoomManager {
                 table: Array.from({ length: 8 }, () => []), 
                 matchArea: [],
                 hands: {},
+                cardPositions: {}, // { 'playerID': [[x1, y1], [x2, y2]...], ... }
                 currentSelected: [],
                 state: 0,
                 timer: null,
@@ -60,6 +61,7 @@ class GameRoomManager {
                 table: Array.from({ length: 8 }, () => []), // 牌桌上的卡牌，預設為包含八個空陣列的陣列
                 matchArea: [], // 配對區的卡牌
                 hands: {},      // 每個玩家的手牌，使用玩家 ID 為 key
+                cardPositions: {}, // { 'playerID': { 'cardId1': [x1, y1], 'cardId2': [x2, y2]...}, ... }
                 state: 0,
                 currentSelected: [],
                 timer: null,
@@ -71,7 +73,7 @@ class GameRoomManager {
                     deck_2: 0,
                     deck_3: 0,
                     deck_4: 0,
-                }
+                },
             };
             console.log(`Room ${roomId} created.`);
             return true;

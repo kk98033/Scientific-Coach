@@ -60,7 +60,7 @@ io.on('connection', (socket) => {
 
     socket.on('deal_cards', (data) => {
         const { roomId, playerId, cardId, zoneIndex } = data;
-        console.log(data)
+        // console.log(data)
         if (gameManager.currentState === 'PlayerTurn') {
             gameManager.dealCards(roomId, playerId, cardId, zoneIndex); 
         } 
@@ -307,6 +307,12 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('update_settings', {
             settings: settings,
         });
+    });
+
+    socket.on('update_card_positions', (data) => {
+        const { roomId, playerId, cardPositions } = data;
+        console.log('update card positions', data)
+        gameManager.updateCardPositions(roomId, playerId, cardPositions);
     });
 });
 

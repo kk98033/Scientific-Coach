@@ -156,13 +156,21 @@ class GameManager {
 
     updateGameState(roomId, pairSuccessIndex = -1) {
         const room = this.gameRoomManager.rooms[roomId]; 
-        console.log(room);
+        // console.log(room);
         console.log('current selected');
         console.log(room.currentSelected);
         console.log('---------');
         let currentPlayer = room.currentPlayer;
         let currentPlayerId = room.players[currentPlayer]; 
         let gameState = room.state;
+
+        const playerHand = room.hands[currentPlayerId];
+    
+        if (!playerHand) {
+            console.error(`Player with ID ${playerId} does not have a hand in room ${roomId}.`);
+            return;
+        }
+
         this.io.to(roomId).emit('update_game_state', {
             roomId: roomId,
             currentPlayer: currentPlayerId,
@@ -170,7 +178,9 @@ class GameManager {
             table: room.table,
             cards: this.getCardsOnTable(roomId), 
             selected: room.currentSelected,
-            pairSuccessIndex: pairSuccessIndex
+            pairSuccessIndex: pairSuccessIndex,
+            playerHand: playerHand,
+            handPositions: room.cardPositions[currentPlayerId]
         });   
         const players = this.gameRoomManager.getPlayersInRoom(roomId);
         this.io.to(roomId).emit('update_player_list', { players }); 
@@ -200,7 +210,7 @@ class GameManager {
                 room.hands[playerId].push(card);  // 將抽到的牌加入到玩家手牌中
         
                 this.updateGameState(roomId);
-                console.log(room);
+                // console.log(room);
             }
         }
     }
@@ -395,8 +405,8 @@ class GameManager {
 
     discardCards(roomId, playerId) {
         const room = this.gameRoomManager.rooms[roomId];
-        console.log(room.currentSelected);
-        console.log(room.table)
+        // console.log(room.currentSelected);
+        // console.log(room.table)
         if (room.currentSelected.length != 2) {
             return {
                 success: false,
@@ -408,6 +418,12 @@ class GameManager {
         
 
         let result = this.removeCardFromPlayerHand(roomId, playerId, room.currentSelected);
+        room.currentSelected.forEach(selectedCard => {
+            console.log('debugdebugdebugdebugdebugdebugdebugdebugdebug')
+            console.log(selectedCard.id, selectedCard)
+            const cardId = selectedCard.id;
+            this.removeCardFromCardPositions(roomId, playerId, cardId);
+        });
 
         if (result.success) {
             console.log('Cards removed successfully');
@@ -426,6 +442,8 @@ class GameManager {
 
         this.drawCards(roomId, playerId);
         this.drawCards(roomId, playerId);
+
+        // this.organizePlayerHand(roomId, playerId);
 
         this.endTurn(roomId);
 
@@ -451,7 +469,7 @@ class GameManager {
         console.log('==========PUSHED==========');
         console.log(`|          ${room.usedCards}              |`)
         console.log('==========PUSHED==========');
-        console.log(room.table);
+        // console.log(room.table);
     }
 
     removeCardFromPlayerHand(roomId, playerId, cards) {
@@ -507,9 +525,14 @@ class GameManager {
             });
     
             // 移除 hands 中該玩家的配對卡牌
+            console.log('=====================debugdebugdebugdebugdebugdebug=====================')
+            console.log(room.cardPositions, playerId)
             let removedCards = 0;
             room.currentSelected.forEach(selectedCard => {
                 const index = room.hands[playerId].findIndex(card => card.id === selectedCard.id);
+                const removedCard = this.removeCardFromCardPositions(roomId, playerId, selectedCard.id);
+                console.log('--=-=-=-=-=-==--=-=-afteragfaterafja;fjk;asdfjkasdj;f=-=-==--=-=-=-=-=-=-=-=-=-=-==-=-')
+                console.log(room.cardPositions[playerId])
                 if (index !== -1) {
                     removedCards ++;
                     matchedHandCards.push(room.hands[playerId][index]);
@@ -517,11 +540,13 @@ class GameManager {
                     usedCards.push(room.hands[playerId][index]); // 將配對卡牌添加到 usedCards
                     room.hands[playerId].splice(index, 1);
                 }
-            });
+            }); 
 
             for (let i=0; i<removedCards; i++) {
                 this.drawCards(roomId, playerId);
             }
+
+            // this.organizePlayerHand(roomId, playerId);
     
             // 清空 currentSelected
             room.currentSelected = [];
@@ -552,6 +577,55 @@ class GameManager {
             };
         }
     }
+
+    removeCardFromCardPositions(roomId, playerId, cardId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        
+        if (!room) {
+            console.error(`Room with ID ${roomId} does not exist.`);
+            return;
+        }
+        
+        const playerHand = room.cardPositions[playerId];
+        
+        if (!playerHand) {
+            console.error(`Player with ID ${playerId} does not have a hand in room ${roomId}.`);
+            return;
+        }
+        
+        // 查找並移除指定的卡片
+        if (!(cardId in playerHand)) {
+            console.error(`Card with ID ${cardId} does not exist in player ${playerId}'s hand.`);
+            return;
+        }
+    
+        delete playerHand[cardId];
+        
+        console.log(`Removed card with ID ${cardId} from player ${playerId}'s hand in room ${roomId}.`);
+    }
+    
+    organizePlayerHand(roomId, playerId) {
+        const room = this.gameRoomManager.rooms[roomId];
+    
+        if (!room) {
+            console.error(`Room with ID ${roomId} does not exist.`);
+            return;
+        }
+    
+        const playerHand = room.hands[playerId];
+    
+        if (!playerHand) {
+            console.error(`Player with ID ${playerId} does not have a hand in room ${roomId}.`);
+            return;
+        }
+    
+        // 將非空卡片和空卡片分開
+        const nonEmptyCards = playerHand.filter(card => card !== null && card !== undefined);
+        const emptyCards = playerHand.filter(card => card === null || card === undefined);
+    
+        // 將非空卡片排在前面，空卡片排在後面
+        room.hands[playerId] = [...nonEmptyCards, ...emptyCards];
+    }
     
     onReady(roomId, playerId) {
         this.gameRoomManager.onReady(roomId, playerId);
@@ -567,6 +641,27 @@ class GameManager {
         this.io.to(roomId).emit('update_settings', { turnTimer: room.turnTimer });
     }
     
+    updateCardPositions(roomId, playerId, cardPositions) {
+        const room = this.gameRoomManager.rooms[roomId];
+        
+        if (!room) {
+            console.error(`Room with ID ${roomId} does not exist.`);
+            return;
+        }
+
+        // const player = room.cardPositions[playerId];
+        // if (!player) {
+        //     console.log(room.players)
+        //     console.error(`Player with ID ${playerId} does not exist in room ${roomId}.`);
+        //     return;
+        // }
+
+        room.cardPositions[playerId] = cardPositions;
+        console.log(`Updated card positions for player ${playerId} in room ${roomId}.`);
+
+        console.log('+=+++++====+++=+++++====+++=+++++====+++=+++++====++')
+        // console.log(room)
+    }
 
 }
 

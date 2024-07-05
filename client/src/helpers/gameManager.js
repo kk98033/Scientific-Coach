@@ -24,6 +24,7 @@ export default class GameManager {
 
         this.hand = [];  // Store player's hand locally
         this.handObj = [];  // Card object to store cards on hands
+        this.handPositions = {}; // [[x1, y1], [x2, y2]...],
         this.tableCards = Array.from({ length: 8 }, () => []); // Array to store cards on the table
         this.tableCardsObj = Array.from({ length: 8 }, () => []); // Array to store cards on the table
 
@@ -146,21 +147,21 @@ export default class GameManager {
         this.socket.on('pair_result', (data) => {
             const {
                 success,
-                playerId,
-                matchedHandCards,
-                matchedHandIndexes,
-                matchedTableCards,
+                playerId, 
+                matchedHandCards,  
+                matchedHandIndexes, 
+                matchedTableCards,  
                 matchedTableIndexes,
                 message,
-                selectedCards
+                selectedCards 
             } = data;
-        
+         
             if (success) {
                 console.log('配對成功');
                 this.handlePairSuccess(playerId, matchedHandCards, matchedHandIndexes, matchedTableCards, matchedTableIndexes);
             } else {
                 console.log('配對失敗：', message);
-                this.handlePairFailure(playerId, selectedCards);
+                this.handlePairFailure(playerId, selectedCards); 
             }
         });
 
@@ -279,7 +280,7 @@ export default class GameManager {
     updateGameState(data) {
         this.clearTexts();
         console.log("debug: 更新遊戲狀態!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        const { roomId, currentPlayer, gameState, table, pairSuccessIndex, cards, selected } = data;
+        const { roomId, currentPlayer, gameState, table, pairSuccessIndex, cards, selected, handPositions } = data;
         console.log("接收到的資料:", data);
         this.currentPlayer = currentPlayer;
         this.gameState = gameState;
@@ -294,6 +295,10 @@ export default class GameManager {
             this.canPairCards = false;
         }
 
+        if (this.isPlayerTurn()) {
+            this.handPositions = handPositions;
+        } 
+
 
         console.log('HIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHT')
         console.log("SELECTED CARDS", this.selectedCards)
@@ -306,7 +311,7 @@ export default class GameManager {
             resolve();
             console.log("A0");
         });
-    
+     
         getCardsOnTablePromise
             .then(() => { 
                 return new Promise((resolve) => {
@@ -482,27 +487,37 @@ export default class GameManager {
     
         this.scene.input.on('dragend', (pointer, gameObject, dropped) => {
             this.isDragging = false; // 重置拖動狀態
-            gameObject.clearTint();
-
-            // 更新卡片 objcet 位置
+            gameObject.clearTint(); 
+        
+            // 更新卡片 object 位置
             const finalX = gameObject.x;
             const finalY = gameObject.y;
-    
+        
             if (gameObject.card) {
                 gameObject.card.updatePosition(finalX, finalY);
             }            
             this.currentDraggedCard = null;
+        
+            // 更新 handPositions 中對應卡片的位置
+            if (this.handPositions && gameObject.card) {
+                this.handPositions[gameObject.card.cardId] = [finalX, finalY];
+            } 
+
+            console.log('debug', [finalX, finalY], gameObject.card.cardId) 
+        
+            this.socket.emit('update_card_positions', { roomId: this.roomId, playerId: this.playerId, cardPositions: this.handPositions });
             // if (!dropped) {
             //     console.log('debug-a this.insertCardInHand(gameObject);')
-            //     this.insertCardInHand(gameObject);
+            //     this.insertCardInHand(gameObject); 
             // } else {
             //     console.log('debug-a this.checkForCardSwap(gameObject);')
-            //     this.checkForCardSwap(gameObject);
-            // }
-            // this.displayPlayerHand(); // 更新手牌顯示
-        });
-    }
-    
+            //     this.checkForCardSwap(gameObject); 
+            // }  
+            // this.displayPlayerHand(); // 更新手牌顯示   
+        }); 
+         
+    } 
+     
     setupPointerEvents() {
         this.scene.input.on('pointerdown', (pointer, gameObject) => {
             this.isDragging = false; // 每次點擊時重置拖動狀態
@@ -518,6 +533,7 @@ export default class GameManager {
             }
         });
     }
+
     
     
     
@@ -610,9 +626,13 @@ export default class GameManager {
         const baseY = screenHeight / 2; // 將卡片顯示在螢幕的正中央下方
     
         // 重新渲染所有卡片
-        console.log('debug debug debug debug debug debug debug debug debug debug debug debug debug ')
-
+        console.log('debug debug debug debug debug debug debug debug debug debug debug debug debug ');
+    
         this.clearPlayerHandDisplay();
+    
+        this.handPositions = this.handPositions || {}; // 確保 handPositions 被初始化
+    
+        console.log('debug-10', this.handPositions);
     
         this.handObj = this.hand.map((card, index) => {
             const row = Math.floor(index / cardsPerRow); // 計算卡片所在的 row
@@ -620,12 +640,28 @@ export default class GameManager {
             const totalCardWidth = cardOffset * (Math.min(cardsPerRow, this.hand.length) - 1) + cardWidth;
             const baseX = (screenWidth - totalCardWidth) / 2; // 計算每 row 的起始X座標，讓卡片在螢幕中央
     
-            // let playerCard = new Card(this.scene, card.id, this.isPlayerTurn());
-            let playerCard = new Card(this.scene, card.id, true); // 可以隨意移動卡牌，無論使否是自己的回合
-            playerCard.render(baseX + (col * cardOffset), baseY + (row * rowHeight), 'cyanCardFront', card.type);
+            let x, y;
+    
+            if (this.handPositions[card.id]) {
+                // 如果 handPositions 中存在該卡片的位置信息，則使用該位置
+                [x, y] = this.handPositions[card.id];
+            } else {
+                // 如果 handPositions 中不存在該卡片的位置信息，則使用預設位置
+                x = baseX + (col * cardOffset);
+                y = baseY + (row * rowHeight);
+                // 並將該位置信息加入 handPositions 中
+                this.handPositions[card.id] = [x, y];
+            }
+    
+            let playerCard = new Card(this.scene, card.id, true); // 可以隨意移動卡牌，無論是否是自己的回合
+            playerCard.render(x, y, 'cyanCardFront', card.type);
             return playerCard.card;  
         });
+    
+        console.log('debug-11', this.handPositions);
     }
+    
+    
     
     
 
@@ -1001,7 +1037,7 @@ export default class GameManager {
             deckCounts.push(deckCount);
         }
     
-        // 組成設定物件 
+        // 組成設定物件  
         let settings = {
             roundTime: roundTime,
             deck_1: deckCounts[0],

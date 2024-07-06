@@ -4,6 +4,8 @@ import Zone from '../helpers/zone';
 import io from 'socket.io-client';
 import Dealer from '../helpers/dealer';
 import GameRoomManager from '../../../gameRoomManager';
+import { createPlayerListContainer, createTimeSettingContainer, createCardDeckContainer, createStartGameContainer, createActionButtonsContainer, createCurrentPlayerIDContainer, appendElementsToCenter } from '../helpers/game_ui';
+
 
 export class Game extends Scene {
     constructor() {
@@ -354,150 +356,168 @@ export class Game extends Scene {
     }
     
 
-    createHTMLUI() {
-        let playerListContainer = document.createElement('div');
-        playerListContainer.id = 'playerListContainer';
-        playerListContainer.style.position = 'absolute';
-        playerListContainer.style.bottom = '10px';
-        playerListContainer.style.left = '10px';
-        playerListContainer.style.width = '200px';
-        playerListContainer.style.height = '150px';
-        playerListContainer.style.overflowY = 'scroll';
-        playerListContainer.style.backgroundColor = '#333';
-        playerListContainer.style.color = '#fff';
-        playerListContainer.style.padding = '10px';
-        playerListContainer.style.borderRadius = '10px';
+    // createHTMLUI() {
+    //     // let playerListContainer = document.createElement('div');
+    //     // playerListContainer.id = 'playerListContainer';
+    //     // playerListContainer.style.position = 'absolute';
+    //     // playerListContainer.style.bottom = '10px';
+    //     // playerListContainer.style.left = '10px';
+    //     // playerListContainer.style.width = '200px';
+    //     // playerListContainer.style.height = '150px';
+    //     // playerListContainer.style.overflowY = 'scroll';
+    //     // playerListContainer.style.backgroundColor = '#333';
+    //     // playerListContainer.style.color = '#fff';
+    //     // playerListContainer.style.padding = '10px';
+    //     // playerListContainer.style.borderRadius = '10px';
     
-        document.body.appendChild(playerListContainer);
+    //     // document.body.appendChild(playerListContainer);
     
-        // Time setting display
-        let timeSettingContainer = document.createElement('div');
-        timeSettingContainer.id = 'timeSettingContainer';
-        timeSettingContainer.style.position = 'absolute';
-        timeSettingContainer.style.top = '30%';
-        timeSettingContainer.style.left = '10px';
-        timeSettingContainer.style.backgroundColor = '#333';
-        timeSettingContainer.style.color = '#fff';
-        timeSettingContainer.style.padding = '10px';
-        timeSettingContainer.style.borderRadius = '10px';
+    //     // // Time setting display
+    //     // let timeSettingContainer = document.createElement('div');
+    //     // timeSettingContainer.id = 'timeSettingContainer';
+    //     // timeSettingContainer.style.position = 'absolute';
+    //     // timeSettingContainer.style.top = '30%';
+    //     // timeSettingContainer.style.left = '10px';
+    //     // timeSettingContainer.style.backgroundColor = '#333';
+    //     // timeSettingContainer.style.color = '#fff';
+    //     // timeSettingContainer.style.padding = '10px';
+    //     // timeSettingContainer.style.borderRadius = '10px';
     
-        let timeSettingLabel = document.createElement('label');
-        timeSettingLabel.textContent = '時間設定 (秒):';
-        timeSettingLabel.style.marginRight = '10px';
+    //     // let timeSettingLabel = document.createElement('label');
+    //     // timeSettingLabel.textContent = '時間設定 (秒):';
+    //     // timeSettingLabel.style.marginRight = '10px';
     
-        let timeSettingInput = document.createElement('input');
-        timeSettingInput.type = 'number';
-        timeSettingInput.value = '30';
-        timeSettingInput.min = '1';
-        timeSettingInput.readOnly = true;
+    //     // let timeSettingInput = document.createElement('input');
+    //     // timeSettingInput.type = 'number';
+    //     // timeSettingInput.value = '30';
+    //     // timeSettingInput.min = '1';
+    //     // timeSettingInput.readOnly = true;
     
-        timeSettingContainer.appendChild(timeSettingLabel);
-        timeSettingContainer.appendChild(timeSettingInput);
-        document.body.appendChild(timeSettingContainer);
+    //     // timeSettingContainer.appendChild(timeSettingLabel);
+    //     // timeSettingContainer.appendChild(timeSettingInput);
+    //     // document.body.appendChild(timeSettingContainer);
     
-        // Card deck selection display
-        let cardDeckContainer = document.createElement('div');
-        cardDeckContainer.id = 'cardDeckContainer'; 
-        cardDeckContainer.style.position = 'absolute';
-        cardDeckContainer.style.top = '40%';
-        cardDeckContainer.style.left = '10px';
-        cardDeckContainer.style.backgroundColor = '#333';
-        cardDeckContainer.style.color = '#fff';
-        cardDeckContainer.style.padding = '10px';
-        cardDeckContainer.style.borderRadius = '10px';
+    //     // // Card deck selection display
+    //     // let cardDeckContainer = document.createElement('div');
+    //     // cardDeckContainer.id = 'cardDeckContainer'; 
+    //     // cardDeckContainer.style.position = 'absolute';
+    //     // cardDeckContainer.style.top = '40%';
+    //     // cardDeckContainer.style.left = '10px';
+    //     // cardDeckContainer.style.backgroundColor = '#333';
+    //     // cardDeckContainer.style.color = '#fff';
+    //     // cardDeckContainer.style.padding = '10px';
+    //     // cardDeckContainer.style.borderRadius = '10px';
     
-        for (let i = 1; i <= 4; i++) {
-            let deckContainer = document.createElement('div');
-            deckContainer.style.marginBottom = '10px';
+    //     // for (let i = 1; i <= 4; i++) {
+    //     //     let deckContainer = document.createElement('div');
+    //     //     deckContainer.style.marginBottom = '10px';
     
-            let deckLabel = document.createElement('span');
-            deckLabel.textContent = `排組 ${i}: `;
-            deckLabel.style.marginRight = '10px'; 
+    //     //     let deckLabel = document.createElement('span');
+    //     //     deckLabel.textContent = `排組 ${i}: `;
+    //     //     deckLabel.style.marginRight = '10px'; 
      
-            let addButton = document.createElement('button');
-            addButton.textContent = '+';
-            addButton.style.marginRight = '5px';
-            addButton.disabled = true; 
+    //     //     let addButton = document.createElement('button');
+    //     //     addButton.textContent = '+';
+    //     //     addButton.style.marginRight = '5px';
+    //     //     addButton.disabled = true; 
      
-            let deckCount = document.createElement('span');
-            deckCount.id = `deckCount_${i}`;
-            deckCount.textContent = i === 1 ? '1' : '0';
-            deckCount.style.marginRight = '5px'; 
+    //     //     let deckCount = document.createElement('span');
+    //     //     deckCount.id = `deckCount_${i}`;
+    //     //     deckCount.textContent = i === 1 ? '1' : '0';
+    //     //     deckCount.style.marginRight = '5px'; 
     
-            let subtractButton = document.createElement('button');
-            subtractButton.textContent = '-';
-            subtractButton.disabled = true;
+    //     //     let subtractButton = document.createElement('button');
+    //     //     subtractButton.textContent = '-';
+    //     //     subtractButton.disabled = true;
     
-            deckContainer.appendChild(deckLabel);
-            deckContainer.appendChild(addButton);
-            deckContainer.appendChild(deckCount);
-            deckContainer.appendChild(subtractButton);
-            cardDeckContainer.appendChild(deckContainer);
-        } 
+    //     //     deckContainer.appendChild(deckLabel);
+    //     //     deckContainer.appendChild(addButton);
+    //     //     deckContainer.appendChild(deckCount);
+    //     //     deckContainer.appendChild(subtractButton);
+    //     //     cardDeckContainer.appendChild(deckContainer);
+    //     // } 
     
-        document.body.appendChild(cardDeckContainer);
+    //     // document.body.appendChild(cardDeckContainer);
     
-        // Game start button with player ready count
-        let startGameContainer = document.createElement('div');
-        startGameContainer.id = 'startGameContainer';
-        startGameContainer.style.position = 'absolute';
-        startGameContainer.style.top = '60%';
-        startGameContainer.style.left = '10px';
-        startGameContainer.style.backgroundColor = '#333';
-        startGameContainer.style.color = '#fff';
-        startGameContainer.style.padding = '10px';
-        startGameContainer.style.borderRadius = '10px';
+    //     // // Game start button with player ready count
+    //     // let startGameContainer = document.createElement('div');
+    //     // startGameContainer.id = 'startGameContainer';
+    //     // startGameContainer.style.position = 'absolute';
+    //     // startGameContainer.style.top = '60%';
+    //     // startGameContainer.style.left = '10px';
+    //     // startGameContainer.style.backgroundColor = '#333';
+    //     // startGameContainer.style.color = '#fff';
+    //     // startGameContainer.style.padding = '10px';
+    //     // startGameContainer.style.borderRadius = '10px';
     
-        let playerReadyCount = document.createElement('div');
-        playerReadyCount.id = 'playerReadyCount';
-        playerReadyCount.textContent = '0/4 玩家已準備好';
-        playerReadyCount.style.marginBottom = '10px';
-        startGameContainer.appendChild(playerReadyCount);
+    //     // let playerReadyCount = document.createElement('div');
+    //     // playerReadyCount.id = 'playerReadyCount';
+    //     // playerReadyCount.textContent = '0/4 玩家已準備好';
+    //     // playerReadyCount.style.marginBottom = '10px';
+    //     // startGameContainer.appendChild(playerReadyCount);
     
-        let readyBtn = document.createElement('button');
-        readyBtn.id = 'ready-btn';
-        readyBtn.textContent = '準備開始';
-        readyBtn.onclick = () => {
-            if (readyBtn.textContent === '準備開始') {
-                this.gameManager.playerReady();
-                readyBtn.textContent = '取消準備';
-            } else {
-                this.gameManager.playerNotReady();
-                readyBtn.textContent = '準備開始';
-            }
-        };
-        startGameContainer.appendChild(readyBtn);
+    //     // let readyBtn = document.createElement('button');
+    //     // readyBtn.id = 'ready-btn';
+    //     // readyBtn.textContent = '準備開始';
+    //     // readyBtn.onclick = () => {
+    //     //     if (readyBtn.textContent === '準備開始') {
+    //     //         this.gameManager.playerReady();
+    //     //         readyBtn.textContent = '取消準備';
+    //     //     } else {
+    //     //         this.gameManager.playerNotReady();
+    //     //         readyBtn.textContent = '準備開始';
+    //     //     }
+    //     // };
+    //     // startGameContainer.appendChild(readyBtn);
     
-        document.body.appendChild(startGameContainer);
+    //     // document.body.appendChild(startGameContainer);
     
-        // 配對和丟棄按鈕容器
-        let actionButtonsContainer = document.createElement('div');
-        actionButtonsContainer.id = 'actionButtonsContainer';
-        actionButtonsContainer.style.position = 'absolute';
-        actionButtonsContainer.style.top = '50%';
-        actionButtonsContainer.style.left = '10px';
-        actionButtonsContainer.style.backgroundColor = '#333';
-        actionButtonsContainer.style.color = '#fff';
-        actionButtonsContainer.style.padding = '10px';
-        actionButtonsContainer.style.borderRadius = '10px';
-        actionButtonsContainer.style.display = 'none'; // 默認隱藏
+    //     // // 配對和丟棄按鈕容器
+    //     // let actionButtonsContainer = document.createElement('div');
+    //     // actionButtonsContainer.id = 'actionButtonsContainer';
+    //     // actionButtonsContainer.style.position = 'absolute';
+    //     // actionButtonsContainer.style.top = '50%';
+    //     // actionButtonsContainer.style.left = '10px';
+    //     // actionButtonsContainer.style.backgroundColor = '#333';
+    //     // actionButtonsContainer.style.color = '#fff';
+    //     // actionButtonsContainer.style.padding = '10px';
+    //     // actionButtonsContainer.style.borderRadius = '10px';
+    //     // actionButtonsContainer.style.display = 'none'; // 默認隱藏
     
-        // 配對按鈕
-        let pairButton = document.createElement('button');
-        pairButton.id = 'pair-button';
-        pairButton.textContent = '配對';
-        actionButtonsContainer.appendChild(pairButton);
+    //     // // 配對按鈕
+    //     // let pairButton = document.createElement('button');
+    //     // pairButton.id = 'pair-button';
+    //     // pairButton.textContent = '配對';
+    //     // actionButtonsContainer.appendChild(pairButton);
     
-        // 丟棄按鈕
-        let discardButton = document.createElement('button');
-        discardButton.id = 'discard-button';
-        discardButton.textContent = '丟棄';
-        discardButton.style.marginLeft = '10px'; // 添加一些間距 
-        actionButtonsContainer.appendChild(discardButton);
+    //     // // 丟棄按鈕
+    //     // let discardButton = document.createElement('button');
+    //     // discardButton.id = 'discard-button';
+    //     // discardButton.textContent = '丟棄';
+    //     // discardButton.style.marginLeft = '10px'; // 添加一些間距 
+    //     // actionButtonsContainer.appendChild(discardButton);
     
-        document.body.appendChild(actionButtonsContainer);
+    //     // document.body.appendChild(actionButtonsContainer);
         
+    //     // createPlayerListContainer();
+    //     // createTimeSettingContainer();
+    //     // createCardDeckContainer();
+    //     // createStartGameContainer(this.gameManager);
+    //     // createActionButtonsContainer();
+    // }
+
+    createHTMLUI() {
+        const playerListContainer = createPlayerListContainer();
+        const timeSettingContainer = createTimeSettingContainer(this.gameManager); // 默認不可編輯
+        const cardDeckContainer = createCardDeckContainer(this.gameManager); // 默認不可編輯
+        const startGameContainer = createStartGameContainer(this.gameManager); // 默認準備開始
+        const actionButtonsContainer = createActionButtonsContainer();
+        createCurrentPlayerIDContainer(); // 創建玩家ID顯示容器
+
+        appendElementsToCenter([timeSettingContainer, cardDeckContainer, startGameContainer, actionButtonsContainer]);
+        document.body.appendChild(playerListContainer); // 放置在左下角
     }
+
     
     // 顯示配對和丟棄按鈕的函數
     showActionButtons() {

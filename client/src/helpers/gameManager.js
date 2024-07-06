@@ -1116,6 +1116,18 @@ export default class GameManager {
             this.scene.changeGradientColor(0xff0000); // 將顏色改為紅色
         }
     }
+
+    initializeAndStartGame() { 
+        const settings = this.getGameSettings();  
+        console.log(settings)
+
+        document.body.removeChild(timeSettingContainer);
+        document.body.removeChild(cardDeckContainer);
+        document.body.removeChild(startGameContainer);
+
+        const roomId = this.roomId
+        this.socket.emit('initialize_game', { roomId, settings });
+    }
  
 } 
           

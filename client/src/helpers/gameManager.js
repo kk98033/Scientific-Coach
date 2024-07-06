@@ -1119,15 +1119,27 @@ export default class GameManager {
 
     initializeAndStartGame() { 
         const settings = this.getGameSettings();  
-        console.log(settings)
-
-        document.body.removeChild(timeSettingContainer);
-        document.body.removeChild(cardDeckContainer);
-        document.body.removeChild(startGameContainer);
-
-        const roomId = this.roomId
+        console.log(settings);
+    
+        const timeSettingContainer = document.getElementById('timeSettingContainer');
+        const cardDeckContainer = document.getElementById('cardDeckContainer');
+        const startGameContainer = document.getElementById('startGameContainer');
+    
+        if (timeSettingContainer && timeSettingContainer.parentNode) {
+            timeSettingContainer.parentNode.removeChild(timeSettingContainer);
+        }
+        if (cardDeckContainer && cardDeckContainer.parentNode) {
+            cardDeckContainer.parentNode.removeChild(cardDeckContainer);
+        }
+        if (startGameContainer && startGameContainer.parentNode) {
+            startGameContainer.parentNode.removeChild(startGameContainer);
+        }
+    
+        const roomId = this.roomId;
         this.socket.emit('initialize_game', { roomId, settings });
     }
+    
+    
  
 } 
           

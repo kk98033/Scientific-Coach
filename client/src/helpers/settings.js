@@ -1,6 +1,37 @@
 // src/helper/settings.js
 
 export function createSettingsOverlay() {
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes expandFromButton {
+            from {
+                transform: scale(0.1);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        @keyframes collapseToButton {
+            from {
+                transform: scale(1);
+                opacity: 1;
+            }
+            to {
+                transform: scale(0.1);
+                opacity: 0;
+            }
+        }
+        #settingsContainer.show {
+            animation: expandFromButton 0.3s forwards;
+        }
+        #settingsContainer.hide {
+            animation: collapseToButton 0.3s forwards;
+        }
+    `;
+    document.head.appendChild(style);
+
     // Create settings button
     let settingsButton = document.createElement('button');
     settingsButton.id = 'settingsButton';
@@ -11,6 +42,7 @@ export function createSettingsOverlay() {
     settingsButton.style.width = '40px';
     settingsButton.style.height = '40px';
     settingsButton.style.borderRadius = '5px';
+    settingsButton.style.zIndex = '10000'; // 提高 z-index 確保在最上層
 
     // Add gear icon to settings button
     let gearIcon = document.createElement('i');
@@ -30,6 +62,7 @@ export function createSettingsOverlay() {
     settingsOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
     settingsOverlay.style.display = 'none';
     settingsOverlay.style.justifyContent = 'center';
+    settingsOverlay.style.zIndex = '9999'; // 確保在畫面最上方
     settingsOverlay.style.alignItems = 'center';
 
     // Create settings container
@@ -38,6 +71,8 @@ export function createSettingsOverlay() {
     settingsContainer.className = 'bg-dark text-white p-4 rounded'; // 使用 Bootstrap 樣式
     settingsContainer.style.width = '300px';
     settingsContainer.style.textAlign = 'center';
+    settingsContainer.style.position = 'relative'; // 確保 z-index 生效
+    settingsContainer.style.zIndex = '10000'; // 確保在 overlay 上方
 
     // Create settings title
     let settingsTitle = document.createElement('h2');
@@ -55,18 +90,36 @@ export function createSettingsOverlay() {
 
     // Event listener for settings button
     settingsButton.onclick = () => {
-        settingsOverlay.style.display = 'flex';
+        if (settingsOverlay.style.display === 'flex') {
+            settingsContainer.classList.remove('show');
+            settingsContainer.classList.add('hide');
+            settingsContainer.addEventListener('animationend', () => {
+                settingsOverlay.style.display = 'none';
+                settingsContainer.classList.remove('hide');
+            }, { once: true });
+        } else {
+            settingsOverlay.style.display = 'flex';
+            settingsContainer.classList.remove('hide');
+            settingsContainer.classList.add('show');
+        }
     };
 
     // Event listener to hide settings overlay
     settingsOverlay.onclick = (e) => {
         if (e.target === settingsOverlay) {
-            settingsOverlay.style.display = 'none';
+            settingsContainer.classList.remove('show');
+            settingsContainer.classList.add('hide');
+            settingsContainer.addEventListener('animationend', () => {
+                settingsOverlay.style.display = 'none';
+                settingsContainer.classList.remove('hide');
+            }, { once: true });
         }
     };
 
     return settingsContainer; // Return the container so additional settings can be added
 }
+
+
 
 export function addIPSettings(container) {
     // IP setting elements

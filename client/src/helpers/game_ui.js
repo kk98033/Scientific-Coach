@@ -4,19 +4,16 @@ export function createPlayerListContainer() {
     let playerListContainer = document.createElement('div');
     playerListContainer.id = 'playerListContainer';
     playerListContainer.className = 'p-3 bg-dark text-white rounded shadow-lg';
-    playerListContainer.style.width = '100%';
-    playerListContainer.style.maxWidth = '250px';
+    playerListContainer.style.width = '250px';
     playerListContainer.style.height = '200px';
     playerListContainer.style.overflowY = 'scroll';
     playerListContainer.style.position = 'fixed';
     playerListContainer.style.bottom = '10px'; // 確保在玩家ID下方
     playerListContainer.style.left = '10px';
+    playerListContainer.style.zIndex = '1000'; // 設置較低的 z-index
 
     return playerListContainer;
 }
-
-
-
 
 export function createTimeSettingContainer(gameManager, isEditable = false) {
     let timeSettingContainer = document.createElement('div');
@@ -172,6 +169,7 @@ export function createCurrentPlayerIDContainer() {
     currentPlayerIDContainer.className = 'position-fixed p-2 bg-dark text-white rounded shadow-lg';
     currentPlayerIDContainer.style.bottom = '220px'; // 確保在playerListContainer上方
     currentPlayerIDContainer.style.left = '10px';
+    currentPlayerIDContainer.style.zIndex = '1000'; // 設置較低的 z-index
 
     let currentPlayerIDLabel = document.createElement('span');
     currentPlayerIDLabel.textContent = '目前玩家ID: ';

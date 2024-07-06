@@ -31,6 +31,9 @@ export class Game extends Scene {
     }
 
     create() {
+        // 灰色
+        this.cameras.main.setBackgroundColor('#1c1c1c'); 
+
         // let self = this;
 
         this.waveIsVisable = true;

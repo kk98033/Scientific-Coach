@@ -644,7 +644,7 @@ class GameManager {
             this.updateGameState(roomId);
     
             return {
-                playerId: playerId,
+                playerId: playerId, 
                 matchedHandCards: matchedHandCards,
                 matchedHandIndexes: matchedHandIndexes,
                 matchedTableCards: matchedTableCards,

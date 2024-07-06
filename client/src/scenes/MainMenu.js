@@ -9,12 +9,15 @@ export class MainMenu extends Scene {
     }
 
     create() {
+        // 灰色
+        this.cameras.main.setBackgroundColor('#1c1c1c'); 
+
         this.events.on('shutdown', this.removeHTMLUI, this);
 
         const gameManager = new GameManager();
         this.gameManager = gameManager;
 
-        this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 3, '主選單', {
+        this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 3, '主選單', { 
             fontFamily: 'Arial Black', fontSize: '38px', color: '#ffffff',
             stroke: '#000000', strokeThickness: 8,
             align: 'center'

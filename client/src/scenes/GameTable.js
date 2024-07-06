@@ -28,7 +28,10 @@ export class GameTable extends Scene {
     }
 
     create() {
-        let self = this;
+        // 灰色
+        this.cameras.main.setBackgroundColor('#1c1c1c'); 
+
+        // let self = this;
 
         this.zone = new Zone(this);
         this.dropZones = this.zone.renderZone();

@@ -102,24 +102,29 @@ export default class GameManager {
         this.socket.on('update_game_state', (data) => {
             console.log(`update game state!`);
             const { roomId, currentPlayer, gameState, pairSuccessIndex } = data;
-
+ 
             this.updateGameState(data);
         }); 
 
         this.socket.on('game_started', () => {
             console.log(`Game started!`);
 
-            this.getPlayerHand();
+            this.getPlayerHand(); 
         });
 
         this.socket.on('get_player_hand', (data) => { 
             const { playerId, hand } = data;
+
+            console.log('debug-get_player_hand: ', data)
+
             if (playerId === this.playerId) {
                 this.hand = hand;  // Update local hand
+                console.log('debug-get_player_hand: ', "update local hand")
                 console.log(playerId, 'aa');
                 console.log(hand);
 
                 if (!this.isGameTable) {
+                    console.log('debug-get_player_hand: ', "not game table")
                     this.displayPlayerHand();
                 }
             }
@@ -313,7 +318,7 @@ export default class GameManager {
         if (isTable) {
             this.socket.emit('table_join_room', { roomId: roomId });
         } else {
-            this.socket.emit('join_room', { roomId: roomId });
+            this.socket.emit('join_room', { roomId: roomId, playerId: this.playerId });
         }
     }
 
@@ -343,7 +348,7 @@ export default class GameManager {
                 this.scene.toggleGradientBorder(false); // 關閉漸層效果
             }
         }
- 
+  
 
         console.log('HIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHTHIGLLIGHT')
         console.log("SELECTED CARDS", this.selectedCards)
@@ -491,6 +496,7 @@ export default class GameManager {
     }
 
     getPlayerHand() {
+        console.log('debug-get_player_hand: START')
         this.socket.emit('get_player_hand', { roomId: this.roomId, playerId: this.playerId });
     }
 
@@ -507,7 +513,7 @@ export default class GameManager {
         // } else {
         //     console.log(`Card with ID ${cardId} not found on the table.`);
         // }
-    }
+    } 
 
     // clearPlayerHandDisplay() {
     //     console.log('this.handObj')
@@ -1024,7 +1030,9 @@ export default class GameManager {
 
     updatePlayerReadyCountUI(readyPlayers, totalPlayers) {
         const playerReadyCount = document.getElementById('playerReadyCount');
-        playerReadyCount.textContent = `${readyPlayers}/${totalPlayers} 玩家已準備好`;
+        if (playerReadyCount) {
+            playerReadyCount.textContent = `${readyPlayers}/${totalPlayers} 玩家已準備好`;
+        }
     }
 
     updateSettingsUI(settings) {

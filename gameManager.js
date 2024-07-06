@@ -76,7 +76,7 @@ class GameManager {
                         
                         // 清空 room.currentSelected
                         room.currentSelected = [];
-    
+
                         // 隨機選擇兩張卡片加入 currentSelected
                         const playerId = room.players[room.currentPlayer];
                         const playerHand = room.hands[playerId];
@@ -91,7 +91,10 @@ class GameManager {
                             }
                             room.currentSelected = selectedCards;
                         }
-    
+
+                        // 發送選擇卡片的資訊
+                        this.io.to(roomId).emit('auto_discarded_cards', { selectedCards: room.currentSelected });
+
                         // 呼叫 discardCards 函數
                         this.discardCards(roomId, playerId);
                     }
@@ -336,6 +339,8 @@ class GameManager {
         
         this.applySettings(room, settings);
         this.shuffleDeck(roomId);
+        room.gameIsStarted = true;
+
         if (room) {
             room.players.forEach(playerId => {
                 this.dealCardsToPlayer(roomId, playerId, 8); // 每人發八張卡
@@ -748,6 +753,16 @@ class GameManager {
         console.log('+=+++++====+++=+++++====+++=+++++====+++=+++++====++')
         // console.log(room)
     }
+
+    isGameStartedInRoom(roomId, playerId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        const isPlayerInRoom = room.players.includes(playerId); 
+        return {
+            gameIsStarted: room.gameIsStarted,
+            isPlayerInRoom: isPlayerInRoom
+        };
+    }
+    
 
 }
 

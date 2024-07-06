@@ -11,6 +11,11 @@ module.exports = {
         path: path.resolve(process.cwd(), 'dist'),
         filename: "bundle.min.js"
     },
+    resolve: {
+        fallback: {
+            "crypto": require.resolve("crypto-browserify")
+        }
+    },
     module: {
         rules: [
             {

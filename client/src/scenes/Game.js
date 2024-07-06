@@ -3,6 +3,7 @@ import { Scene } from 'phaser';
 import Zone from '../helpers/zone';
 import io from 'socket.io-client';
 import Dealer from '../helpers/dealer';
+import GameRoomManager from '../../../gameRoomManager';
 
 export class Game extends Scene {
     constructor() {
@@ -184,18 +185,43 @@ export class Game extends Scene {
         // })
  
         this.gameManager.socket.on('update_player_list',  (data) => {
-            console.log("AAAAA")
+            console.log("AAAAA") 
             console.log(data)
             this.updatePlayerList(data.players);
         }); 
+
         this.gameManager.socket.on('game_started',  (data) => {
             // document.getElementById('start-game').remove();
             // document.getElementById('get-card').remove();
             // document.getElementById('draw-card').remove();
             this.clearHTMLUI();
-            this.showActionButtons();
+            this.showActionButtons(); 
         });
 
+        this.gameManager.socket.on('is_game_started_on_this_room', (data) => {
+            const { gameIsStarted, isPlayerInRoom, playerId } = data; 
+            if (!this.gameManager || this.gameManager.playerId != playerId) return;
+
+            console.log(gameIsStarted, isPlayerInRoom);
+        
+            if (gameIsStarted && isPlayerInRoom) {
+                // 可以重新連線加入
+                this.gameManager.getPlayerHand();
+                const message = '成功重新加入'; 
+                this.showNotification(message, 'success'); 
+                this.clearHTMLUI();
+                this.showActionButtons(); 
+
+                this.gameManager.socket.emit('update_game_state', { roomId: this.gameManager.roomId });
+
+            } else {
+                // 不可以重新連線加入
+                const message = !gameIsStarted ? '遊戲尚未開始。' : '你不在房間內。';
+                this.showNotification(message, 'warning');
+            }
+        });
+        
+ 
         this.gameManager.socket.emit('update_player_list', { roomId: this.gameManager.roomId });
 
         
@@ -295,6 +321,38 @@ export class Game extends Scene {
             playerListContainer.appendChild(playerItem);
         });
     }
+
+    showNotification(message, alertType = 'warning') {
+        // 創建通知元素
+        let notification = document.createElement('div');
+        notification.className = `alert alert-${alertType} alert-dismissible fade show`;
+        notification.role = 'alert';
+        notification.style.position = 'fixed';
+        notification.style.top = '10px';
+        notification.style.right = '10px';
+        notification.style.zIndex = '1050';
+        notification.style.transition = 'transform 0.5s ease-in-out';
+        notification.style.transform = 'translateX(100%)'; // 初始位置在右邊外面
+        notification.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        document.body.appendChild(notification);
+    
+        // 強制重繪以觸發CSS過渡效果
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)'; // 彈入效果
+        }, 10);
+    
+        // 設置自動消失
+        setTimeout(() => {
+            notification.style.transform = 'translateX(100%)'; // 彈出效果
+            setTimeout(() => {
+                notification.remove(); // 完全消失後移除元素
+            }, 500);
+        }, 3000); // 3秒後自動消失
+    }
+    
 
     createHTMLUI() {
         let playerListContainer = document.createElement('div');
@@ -531,6 +589,107 @@ export class Game extends Scene {
         console.log("Wave tween created: ", this.waveTween);
         // 設置透明度
         this.gradient.setAlpha(0.7);
+
+
+        // Create settings button
+        let settingsButton = document.createElement('button');
+        settingsButton.id = 'settingsButton';
+        settingsButton.style.position = 'absolute';
+        settingsButton.style.top = '10px';
+        settingsButton.style.right = '10px';
+        settingsButton.style.width = '40px'; 
+        settingsButton.style.height = '40px';
+        settingsButton.style.backgroundColor = '#333';
+        settingsButton.style.border = 'none';
+        settingsButton.style.borderRadius = '5px';
+        settingsButton.style.cursor = 'pointer';
+        
+        // Add gear icon to settings button
+        let gearIcon = document.createElement('i');
+        gearIcon.className = 'fas fa-cog';
+        gearIcon.style.color = '#fff';
+        gearIcon.style.fontSize = '24px';
+        settingsButton.appendChild(gearIcon);
+        
+        document.body.appendChild(settingsButton);
+        
+        // Create settings overlay
+        let settingsOverlay = document.createElement('div');
+        settingsOverlay.id = 'settingsOverlay';
+        settingsOverlay.style.position = 'fixed';
+        settingsOverlay.style.top = '0';
+        settingsOverlay.style.left = '0';
+        settingsOverlay.style.width = '100%';
+        settingsOverlay.style.height = '100%';
+        settingsOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+        settingsOverlay.style.display = 'none';
+        settingsOverlay.style.justifyContent = 'center';
+        settingsOverlay.style.alignItems = 'center';
+        
+        // Create settings container
+        let settingsContainer = document.createElement('div');
+        settingsContainer.id = 'settingsContainer';
+        settingsContainer.style.width = '300px';
+        settingsContainer.style.backgroundColor = '#333';
+        settingsContainer.style.color = '#fff';
+        settingsContainer.style.padding = '20px';
+        settingsContainer.style.borderRadius = '10px';
+        settingsContainer.style.textAlign = 'center';
+        
+        // Create settings title
+        let settingsTitle = document.createElement('h2');
+        settingsTitle.textContent = '設定';
+        settingsContainer.appendChild(settingsTitle);
+        
+        // Create separator
+        let separator = document.createElement('hr');
+        separator.style.border = '1px solid #555';
+        settingsContainer.appendChild(separator);
+        
+        // Create reconnect button
+        let reconnectContainer = document.createElement('div');
+        reconnectContainer.style.marginTop = '20px';
+        
+        let reconnectLabel = document.createElement('span');
+        reconnectLabel.textContent = '重新連線';
+        reconnectLabel.style.marginRight = '10px';
+        
+        let reconnectButton = document.createElement('button');
+        reconnectButton.style.width = '40px';
+        reconnectButton.style.height = '40px';
+        reconnectButton.style.backgroundColor = '#555';
+        reconnectButton.style.border = 'none';
+        reconnectButton.style.borderRadius = '5px';
+        reconnectButton.style.cursor = 'pointer';
+        
+        let reconnectIcon = document.createElement('i');
+        reconnectIcon.className = 'fas fa-sync-alt';
+        reconnectIcon.style.color = '#fff';
+        reconnectButton.appendChild(reconnectIcon);
+
+        reconnectButton.onclick = () => {
+            console.log('重新連線按鈕被點擊了');
+            this.gameManager.socket.emit('is_game_started_on_this_room', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId });
+        };
+        
+        reconnectContainer.appendChild(reconnectLabel);
+        reconnectContainer.appendChild(reconnectButton);
+        settingsContainer.appendChild(reconnectContainer);
+        
+        settingsOverlay.appendChild(settingsContainer);
+        document.body.appendChild(settingsOverlay);
+        
+        // Event listener for settings button
+        settingsButton.onclick = () => {
+            settingsOverlay.style.display = 'flex';
+        };
+        
+        // Event listener to hide settings overlay
+        settingsOverlay.onclick = (e) => {
+            if (e.target === settingsOverlay) {
+                settingsOverlay.style.display = 'none';
+            }
+        };
     }
 
     toggleGradientBorder(visible, color = 0x00ff00) { // 默認顏色為綠色

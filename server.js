@@ -90,6 +90,16 @@ io.on('connection', (socket) => {
 
     socket.on('get_player_hand', (data) => {
         const { roomId, playerId } = data;
+
+        console.log()
+        console.log()
+        console.log()
+        console.log('GET PLAYER HAND')
+        console.log(data)
+        console.log()
+        console.log()
+        console.log()
+
         const hand = gameManager.getPlayerHand(roomId, playerId);
         io.to(roomId).emit('get_player_hand', { playerId: playerId, hand: hand });
     });
@@ -126,8 +136,8 @@ io.on('connection', (socket) => {
 
     socket.on('join_room', (data) => {
         const roomId = data.roomId;
-        const playerId = socket.id; // use socket ID as player ID
-    
+        const playerId = data.playerId;
+
         if (gameRoomManager.joinRoom(roomId, playerId)) {
             socket.join(roomId);
             io.to(roomId).emit('player_joined', { playerId });
@@ -313,6 +323,24 @@ io.on('connection', (socket) => {
         const { roomId, playerId, cardPositions } = data;
         console.log('update card positions', data)
         gameManager.updateCardPositions(roomId, playerId, cardPositions);
+    });
+
+    socket.on('is_game_started_on_this_room', (data) => {
+        const { roomId, playerId } = data;
+        console.log([roomId, playerId])
+        const { gameIsStarted, isPlayerInRoom } = gameManager.isGameStartedInRoom(roomId, playerId);
+
+        io.emit('is_game_started_on_this_room', {
+            gameIsStarted: gameIsStarted,
+            isPlayerInRoom: isPlayerInRoom,
+            playerId: playerId
+        });
+    });
+
+    socket.on('update_game_state', (data) => {
+        const { roomId } = data;
+
+        gameManager.updateGameState(roomId);
     });
 });
 

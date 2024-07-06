@@ -1,4 +1,4 @@
-const crypto = require('crypto');
+// const crypto = require('crypto');
 
 class GameRoomManager {
     constructor() {
@@ -6,6 +6,7 @@ class GameRoomManager {
         // TODO: debug room, 記得刪掉!
         this.rooms = {
             "": {
+                gameIsStarted: false,
                 players: [],
                 tableScreenId: [],
                 cardCount: 60,
@@ -52,6 +53,7 @@ class GameRoomManager {
     createRoom(roomId) {
         if (!this.rooms[roomId]) {
             this.rooms[roomId] = {
+                gameIsStarted: false,
                 players: [],
                 tableScreenId: [],
                 cardCount: 60, // 牌組初始卡牌數
@@ -91,6 +93,12 @@ class GameRoomManager {
             return false;
         }
 
+        // TODO: Join room messages
+        if (this.rooms[roomId].gameIsStarted && !this.rooms[roomId].players.includes(playerId)) {
+            console.log(`Game already started in room ${roomId}.`);
+            return false;
+        }
+
         if (!this.rooms[roomId].players.includes(playerId)) {
             this.rooms[roomId].players.push(playerId);
             // 確保玩家的手牌空間被初始化
@@ -99,9 +107,9 @@ class GameRoomManager {
             return true;
         } else {
             console.log(`Player ${playerId} already in room ${roomId}.`);
-            return false;
+            return true;
         }
-    }
+    } 
 
     tableJoinRoom(roomId, tableID) {
         if (!this.rooms[roomId]) {
@@ -117,12 +125,13 @@ class GameRoomManager {
             console.log(`TALBE ${tableID} already in room ${roomId}.`);
             return false;
         }
-    }
+    } 
 
     leaveRoom(playerId) {
         for (let roomId in this.rooms) {
             let index = this.rooms[roomId].players.indexOf(playerId);
             if (index !== -1) {
+                // TODO: don;t delete player
                 this.rooms[roomId].players.splice(index, 1);
                 console.log(`Player ${playerId} left room ${roomId}.`);
                 if (this.rooms[roomId].players.length === 0) {
@@ -132,7 +141,7 @@ class GameRoomManager {
                 console.log(this.rooms); // DEBUG
                 return;
             }
-        }
+        } 
     }
 
     getPlayersInRoom(roomId) {
@@ -145,10 +154,9 @@ class GameRoomManager {
     generateUniqueRoomId() {
         let uniqueId;
         do {
-            // use crypto generate 6 string as room number (0-9 or a-f) 
-            uniqueId = crypto.randomBytes(3).toString('hex');
-        } while (this.rooms[uniqueId]); // if this ID has been taken, regenerate
-
+            // 使用 Math.random 生成 6 位數的隨機字符串
+            uniqueId = Math.random().toString(36).substring(2, 8);
+        } while (this.rooms[uniqueId]); // 如果這個 ID 已經被使用，重新生成
         return uniqueId;
     }
 

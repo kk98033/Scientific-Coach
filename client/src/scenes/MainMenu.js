@@ -1,6 +1,8 @@
 import { Scene } from 'phaser';
 import { io } from 'socket.io-client';
 import GameManager from '../helpers/gameManager'
+import { createSettingsOverlay, addIPSettings, addIDSettings, addReconnectButton, setCurrentPlayerID, handleSetPlayerIDButton } from '../helpers/settings';
+
 
 export class MainMenu extends Scene {
     constructor() {
@@ -12,6 +14,8 @@ export class MainMenu extends Scene {
 
         // const socket = io('http://localhost:3000');
         const gameManager = new GameManager();
+
+        this.gameManager = gameManager;
 
         // this.add.image(512, 384, 'background'); 
         // this.add.image(512, 300, 'logo');
@@ -27,6 +31,12 @@ export class MainMenu extends Scene {
 
         // });
 
+        this.gameManager.socket.on('your_player_id', (data) => {
+            this.playerId = data.playerId;
+            console.log('My player ID is:', data.playerId);
+            setCurrentPlayerID(data.playerId);
+        });
+
         this.createHTMLUI();
 
         document.getElementById('joinRoomBtn').addEventListener('click', () => {
@@ -40,6 +50,7 @@ export class MainMenu extends Scene {
                 gameManager.joinRoom(roomNumber, isHost);
             } else {
                 gameManager.joinRoom(roomNumber, isHost);
+                console.log('ID', this.gameManager.playerId)
             }
             
             this.removeHTMLUI();
@@ -171,44 +182,30 @@ export class MainMenu extends Scene {
         document.body.appendChild(roomListContainer);
         document.body.appendChild(hostCheckboxLabel);
         document.body.appendChild(hostCheckbox);
+
+        const settingsContainer = createSettingsOverlay();
+        addIPSettings(settingsContainer);
+        addIDSettings(settingsContainer, this.gameManager);
+        // addReconnectButton(settingsContainer);
+
+        
     }
     
 
     removeHTMLUI() {
-        let inputElement = document.getElementById('roomInput');
-        let createRoomBtn = document.getElementById('createRoomBtn');
-        let joinRoomBtn = document.getElementById('joinRoomBtn');
-        let ipSettingInputElement = document.getElementById('ipSettingInputElement');
-        let ipSettingInputBtn = document.getElementById('ipSettingInputBtn');
-        let roomListContainer = document.getElementById('roomListContainer');
-        let hostCheckboxLabel = document.getElementById('hostCheckboxLabel');
-        let hostCheckbox = document.getElementById('hostCheckbox');
+        let elementsToRemove = [
+            'ipSettingInputElement', 'ipSettingInputBtn', 'roomInput', 'createRoomBtn',
+            'joinRoomBtn', 'roomListContainer', 'hostCheckboxLabel', 'hostCheckbox',
+            'settingsButton', 'settingsOverlay'
+        ];
 
-        if (inputElement) {
-            inputElement.parentNode.removeChild(inputElement);
-        }
-        if (createRoomBtn) {
-            createRoomBtn.parentNode.removeChild(createRoomBtn);
-        }
-        if (joinRoomBtn) {
-            joinRoomBtn.parentNode.removeChild(joinRoomBtn);
-        }
-        if (ipSettingInputElement) {
-            ipSettingInputElement.parentNode.removeChild(ipSettingInputElement);
-        }
-        if (ipSettingInputBtn) {
-            ipSettingInputBtn.parentNode.removeChild(ipSettingInputBtn);
-        }
-        if (roomListContainer) {
-            roomListContainer.parentNode.removeChild(roomListContainer);
-        }
-        if (hostCheckboxLabel) {
-            hostCheckboxLabel.parentNode.removeChild(hostCheckboxLabel);
-        }
-        if (hostCheckbox) {
-            hostCheckbox.parentNode.removeChild(hostCheckbox);
-        }
-    }
+        elementsToRemove.forEach(id => {
+            let element = document.getElementById(id);
+            if (element) {
+                element.parentNode.removeChild(element);
+            }
+        });
+    } 
 
     addFullScreenButton() {
         const fullScreenButton = document.createElement('button');

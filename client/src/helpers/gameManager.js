@@ -2,6 +2,7 @@ import { io } from 'socket.io-client';
 import Card from './card';
 import Zone from '../helpers/zone';
 import { NONE } from 'phaser';
+import { showNotification } from '../helpers/notification';
 
 export default class GameManager {
     constructor(scene) {
@@ -63,9 +64,7 @@ export default class GameManager {
             console.log('Room created:', data.roomId);
         });
 
-        this.socket.on('player_joined', (data) => {
-            console.log('Player joined:', data.playerId);
-        });
+        
 
         this.socket.on('room_created', (data) => {
             const roomId = data.roomId;
@@ -82,8 +81,16 @@ export default class GameManager {
             console.log('Room not found:', data.roomId);
         });
 
+        this.socket.on('player_joined', (data) => {
+            console.log('Player joined:', data.playerId);
+            if (data.playerId)
+                showNotification(`Player joined: ${data.playerId}`, 'info');
+        });
+
         this.socket.on('player_left', (data) => {
             console.log(`Player ${data.playerId} has left the room.`);
+            if (data.playerId)
+                showNotification(`Player ${data.playerId} has left the room.`, 'danger');
         });
 
         this.socket.on('update_timer', (data) => {
@@ -110,6 +117,8 @@ export default class GameManager {
             console.log(`Game started!`);
 
             this.getPlayerHand(); 
+
+            showNotification(`遊戲正式開始!`, 'info');
         });
 
         this.socket.on('get_player_hand', (data) => { 

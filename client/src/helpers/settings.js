@@ -198,7 +198,7 @@ export function addIDSettings(container, gameManager) {
 }
 
 
-export function addReconnectButton(container) {
+export function addReconnectButton(container, gameManager) {
     // Reconnect button
     let reconnectContainer = document.createElement('div');
     reconnectContainer.className = 'd-flex align-items-center mb-3'; // 使用 Bootstrap 樣式
@@ -217,8 +217,7 @@ export function addReconnectButton(container) {
 
     reconnectButton.onclick = () => {
         console.log('重新連線按鈕被點擊了');
-        // 這裡可以加入重新連線的邏輯
-        // this.gameManager.socket.emit('is_game_started_on_this_room', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId });
+        gameManager.socket.emit('is_game_started_on_this_room', { roomId: gameManager.roomId, playerId: gameManager.playerId });
     };
 
     reconnectContainer.appendChild(reconnectButton);

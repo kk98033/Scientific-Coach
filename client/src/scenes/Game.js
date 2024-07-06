@@ -514,10 +514,15 @@ export class Game extends Scene {
         const startGameContainer = createStartGameContainer(this.gameManager); // 默認準備開始
         const actionButtonsContainer = createActionButtonsContainer();
         createCurrentPlayerIDContainer(); // 創建玩家ID顯示容器
-
-        appendElementsToCenter([timeSettingContainer, cardDeckContainer, startGameContainer, actionButtonsContainer]);
+    
+        // 將主要的容器置中
+        appendElementsToCenter([timeSettingContainer, cardDeckContainer, startGameContainer]);
+    
+        // 單獨附加 actionButtonsContainer 到文檔中
+        document.body.appendChild(actionButtonsContainer);
         document.body.appendChild(playerListContainer); // 放置在左下角
     }
+    
 
     
     // 顯示配對和丟棄按鈕的函數
@@ -533,9 +538,8 @@ export class Game extends Scene {
             'timeSettingContainer',
             'cardDeckContainer',
             'startGameContainer',
-            'actionButtonsContainer',
         ];
-    
+     
         elementsToRemove.forEach(id => {
             const element = document.getElementById(id);
             if (element && element.parentNode) {
@@ -717,7 +721,7 @@ export class Game extends Scene {
         const settingsContainer = createSettingsOverlay();
         // addIPSettings(settingsContainer);
         // addIDSettings(settingsContainer, this.gameManager);
-        addReconnectButton(settingsContainer);
+        addReconnectButton(settingsContainer, this.gameManager);
     }
 
     toggleGradientBorder(visible, color = 0x00ff00) { // 默認顏色為綠色

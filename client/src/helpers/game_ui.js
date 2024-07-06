@@ -145,6 +145,11 @@ export function createActionButtonsContainer() {
     actionButtonsContainer.id = 'actionButtonsContainer';
     actionButtonsContainer.className = 'p-3 bg-dark text-white rounded';
     actionButtonsContainer.style.display = 'none'; // 默認隱藏
+    actionButtonsContainer.style.position = 'fixed'; // 固定位置
+    actionButtonsContainer.style.top = '50%'; // 垂直居中顯示
+    actionButtonsContainer.style.left = '10px'; // 確保位於最左邊
+    actionButtonsContainer.style.transform = 'translateY(-50%)'; // 垂直居中對齊
+    actionButtonsContainer.style.zIndex = '1000'; // 設置較低的 z-index
 
     // 配對按鈕
     let pairButton = document.createElement('button');
@@ -157,7 +162,7 @@ export function createActionButtonsContainer() {
     let discardButton = document.createElement('button');
     discardButton.id = 'discard-button';
     discardButton.textContent = '丟棄';
-    discardButton.className = 'btn btn-primary';
+    discardButton.className = 'btn btn-outline-danger';
     actionButtonsContainer.appendChild(discardButton);
 
     return actionButtonsContainer;

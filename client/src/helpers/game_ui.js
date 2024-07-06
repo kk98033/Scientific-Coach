@@ -4,7 +4,8 @@ export function createPlayerListContainer() {
     let playerListContainer = document.createElement('div');
     playerListContainer.id = 'playerListContainer';
     playerListContainer.className = 'p-3 bg-dark text-white rounded shadow-lg';
-    playerListContainer.style.width = '250px';
+    playerListContainer.style.width = '100%';
+    playerListContainer.style.maxWidth = '250px';
     playerListContainer.style.height = '200px';
     playerListContainer.style.overflowY = 'scroll';
     playerListContainer.style.position = 'fixed';
@@ -13,6 +14,8 @@ export function createPlayerListContainer() {
 
     return playerListContainer;
 }
+
+
 
 
 export function createTimeSettingContainer(gameManager, isEditable = false) {

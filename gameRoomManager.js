@@ -137,17 +137,19 @@ class GameRoomManager {
                 this.rooms[roomId].players.splice(index, 1);
                 console.log(`Player ${playerId} left room ${roomId}.`);
                 if (this.rooms[roomId].players.length === 0) {
+                    // 因為房間沒人了，所以直接刪除房間數據和事件，節省資源
                     clearInterval(this.rooms[roomId].timer); // 停止回合計時器
                     clearInterval(this.rooms[roomId].discardTimer); // 停止棄牌計時器
 
                     delete this.rooms[roomId];
                     console.log(`Room ${roomId} is empty and deleted.`);
+                    return { result: 'room_deleted' }
                 }
                 console.log(); // DEBUG
                 console.log(); // DEBUG
                 console.log(`debug for deleting room: ${roomId}`); // DEBUG
                 console.log(this.rooms); // DEBUG
-                return;
+                return { result: 'player_left' };
             }
         } 
     }

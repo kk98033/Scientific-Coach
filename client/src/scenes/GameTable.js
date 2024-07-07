@@ -171,6 +171,38 @@ export class GameTable extends Scene {
         document.body.appendChild(playerListContainer); // 放置在左下角
     }
 
+    clearInGameHTMLUI() {
+        const elementsToRemove = [
+            'playerListContainer',
+            'actionButtonsContainer',
+            'currentPlayerIDContainer',
+            'gameRecordContainer',
+            'skillContainer', 'skillOverlay', 'skillButton'
+        ];
+     
+        elementsToRemove.forEach(id => {
+            const element = document.getElementById(id);
+            if (element && element.parentNode) {
+                element.parentNode.removeChild(element);
+            }
+        });
+    }
+
+    clearHTMLUI() {
+        const elementsToRemove = [
+            'timeSettingContainer',
+            'cardDeckContainer',
+            'startGameContainer',
+        ];
+     
+        elementsToRemove.forEach(id => {
+            const element = document.getElementById(id);
+            if (element && element.parentNode) {
+                element.parentNode.removeChild(element);
+            }
+        });
+    }
+
     // createHTMLUI() {
     //     let playerListContainer = document.createElement('div');
     //     playerListContainer.id = 'playerListContainer';

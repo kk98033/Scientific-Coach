@@ -572,7 +572,8 @@ export class Game extends Scene {
             'playerListContainer',
             'actionButtonsContainer',
             'currentPlayerIDContainer',
-            'gameRecordContainer'
+            'gameRecordContainer',
+            'skillContainer', 'skillOverlay', 'skillButton'
         ];
      
         elementsToRemove.forEach(id => {

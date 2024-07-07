@@ -176,7 +176,11 @@ io.on('connection', (socket) => {
         const roomId = data.roomId;
         const reason = data.reason;
         socket.leave(roomId); // leave room 
-        gameRoomManager.leaveRoom(socket.id)
+        const { result } = gameRoomManager.leaveRoom(socket.id)
+        if (result === 'room_deleted') {
+           // 向房間發送"房間已刪除"訊息 
+           io.to(roomId).emit('this_room_has_been_deleted', { roomId });
+        }
         console.log(`Player ${socket.id} left room ${roomId}. Reason: ${reason}`); 
     
         // 向房間內的所有玩家發送更新後的玩家列表

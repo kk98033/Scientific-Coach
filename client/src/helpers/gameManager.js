@@ -6,6 +6,8 @@ import { showNotification } from '../helpers/notification';
 import { showLoading, hideLoading } from '../helpers/loading';
 import { updateGameRecord } from '../helpers/game_ui';
 import { addWaveGradientBorder, toggleGradientBorder, changeGradientColor } from '../helpers/waveGradient';
+import { showAlert } from './alert';
+import { showModal } from './modal';
 
 
 export default class GameManager {
@@ -150,12 +152,32 @@ export default class GameManager {
             const { zoneIndex, cards, cardIds } = data;
             console.log("asdj;f;asdkjfsdjl;fjk;asdlfj;klsfjkl;dsafjkl;")
             this.handlePairSuccess(zoneIndex, cards);
-            // this.endTurn();
+            // this.endTurn(); 
         });
 
         this.socket.on('get_player_scores', (data) => {
             const { resourcePoints, gameLevel, cardPairCount } = data;
             updateGameRecord(gameLevel, resourcePoints, cardPairCount)
+        });
+
+        this.socket.on('this_room_has_been_deleted', (data) => {
+            const { roomId } = data;
+            if (this.isGameTable) {
+                showModal(
+                    '房間已關閉', // 標題
+                    '此房間內所有玩家皆退出了，因此已經關閉', // 消息
+                    () => { // 確認回調
+                        console.log('確認按鈕被點擊');
+                        this.leaveRoomAndClearUI();
+                        showAlert("已自動離開已被刪除的房間");
+                    },
+                    () => { // 取消回調
+                        console.log('取消按鈕被點擊');
+                        this.leaveRoomAndClearUI();
+                        showAlert("已自動離開已被刪除的房間");
+                    }
+                );
+            }
             // this.endTurn();
         });
 
@@ -273,11 +295,12 @@ export default class GameManager {
             console.log(gameIsStarted, isPlayerInRoom);
             this.leaveRoom();
             
-            this.scene.clearInGameHTMLUI();
-            this.scene.clearHTMLUI();
-            this.scene.scene.stop(this.isGameTable ? 'GameTable' : 'Game', { gameManager: this.gameManager });
-            this.scene.scene.start('MainMenu');
-            showNotification(`你已離開房間: ${this.roomId}`, 'success');
+            // this.scene.clearInGameHTMLUI();
+            // this.scene.clearHTMLUI();
+            // this.scene.scene.stop(this.isGameTable ? 'GameTable' : 'Game', { gameManager: this.gameManager });
+            // this.scene.scene.start('MainMenu');
+            this.leaveRoomAndClearUI();
+            showAlert(`你已離開房間: ${this.roomId}`, 'success');
             if (!gameIsStarted) {
             }
          
@@ -293,6 +316,13 @@ export default class GameManager {
         //     console.log(hand);
         // });
         
+    }
+
+    leaveRoomAndClearUI() {
+        this.scene.clearInGameHTMLUI();
+        this.scene.clearHTMLUI();
+        this.scene.scene.stop(this.isGameTable ? 'GameTable' : 'Game', { gameManager: this.gameManager });
+        this.scene.scene.start('MainMenu');
     }
  
     handlePairSuccess(playerId, matchedHandCards, matchedHandIndexes, matchedTableCards, matchedTableIndexes, resourcePoints, gameLevel, cardPairCount) {

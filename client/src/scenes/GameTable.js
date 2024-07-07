@@ -3,6 +3,7 @@ import Zone from '../helpers/zone';
 import io from 'socket.io-client';
 import Dealer from '../helpers/dealer';
 import { createPlayerListContainer, createTimeSettingContainer, createCardDeckContainer, createStartGameContainer, createCurrentPlayerIDContainer, appendElementsToCenter } from '../helpers/game_ui';
+import { addLeaveGameButton, createSettingsOverlay } from '../helpers/settings';
 
 
 export class GameTable extends Scene {
@@ -169,6 +170,13 @@ export class GameTable extends Scene {
 
         appendElementsToCenter([timeSettingContainer, cardDeckContainer, startGameContainer]);
         document.body.appendChild(playerListContainer); // 放置在左下角
+
+        // SETTINGS
+        const settingsContainer = createSettingsOverlay();
+        // addIPSettings(settingsContainer);
+        // addIDSettings(settingsContainer, this.gameManager);
+        // addReconnectButton(settingsContainer, this.gameManager);
+        addLeaveGameButton(settingsContainer, this.gameManager);
     }
 
     clearInGameHTMLUI() {

@@ -138,6 +138,9 @@ class GameRoomManager {
                     delete this.rooms[roomId];
                     console.log(`Room ${roomId} is empty and deleted.`);
                 }
+                console.log(); // DEBUG
+                console.log(); // DEBUG
+                console.log(`debug for deleting room: ${roomId}`); // DEBUG
                 console.log(this.rooms); // DEBUG
                 return;
             }
@@ -181,6 +184,24 @@ class GameRoomManager {
 
     getReadyPlayers(roomId) {
         const room = this.rooms[roomId];
+        console.log()
+        console.log()
+        console.log()
+        console.log("+++++++")
+        console.log('roomid: ', roomId)
+        console.log('room', room)
+        console.log("+++++++")
+        console.log()
+        console.log()
+        console.log()
+        // TODO: 離開遊戲的時候有可能會崩潰
+        /*
+            C:\scientific-coach\Scientific-Coach\gameRoomManager.js:194
+                total: room.players.length
+                            ^
+
+            ypeError: Cannot read properties of undefined (reading 'players')  
+        */
         if (room) {
             return {
                 readyPlayers: room.readyPlayers,
@@ -191,7 +212,7 @@ class GameRoomManager {
             return {
                 readyPlayers: [],
                 count: 0,
-                total: room.players.length
+                total: 0
             };
         }
     }

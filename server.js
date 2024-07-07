@@ -145,6 +145,8 @@ io.on('connection', (socket) => {
             // 向房間內的所有玩家發送更新後的玩家列表
             const players = gameRoomManager.getPlayersInRoom(roomId);
             io.to(roomId).emit('update_player_list', { players });
+
+            io.to(roomId).emit('player_joined_success', { userId: playerId });
         } else {
             socket.emit('room_not_found', { roomId });
         }
@@ -162,6 +164,8 @@ io.on('connection', (socket) => {
             // 向房間內的所有玩家發送更新後的玩家列表
             const players = gameRoomManager.getPlayersInRoom(roomId);
             io.to(roomId).emit('update_player_list', { players });
+
+            io.to(roomId).emit('player_joined_success', { userId: tableId });
         } else {
             socket.emit('room_not_found', { roomId });
         }
@@ -336,8 +340,27 @@ io.on('connection', (socket) => {
             playerId: playerId
         });
     });
+    
+    socket.on('is_game_started_on_this_room_for_leaving_request', (data) => {
+        const { roomId, playerId } = data;
+        console.log([roomId, playerId])
+        const { gameIsStarted, isPlayerInRoom } = gameManager.isGameStartedInRoom(roomId, playerId);
 
+        io.emit('is_game_started_on_this_room_for_leaving_request', {
+            gameIsStarted: gameIsStarted,
+            isPlayerInRoom: isPlayerInRoom,
+            playerId: playerId
+        });
+    });
+    
     socket.on('update_game_state', (data) => {
+        const { roomId } = data;
+
+        gameManager.updateGameState(roomId);
+    });
+
+    // TODO: leave game
+    socket.on('leave_game', (data) => {
         const { roomId } = data;
 
         gameManager.updateGameState(roomId);

@@ -3,6 +3,7 @@ import Card from './card';
 import Zone from '../helpers/zone';
 import { NONE } from 'phaser';
 import { showNotification } from '../helpers/notification';
+import { showLoading, hideLoading } from '../helpers/loading';
 
 export default class GameManager {
     constructor(scene) {
@@ -13,7 +14,7 @@ export default class GameManager {
         this.dropZones = null;
         this.zone = null;
         this.socket = null;
-        this.turnTimer = 10; // TODO: 10
+        this.turnTimer = 10; 
 
         this.roomId = null;
         this.playerId = null;
@@ -30,8 +31,8 @@ export default class GameManager {
         this.tableCardsObj = Array.from({ length: 8 }, () => []); // Array to store cards on the table
 
         this.selectedCards = [];
-
         this.currentDraggedCard = null;
+
         
 
         this.connectSocket();
@@ -78,7 +79,10 @@ export default class GameManager {
         });
 
         this.socket.on('room_not_found', (data) => {
+            hideLoading();
+            
             console.log('Room not found:', data.roomId);
+            showNotification(`房間 ${data.roomId} 不存在!`, 'danger');
         });
 
         this.socket.on('player_joined', (data) => {
@@ -93,7 +97,7 @@ export default class GameManager {
                 showNotification(`Player ${data.playerId} has left the room.`, 'danger');
         });
 
-        this.socket.on('update_timer', (data) => {
+        this.socket.on('update_timer', (data) => { 
             const { turnTimer } = data;
             this.turnTimer = turnTimer;
         
@@ -247,7 +251,23 @@ export default class GameManager {
             // 設置顯示文字
             this.scene.timerText.setText(`${playerText}\n${roomText}\n${timerText}`);
         });
+        
+        this.socket.on('is_game_started_on_this_room_for_leaving_request', (data) => {
+            const { gameIsStarted, isPlayerInRoom, playerId } = data; 
+            if (this.playerId != playerId) return;
+             
+            console.log(gameIsStarted, isPlayerInRoom);
+            this.leaveRoom();
+            
+            this.scene.clearInGameHTMLUI();
+            this.scene.clearHTMLUI();
+            this.scene.scene.stop(this.isGameTable ? 'GameTable' : 'Game', { gameManager: this.gameManager });
+            this.scene.scene.start('MainMenu');
+            showNotification(`你已離開房間: ${this.roomId}`, 'success');
+            if (!gameIsStarted) {
+            }
          
+        });
 
         // this.socket.on('player_hand', (data) => {
         //     const { playerId, hand } = data;
@@ -260,7 +280,7 @@ export default class GameManager {
         // });
         
     }
-
+ 
     handlePairSuccess(playerId, matchedHandCards, matchedHandIndexes, matchedTableCards, matchedTableIndexes) {
         console.log(`玩家 ${playerId} 配對成功`); 
         console.log('配對成功的手牌：', matchedHandCards);
@@ -302,13 +322,26 @@ export default class GameManager {
             console.log('not your turn!');
         }
     }
-
+ 
     setupBeforeUnloadListener() {
         // window is closing
         window.addEventListener("beforeunload", (event) => { 
             this.leaveRoom('window closing'); 
             event.returnValue = '';
         });
+    }
+
+    handleLeaveRequest() {
+        console.log(this.roomId, this.playerId)
+        if (this.playerId) {
+            this.socket.emit('is_game_started_on_this_room_for_leaving_request', { roomId: this.roomId, playerId: this.playerId });
+        } else {
+            showNotification("錯誤", 'danger')
+        }
+        // if (this) {
+        //     // game is not started
+        //     this.leaveRoom();
+        // }
     }
 
     leaveRoom(reason = '') {
@@ -323,8 +356,9 @@ export default class GameManager {
 
     joinRoom(roomId, isTable) {
         this.roomId = roomId;
- 
+        showLoading();
         if (isTable) {
+            console.log('table join room')
             this.socket.emit('table_join_room', { roomId: roomId });
         } else {
             this.socket.emit('join_room', { roomId: roomId, playerId: this.playerId });

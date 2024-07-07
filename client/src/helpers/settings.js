@@ -1,5 +1,7 @@
 // src/helper/settings.js
 
+import { showNotification } from "./notification";
+
 export function createSettingsOverlay() {
     const style = document.createElement('style');
     style.innerHTML = `
@@ -237,6 +239,33 @@ export function setCurrentPlayerID(playerID) {
     }
 }
 
+export function addLeaveGameButton(container, gameManager) {
+    // Leave game button
+    let leaveGameContainer = document.createElement('div');
+    leaveGameContainer.className = 'd-flex align-items-center mb-3'; // 使用 Bootstrap 樣式
+
+    let leaveGameLabel = document.createElement('label');
+    leaveGameLabel.textContent = '離開遊戲:';
+    leaveGameLabel.className = 'me-2'; // 使用 Bootstrap 樣式
+    leaveGameContainer.appendChild(leaveGameLabel);
+
+    let leaveGameButton = document.createElement('button');
+    leaveGameButton.className = 'btn btn-outline-danger'; // 使用 Bootstrap 樣式
+
+    let leaveGameIcon = document.createElement('i');
+    leaveGameIcon.className = 'fas fa-sign-out-alt'; // 使用 Font Awesome 的"離開"圖標
+    leaveGameButton.appendChild(leaveGameIcon);
+
+    leaveGameButton.onclick = () => {
+        console.log('離開遊戲按鈕被點擊了');
+        // 處理離開遊戲邏輯
+        gameManager.handleLeaveRequest();
+    };
+    leaveGameContainer.appendChild(leaveGameButton); 
+
+    container.appendChild(leaveGameContainer);
+}
+
 export function handleSetPlayerIDButton(gameManager) {
     return () => {
         const idSettingInputElement = document.getElementById('idSettingInput');
@@ -247,6 +276,7 @@ export function handleSetPlayerIDButton(gameManager) {
             gameManager.playerId = playerID;
             console.log('玩家ID設置為: ' + playerID);
             console.log(gameManager.playerId)
+            showNotification(`成功將玩家ID設置為: ${playerID}`, 'info')
         }
     };
 }

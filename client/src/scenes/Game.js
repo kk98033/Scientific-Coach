@@ -6,7 +6,7 @@ import Dealer from '../helpers/dealer';
 import GameRoomManager from '../../../gameRoomManager';
 import { createPlayerListContainer, createTimeSettingContainer, createCardDeckContainer, createStartGameContainer, createActionButtonsContainer, createCurrentPlayerIDContainer, appendElementsToCenter } from '../helpers/game_ui';
 import { showNotification } from '../helpers/notification';
-import { createSettingsOverlay, addIPSettings, addIDSettings, addReconnectButton, setCurrentPlayerID, handleSetPlayerIDButton } from '../helpers/settings';
+import { createSettingsOverlay, addIPSettings, addIDSettings, addReconnectButton, setCurrentPlayerID, handleSetPlayerIDButton, addLeaveGameButton } from '../helpers/settings';
 
 export class Game extends Scene {
     constructor() {
@@ -311,6 +311,7 @@ export class Game extends Scene {
 
     updatePlayerList(players) {
         const playerListContainer = document.getElementById('playerListContainer');
+        if (!playerListContainer) return;
         playerListContainer.innerHTML = ''; // 清空列表
 
         players.forEach(playerId => {
@@ -550,6 +551,21 @@ export class Game extends Scene {
             }
         });
     }
+
+    clearInGameHTMLUI() {
+        const elementsToRemove = [
+            'playerListContainer',
+            'actionButtonsContainer',
+            'currentPlayerIDContainer'
+        ];
+     
+        elementsToRemove.forEach(id => {
+            const element = document.getElementById(id);
+            if (element && element.parentNode) {
+                element.parentNode.removeChild(element);
+            }
+        });
+    }
     
     
     addWaveGradientBorder(color = 0x00ff00) { // 默認顏色為綠色
@@ -725,6 +741,7 @@ export class Game extends Scene {
         // addIPSettings(settingsContainer);
         // addIDSettings(settingsContainer, this.gameManager);
         addReconnectButton(settingsContainer, this.gameManager);
+        addLeaveGameButton(settingsContainer, this.gameManager);
     }
 
     toggleGradientBorder(visible, color = 0x00ff00) { // 默認顏色為綠色

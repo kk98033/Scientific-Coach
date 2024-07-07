@@ -4,6 +4,7 @@ import Zone from '../helpers/zone';
 import { NONE } from 'phaser';
 import { showNotification } from '../helpers/notification';
 import { showLoading, hideLoading } from '../helpers/loading';
+import { updateGameRecord } from '../helpers/game_ui';
 
 export default class GameManager {
     constructor(scene) {
@@ -50,11 +51,11 @@ export default class GameManager {
         this.socketIP = socketIP;
 
         // reconnect
-        this.connectSocket();
+        this.connectSocket();  
     }
 
     connectSocket() {
-        // this.socket = io('http://localhost:3000');
+        // this.socket = io('http://localhost:3000'); 
 
         // test on lan
         this.socket = io(this.socketIP + ':3000');
@@ -121,7 +122,7 @@ export default class GameManager {
             console.log(`Game started!`);
 
             this.getPlayerHand(); 
-
+            this.socket.emit('get_player_scores', { roomId: this.roomId, playerId: this.playerId });
             showNotification(`遊戲正式開始!`, 'info');
         });
 
@@ -150,6 +151,12 @@ export default class GameManager {
             // this.endTurn();
         });
 
+        this.socket.on('get_player_scores', (data) => {
+            const { resourcePoints, gameLevel, cardPairCount } = data;
+            updateGameRecord(gameLevel, resourcePoints, cardPairCount)
+            // this.endTurn();
+        });
+
         this.socket.on('get_cards_on_table', (data) => {
             const { playerId, cards } = data;
             if (playerId === this.playerId) {
@@ -171,14 +178,19 @@ export default class GameManager {
                 matchedTableCards,  
                 matchedTableIndexes,
                 message,
-                selectedCards 
+                selectedCards,
+
+                // 更新玩家的遊戲狀態紀錄
+                resourcePoints,
+                gameLevel,
+                cardPairCount,
             } = data;
          
             if (success) {
-                console.log('配對成功');
-                this.handlePairSuccess(playerId, matchedHandCards, matchedHandIndexes, matchedTableCards, matchedTableIndexes);
+                console.log('debug-pair 配對成功');
+                this.handlePairSuccess(playerId, matchedHandCards, matchedHandIndexes, matchedTableCards, matchedTableIndexes, resourcePoints, gameLevel, cardPairCount);
             } else {
-                console.log('配對失敗：', message);
+                console.log('debug-pair 配對失敗：', message);
                 this.handlePairFailure(playerId, selectedCards); 
             }
         });
@@ -281,22 +293,32 @@ export default class GameManager {
         
     }
  
-    handlePairSuccess(playerId, matchedHandCards, matchedHandIndexes, matchedTableCards, matchedTableIndexes) {
+    handlePairSuccess(playerId, matchedHandCards, matchedHandIndexes, matchedTableCards, matchedTableIndexes, resourcePoints, gameLevel, cardPairCount) {
         console.log(`玩家 ${playerId} 配對成功`); 
         console.log('配對成功的手牌：', matchedHandCards);
         console.log('配對成功的桌牌：', matchedTableCards);
         console.log("========")
         console.log(matchedTableIndexes)
-        if (!this.zone) return;
+        if (this.zone) {
+            matchedTableIndexes.forEach(zoneIndex => {
+                this.zone.highlightZone(zoneIndex);
+                setTimeout(() => { 
+                    this.zone.clearHighlightZone(zoneIndex);
+                }, 2000); // 框框顯示2秒
+            });
+        } else {
+            console.log("DEBUG-PAIR-SUCCESS")
+            updateGameRecord(gameLevel, resourcePoints, cardPairCount)
+        }
+
         
-        matchedTableIndexes.forEach(zoneIndex => {
-            this.zone.highlightZone(zoneIndex);
-            setTimeout(() => { 
-                this.zone.clearHighlightZone(zoneIndex);
-            }, 2000); // 框框顯示2秒
-        });
+        
     
         // 根據需要，更新手牌和其他遊戲狀態
+    }
+
+    updateScoreAndLevel() {
+
     }
     
     handlePairFailure(playerId, selectedCards) {

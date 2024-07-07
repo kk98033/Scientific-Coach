@@ -3,7 +3,7 @@
 class GameRoomManager {
     constructor() {
         // this.rooms = {};
-        // TODO: debug room, 記得刪掉!
+        // TODO: debug room, 記得刪掉! 保留 => this.rooms = {};
         this.rooms = {
             "": {
                 gameIsStarted: false,
@@ -45,7 +45,8 @@ class GameRoomManager {
                     deck_2: 0,
                     deck_3: 0,
                     deck_4: 0,
-                }
+                },
+                playerScores: {} // { 'playerID': { 'cardPairCount': int, 'gameLevel': int, 'cardPairCount': int }, ... }
             }
         }; // for debug
     }
@@ -78,6 +79,7 @@ class GameRoomManager {
                     deck_3: 0,
                     deck_4: 0,
                 },
+                playerScores: {} // { 'playerID': { 'resourcePoints': int, 'gameLevel': int, 'cardPairCount': int }, ... } | gameLevel: 0 => C, 1 => B, 2 => A
             };
             console.log(`Room ${roomId} created.`);
             return true;

@@ -344,6 +344,7 @@ class GameManager {
         if (room) {
             room.players.forEach(playerId => {
                 this.dealCardsToPlayer(roomId, playerId, 8); // 每人發八張卡
+                room.playerScores[playerId] = { 'resourcePoints': 0, 'gameLevel': 0, 'cardPairCount': 0 } // 初始化每個玩家的數值
             });
 
             room.currentPlayer = 0;  // 從第一個玩家開始
@@ -358,6 +359,28 @@ class GameManager {
         console.log(room)
         this.dealCardsToDeck(roomId);
         this.updateGameState(roomId);
+    }
+
+    getPlayerScores(roomId, playerId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        
+        if (!room) {
+            console.error(`Room with ID ${roomId} does not exist.`);
+            return null;
+        }
+        
+        const playerScore = room.playerScores[playerId];
+        
+        if (!playerScore) {
+            console.error(`Player with ID ${playerId} does not exist in room ${roomId}.`);
+            return null;
+        }
+        
+        return {
+            resourcePoints: playerScore['resourcePoints'],
+            gameLevel: playerScore['gameLevel'],
+            cardPairCount: playerScore['cardPairCount']
+        };
     }
 
     applySettings(room, settings) {
@@ -582,11 +605,36 @@ class GameManager {
         return { success: true };
     }
 
+    updatePlayerScoreAndLevel(roomId, playerId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        const playerScore = room.playerScores[playerId];
+        const playerGameLevel = playerScore['gameLevel']; 
+        // TODO: 問一下等級是怎麼判斷的
+        playerScore['cardPairCount'] += 1;
+    
+        if (playerGameLevel === 0) {
+            // C
+            playerScore['resourcePoints'] = Math.min((playerScore['resourcePoints'] + 1), 4);
+            playerScore['gameLevel'] = 1; // B
+        } else if (playerGameLevel === 1) {
+            // B
+            playerScore['resourcePoints'] = Math.min((playerScore['resourcePoints'] + 2), 4);
+            playerScore['gameLevel'] = 2; // A
+        } else if (playerGameLevel === 2) {
+            // A
+            playerScore['resourcePoints'] = Math.min((playerScore['resourcePoints'] + 2), 4);
+            playerScore['gameLevel'] = 2; // A
+        } 
+    }
+
     pairCards(roomId, playerId) {
         const room = this.gameRoomManager.rooms[roomId];
         console.log(room.currentSelected);
     
         if (this.pairingManager.canPair(room.currentSelected)) {
+            // 可以配對呦~
+            this.updatePlayerScoreAndLevel(roomId, playerId);
+
             const matchedTableCards = [];
             const matchedHandCards = [];
             const matchedTableIndexes = [];
@@ -648,7 +696,12 @@ class GameManager {
                 matchedHandCards: matchedHandCards,
                 matchedHandIndexes: matchedHandIndexes,
                 matchedTableCards: matchedTableCards,
-                matchedTableIndexes: matchedTableIndexes
+                matchedTableIndexes: matchedTableIndexes, 
+
+                // 玩家遊戲狀態
+                resourcePoints: room.playerScores[playerId]['resourcePoints'],
+                gameLevel: room.playerScores[playerId]['gameLevel'],
+                cardPairCount: room.playerScores[playerId]['cardPairCount'],
             };
         } else {
             console.log('這些卡牌無法配對。');

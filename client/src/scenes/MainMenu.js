@@ -4,6 +4,7 @@ import { createSettingsOverlay, addIPSettings, addIDSettings, setCurrentPlayerID
 import { createIPInput, createRoomInput, createHostCheckbox, createRoomListContainer } from '../helpers/mainMenuUI';
 import { hideLoading } from '../helpers/loading';
 import { showNotification } from '../helpers/notification';
+import { showAlert } from '../helpers/alert';
 
 export class MainMenu extends Scene {
     constructor() {
@@ -113,6 +114,7 @@ export class MainMenu extends Scene {
         roomInputGroup.querySelector('#createRoomBtn').addEventListener('click', () => {
             console.log('創建房間');
             this.gameManager.createRoom();
+            showAlert('這是一個警告訊息！', 'warning'); 
         });
 
         roomInputGroup.querySelector('#joinRoomBtn').addEventListener('click', () => {

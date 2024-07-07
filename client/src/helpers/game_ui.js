@@ -200,3 +200,107 @@ export function appendElementsToCenter(elements) {
     });
     document.body.appendChild(container);
 }
+
+
+export function createGameRecordContainer() {
+    let gameRecordContainer = document.createElement('div');
+    gameRecordContainer.id = 'gameRecordContainer';
+    gameRecordContainer.className = 'p-3 bg-dark text-white rounded shadow-lg';
+    gameRecordContainer.style.width = '250px';
+    gameRecordContainer.style.position = 'fixed';
+    gameRecordContainer.style.bottom = '10px';
+    gameRecordContainer.style.right = '10px';
+    gameRecordContainer.style.zIndex = '1000';
+
+    let title = document.createElement('h5');
+    title.textContent = '遊戲紀錄';
+    title.className = 'mb-3';
+
+    let gameLevel = document.createElement('div');
+    gameLevel.id = 'gameLevel';
+    gameLevel.textContent = '遊戲等級: N/A';
+    gameLevel.className = 'mb-2';
+
+    let resourcePoints = document.createElement('div');
+    resourcePoints.id = 'resourcePoints';
+    resourcePoints.textContent = '資源點數數量: N/A';
+    resourcePoints.className = 'mb-2';
+
+    let cardPairCount = document.createElement('div');
+    cardPairCount.id = 'cardPairCount';
+    cardPairCount.textContent = '卡牌配對數量: N/A';
+
+    gameRecordContainer.appendChild(title);
+    gameRecordContainer.appendChild(gameLevel); 
+    gameRecordContainer.appendChild(resourcePoints);
+    gameRecordContainer.appendChild(cardPairCount);
+
+    return gameRecordContainer;
+}
+
+export function updateGameRecord(level, points, pairs) {
+    const gameLevel = document.getElementById('gameLevel');
+    const resourcePoints = document.getElementById('resourcePoints');
+    const cardPairCount = document.getElementById('cardPairCount');
+
+    let levelText;
+    switch (level) {
+        case 0:
+            levelText = 'C 級';
+            break;
+        case 1:
+            levelText = 'B 級';
+            break;
+        case 2:
+            levelText = 'A 級';
+            break;
+        default:
+            levelText = 'N/A';
+            break;
+    }
+
+    if (gameLevel && gameLevel.textContent !== `遊戲等級: ${levelText}`) {
+        gameLevel.textContent = `遊戲等級: ${levelText}`;
+        createAnimation(gameLevel, "level up"); // 等級提升時顯示 "level up"
+    }
+
+    if (resourcePoints && resourcePoints.textContent !== `資源點數數量: ${points}`) {
+        let diff = points - parseInt(resourcePoints.textContent.split(': ')[1], 10);
+        resourcePoints.textContent = `資源點數數量: ${points}`;
+        createAnimation(resourcePoints, diff > 0 ? `+${diff}` : `${diff}`);
+    }
+
+    if (cardPairCount && cardPairCount.textContent !== `卡牌配對數量: ${pairs}`) {
+        let diff = pairs - parseInt(cardPairCount.textContent.split(': ')[1], 10);
+        cardPairCount.textContent = `卡牌配對數量: ${pairs}`;
+        createAnimation(cardPairCount, diff > 0 ? `+${diff}` : `${diff}`);
+    }
+}
+
+function createAnimation(element, text) {
+    let animation = document.createElement('div');
+    animation.textContent = text;
+    animation.className = 'text-success position-absolute';
+    animation.style.fontSize = '0.8rem'; // 初始字體較小
+    animation.style.transition = 'opacity 2s ease-out, transform 2s ease-out, font-size 2s ease-out'; // 調慢動畫速度並增加字體大小過渡
+    animation.style.opacity = '1';
+    animation.style.zIndex = '2000'; // 確保在最上層
+
+    // 設置動畫位置
+    const rect = element.getBoundingClientRect();
+    animation.style.top = `${rect.top - 20}px`; // 在元素上方顯示動畫
+    animation.style.left = `${rect.left + rect.width / 2}px`;
+    animation.style.transform = 'translate(-50%, 0)';
+
+    document.body.appendChild(animation);
+
+    // 觸發動畫
+    setTimeout(() => {
+        animation.style.opacity = '0';
+        animation.style.transform = 'translate(-50%, -30px)'; // 動畫上移更多
+        animation.style.fontSize = '1.5rem'; // 字體變大
+        setTimeout(() => {
+            document.body.removeChild(animation);
+        }, 2000); // 動畫持續2秒
+    }, 0);
+}

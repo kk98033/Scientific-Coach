@@ -222,7 +222,7 @@ io.on('connection', (socket) => {
                 success: false,
                 message: result.error,
                 playerId: result.playerId,
-                selectedCards: result.selectedCards
+                selectedCards: result.selectedCards,
             });
         } else {
             io.to(roomId).emit('pair_result', {
@@ -232,7 +232,11 @@ io.on('connection', (socket) => {
                 matchedHandIndexes: result.matchedHandIndexes,
                 matchedTableCards: result.matchedTableCards,
                 matchedTableIndexes: result.matchedTableIndexes,
-                selectedCards: result.selectedCards
+                selectedCards: result.selectedCards,
+                // 更新玩家的遊戲狀態紀錄
+                resourcePoints: result.resourcePoints,
+                gameLevel: result.gameLevel,
+                cardPairCount: result.cardPairCount,
             });
         }
     });
@@ -364,6 +368,20 @@ io.on('connection', (socket) => {
         const { roomId } = data;
 
         gameManager.updateGameState(roomId);
+    });
+
+    socket.on('get_player_scores', (data) => {
+        const { roomId, playerId } = data;
+
+        const result = gameManager.getPlayerScores(roomId, playerId);
+        if (result) {
+            const { resourcePoints, gameLevel, cardPairCount } = result
+            io.emit('get_player_scores', {
+                resourcePoints: resourcePoints,
+                gameLevel: gameLevel,
+                cardPairCount: cardPairCount
+            });
+        }
     });
 });
 

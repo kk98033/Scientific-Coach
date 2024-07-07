@@ -4,9 +4,10 @@ import Zone from '../helpers/zone';
 import io from 'socket.io-client';
 import Dealer from '../helpers/dealer';
 import GameRoomManager from '../../../gameRoomManager';
-import { createPlayerListContainer, createTimeSettingContainer, createCardDeckContainer, createStartGameContainer, createActionButtonsContainer, createCurrentPlayerIDContainer, appendElementsToCenter } from '../helpers/game_ui';
+import { createPlayerListContainer, createTimeSettingContainer, createCardDeckContainer, createStartGameContainer, createActionButtonsContainer, createCurrentPlayerIDContainer, appendElementsToCenter, createGameRecordContainer } from '../helpers/game_ui';
 import { showNotification } from '../helpers/notification';
 import { createSettingsOverlay, addIPSettings, addIDSettings, addReconnectButton, setCurrentPlayerID, handleSetPlayerIDButton, addLeaveGameButton } from '../helpers/settings';
+import { showAlert } from '../helpers/alert';
 
 export class Game extends Scene {
     constructor() {
@@ -159,7 +160,7 @@ export class Game extends Scene {
             // this.gameManager.clearTexts()
             if (!this.gameManager.isPlayerTurn()) return;
             if (!this.gameManager.canPairCards) return;
-            this.gameManager.pairCards(); 
+            this.gameManager.pairCards();
         });
         
         document.getElementById('discard-button').addEventListener('click', () => {
@@ -517,14 +518,17 @@ export class Game extends Scene {
         const cardDeckContainer = createCardDeckContainer(this.gameManager); // 默認不可編輯
         const startGameContainer = createStartGameContainer(this.gameManager); // 默認準備開始
         const actionButtonsContainer = createActionButtonsContainer();
+        const gameRecordContainer = createGameRecordContainer(); // 新增遊戲紀錄框
+    
         createCurrentPlayerIDContainer(); // 創建玩家ID顯示容器
     
         // 將主要的容器置中
         appendElementsToCenter([timeSettingContainer, cardDeckContainer, startGameContainer]);
     
-        // 單獨附加 actionButtonsContainer 到文檔中
+        // 單獨附加其他容器到文檔中
         document.body.appendChild(actionButtonsContainer);
         document.body.appendChild(playerListContainer); // 放置在左下角
+        document.body.appendChild(gameRecordContainer); // 放置在右下角
     }
     
 
@@ -556,7 +560,8 @@ export class Game extends Scene {
         const elementsToRemove = [
             'playerListContainer',
             'actionButtonsContainer',
-            'currentPlayerIDContainer'
+            'currentPlayerIDContainer',
+            'gameRecordContainer'
         ];
      
         elementsToRemove.forEach(id => {

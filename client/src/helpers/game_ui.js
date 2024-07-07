@@ -304,3 +304,124 @@ function createAnimation(element, text) {
         }, 2000); // 動畫持續2秒
     }, 0);
 }
+
+// src/helper/ui.js
+
+export function createSkillButtonAndOverlay(gameManager) {
+    // 新增動畫樣式
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes expandContainerFromButton {
+            from {
+                transform: scale(0.1);
+                opacity: 0;
+                transform-origin: bottom center;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+                transform-origin: bottom center;
+            }
+        }
+        @keyframes collapseContainerToButton {
+            from {
+                transform: scale(1);
+                opacity: 1;
+                transform-origin: bottom center;
+            }
+            to {
+                transform: scale(0.1);
+                opacity: 0;
+                transform-origin: bottom center;
+            }
+        }
+        #skillContainer.show {
+            animation: expandContainerFromButton 0.3s forwards;
+        }
+        #skillContainer.hide {
+            animation: collapseContainerToButton 0.3s forwards;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // 創建 "使用技能" 按鈕
+    const skillButton = document.createElement('button');
+    skillButton.id = 'skillButton';
+    skillButton.className = 'btn btn-primary position-fixed';
+    skillButton.textContent = '使用技能';
+    skillButton.style.bottom = '10px';
+    skillButton.style.left = '50%';
+    skillButton.style.transform = 'translateX(-50%)';
+    skillButton.style.zIndex = '1000';
+
+    // 創建技能選擇覆蓋層
+    const overlay = document.createElement('div');
+    overlay.id = 'skillOverlay';
+    overlay.className = 'd-none position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-75';
+    overlay.style.zIndex = '1050';
+
+    // 創建技能選擇容器
+    const skillContainer = document.createElement('div');
+    skillContainer.id = 'skillContainer';
+    skillContainer.className = 'd-flex justify-content-around w-50 bg-dark p-3 rounded'; // 確保容器也有背景色和圓角
+    skillContainer.style.zIndex = '1051'; // 讓技能選擇容器顯示在覆蓋層之上
+
+    // 創建四個技能卡片
+    for (let i = 1; i <= 4; i++) {
+        const skillCard = document.createElement('div');
+        skillCard.className = 'card text-white bg-secondary m-2 skill-card';
+        skillCard.style.width = '18rem';
+        skillCard.style.cursor = 'pointer';
+        
+        const cardBody = document.createElement('div');
+        cardBody.className = 'card-body';
+        cardBody.innerHTML = `<h5 class="card-title">技能 ${i}</h5><p class="card-text">這是技能 ${i} 的描述。</p>`;
+        
+        skillCard.appendChild(cardBody);
+        skillCard.addEventListener('click', () => {
+            const skillFunctionName = `useSkill${i}`;
+            if (typeof gameManager[skillFunctionName] === 'function') {
+                gameManager[skillFunctionName](); // 調用對應的技能函數
+            } else {
+                console.error(`技能函數 ${skillFunctionName} 不存在於 gameManager`);
+            }
+            toggleSkillOverlay();
+        });
+        
+        skillContainer.appendChild(skillCard);
+    }
+
+    overlay.appendChild(skillContainer);
+
+    // 添加按鈕點擊事件
+    skillButton.addEventListener('click', toggleSkillOverlay);
+
+    // 添加覆蓋層點擊事件（點擊覆蓋層關閉技能選擇）
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            toggleSkillOverlay();
+        }
+    });
+
+    document.body.appendChild(skillButton);
+    document.body.appendChild(overlay);
+
+    // 切換技能選擇覆蓋層顯示/隱藏
+    function toggleSkillOverlay() {
+        const skillButtonRect = skillButton.getBoundingClientRect();
+        skillContainer.style.transformOrigin = `${skillButtonRect.left + skillButtonRect.width / 2}px ${skillButtonRect.top + skillButtonRect.height / 2}px`;
+
+        if (overlay.classList.contains('d-none')) {
+            overlay.classList.remove('d-none');
+            skillContainer.classList.add('show');
+        } else {
+            skillContainer.classList.remove('show');
+            skillContainer.classList.add('hide');
+            skillContainer.addEventListener('animationend', () => {
+                overlay.classList.add('d-none');
+                skillContainer.classList.remove('hide');
+            }, { once: true });
+        }
+    }
+}
+

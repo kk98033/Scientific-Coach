@@ -4,7 +4,7 @@ import Zone from '../helpers/zone';
 import io from 'socket.io-client';
 import Dealer from '../helpers/dealer';
 import GameRoomManager from '../../../gameRoomManager';
-import { createPlayerListContainer, createTimeSettingContainer, createCardDeckContainer, createStartGameContainer, createActionButtonsContainer, createCurrentPlayerIDContainer, appendElementsToCenter, createGameRecordContainer } from '../helpers/game_ui';
+import { createPlayerListContainer, createTimeSettingContainer, createCardDeckContainer, createStartGameContainer, createActionButtonsContainer, createCurrentPlayerIDContainer, appendElementsToCenter, createGameRecordContainer, createSkillButtonAndOverlay } from '../helpers/game_ui';
 import { showNotification } from '../helpers/notification';
 import { createSettingsOverlay, addIPSettings, addIDSettings, addReconnectButton, setCurrentPlayerID, handleSetPlayerIDButton, addLeaveGameButton } from '../helpers/settings';
 import { showAlert } from '../helpers/alert';
@@ -530,7 +530,7 @@ export class Game extends Scene {
         document.body.appendChild(actionButtonsContainer);
         document.body.appendChild(playerListContainer); // 放置在左下角
         document.body.appendChild(gameRecordContainer); // 放置在右下角
-
+    
         // SETTINGS
         const settingsContainer = createSettingsOverlay();
         // addIPSettings(settingsContainer);
@@ -543,6 +543,9 @@ export class Game extends Scene {
     
     // 顯示配對和丟棄按鈕的函數
     showActionButtons() {
+        // 創建使用技能按鈕和覆蓋層
+        createSkillButtonAndOverlay(this.gameManager);
+        
         let actionButtonsContainer = document.getElementById('actionButtonsContainer');
         if (actionButtonsContainer) {
             actionButtonsContainer.style.display = 'block';

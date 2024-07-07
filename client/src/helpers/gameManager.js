@@ -1205,7 +1205,25 @@ export default class GameManager {
         this.socket.emit('initialize_game', { roomId, settings });
     }
     
-    
+    useSkill1() {
+        console.log('使用技能 1');
+        // 實現技能 1 的效果
+    }
+
+    useSkill2() {
+        console.log('使用技能 2');
+        // 實現技能 2 的效果
+    }
+
+    useSkill3() {
+        console.log('使用技能 3');
+        // 實現技能 3 的效果
+    }
+
+    useSkill4() {
+        console.log('使用技能 4');
+        // 實現技能 4 的效果
+    }
  
 } 
           

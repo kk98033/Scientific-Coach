@@ -645,8 +645,9 @@ export default class GameManager {
         this.scene.input.on('pointerup', (pointer, gameObject) => {
             const clickDelay = 200; // 設置點擊延遲時間 (毫秒)
             const timeSincePointerDown = this.scene.time.now - this.pointerDownTime;
-    
+            console.log("debug-click pointup")
             if (!this.isDragging && timeSincePointerDown < clickDelay) {
+                console.log("debug-click go to funciton")
                 this.handlePointerDown(pointer);
             }
         });
@@ -657,81 +658,81 @@ export default class GameManager {
     
     
     
-    checkForCardSwap(draggedCard) {
-        const swapMargin = 100; // 定義更大的判定範圍
+    // checkForCardSwap(draggedCard) {
+    //     const swapMargin = 100; // 定義更大的判定範圍
     
-        this.handObj.forEach(card => {
-            if (card !== draggedCard) {
-                const distance = Phaser.Math.Distance.Between(draggedCard.x, draggedCard.y, card.x, card.y);
-                if (distance < swapMargin) {
-                    // 交換兩張卡片的位置
-                    let tempX = card.x;
-                    let tempY = card.y;
-                    card.x = draggedCard.x;
-                    card.y = draggedCard.y;
-                    draggedCard.x = tempX;
-                    draggedCard.y = tempY;
+    //     this.handObj.forEach(card => {
+    //         if (card !== draggedCard) {
+    //             const distance = Phaser.Math.Distance.Between(draggedCard.x, draggedCard.y, card.x, card.y);
+    //             if (distance < swapMargin) {
+    //                 // 交換兩張卡片的位置
+    //                 let tempX = card.x;
+    //                 let tempY = card.y;
+    //                 card.x = draggedCard.x;
+    //                 card.y = draggedCard.y;
+    //                 draggedCard.x = tempX;
+    //                 draggedCard.y = tempY;
     
-                    // 更新卡片數組中的位置
-                    const draggedIndex = this.handObj.indexOf(draggedCard);
-                    const targetIndex = this.handObj.indexOf(card);
-                    if (draggedIndex !== -1 && targetIndex !== -1) {
-                        [this.handObj[draggedIndex], this.handObj[targetIndex]] = [this.handObj[targetIndex], this.handObj[draggedIndex]];
-                    }
-                }
-            }
-        });
-    }
+    //                 // 更新卡片數組中的位置
+    //                 const draggedIndex = this.handObj.indexOf(draggedCard);
+    //                 const targetIndex = this.handObj.indexOf(card);
+    //                 if (draggedIndex !== -1 && targetIndex !== -1) {
+    //                     [this.handObj[draggedIndex], this.handObj[targetIndex]] = [this.handObj[targetIndex], this.handObj[draggedIndex]];
+    //                 }
+    //             }
+    //         }
+    //     });
+    // }
     
     
 
     // TODO: 重新寫一個
-    insertCardInHand(card) {
-        const baseX = 475;
-        const baseY = 650;
-        const cardOffset = 100;
+    // insertCardInHand(card) {
+    //     const baseX = 475;
+    //     const baseY = 650;
+    //     const cardOffset = 100;
     
-        // 獲取卡片基本信息
-        const cardData = { id: card.card.cardId, type: card.card.type };
+    //     // 獲取卡片基本信息
+    //     const cardData = { id: card.card.cardId, type: card.card.type };
     
-        // 移除已經存在於手牌中的相同卡片
-        const existingIndex = this.handObj.findIndex(c => c.card.cardId === card.card.cardId);
-        if (existingIndex !== -1) {
-            this.handObj.splice(existingIndex, 1);
-            this.hand.splice(existingIndex, 1); // 同步移除 this.hand 中的相應卡片
-        }
+    //     // 移除已經存在於手牌中的相同卡片
+    //     const existingIndex = this.handObj.findIndex(c => c.card.cardId === card.card.cardId);
+    //     if (existingIndex !== -1) {
+    //         this.handObj.splice(existingIndex, 1);
+    //         this.hand.splice(existingIndex, 1); // 同步移除 this.hand 中的相應卡片
+    //     }
     
-        let insertIndex = this.handObj.length;  
-        for (let i = 0; i < this.handObj.length; i++) {
-            console.log("FFF", card.x, this.handObj[i].x);
-            if (card.x < this.handObj[i].x) {
-                insertIndex = i;
-                break;
-            }
-        }
-        console.log("FFF FINAL", insertIndex);
+    //     let insertIndex = this.handObj.length;  
+    //     for (let i = 0; i < this.handObj.length; i++) {
+    //         console.log("FFF", card.x, this.handObj[i].x);
+    //         if (card.x < this.handObj[i].x) {
+    //             insertIndex = i;
+    //             break;
+    //         }
+    //     }
+    //     console.log("FFF FINAL", insertIndex);
     
-        this.handObj.splice(insertIndex, 0, card);
-        this.hand.splice(insertIndex, 0, cardData); // 同步插入 this.hand 中的相應卡片基本信息
+    //     this.handObj.splice(insertIndex, 0, card);
+    //     this.hand.splice(insertIndex, 0, cardData); // 同步插入 this.hand 中的相應卡片基本信息
     
-        // 更新所有手牌的位置
-        this.handObj.forEach((card, index) => {
-            if (card.card) {
-                card.card.x = baseX + index * cardOffset;
-                card.card.y = baseY;
-            } else {
-                card.x = baseX + index * cardOffset;
-                card.y = baseY; 
-            }
-        });
+    //     // 更新所有手牌的位置
+    //     this.handObj.forEach((card, index) => {
+    //         if (card.card) {
+    //             card.card.x = baseX + index * cardOffset;
+    //             card.card.y = baseY;
+    //         } else {
+    //             card.x = baseX + index * cardOffset;
+    //             card.y = baseY; 
+    //         }
+    //     });
     
-        this.handObj.forEach(card => {
-            console.log(card)
-            card.card.destroy(); 
-        }); 
-        console.log("update", this.hand)
-        this.socket.emit('update_hand', { roomId: this.roomId, playerId: this.playerId, hand: this.hand });
-    }
+    //     this.handObj.forEach(card => {
+    //         console.log(card)
+    //         card.card.destroy(); 
+    //     }); 
+    //     console.log("update", this.hand)
+    //     this.socket.emit('update_hand', { roomId: this.roomId, playerId: this.playerId, hand: this.hand });
+    // }
     
     
     displayPlayerHand() {
@@ -903,11 +904,14 @@ export default class GameManager {
         let selectedCard = null;
         let selectedCardObj = null;
     
-        this.scene.children.list.forEach(child => {
+        // 反轉 children 列表
+        const reversedChildren = [...this.scene.children.list].reverse();
+
+        reversedChildren.some(child => {
             if (child.texture && child.texture.key.includes('Card') && child.getBounds().contains(x, y)) {
                 selectedCardObj = this.toggleCardSelection(child);
                 clickedOnCard = true;
-    
+
                 console.log('------------');
                 console.log('hand', this.hand);
                 console.log('ahdnobj', this.handObj);
@@ -915,8 +919,15 @@ export default class GameManager {
                 console.log('table cards obj', this.tableCardsObj);
                 console.log('selected', this.getFormattedSelectedCards());
                 console.log('------------'); 
+                console.log('debug-click');
+
+                // 使用 `some` 方法並在這裡返回 `true`，以結束迴圈
+                return true;
             }
+            // 繼續迴圈
+            return false;
         });
+
     
         // if (!clickedOnCard) {
         //     this.clearAllSelections();  
@@ -946,6 +957,8 @@ export default class GameManager {
     }
 
     highlightSelectedCards() { 
+        // TODO: 棄用???
+
         // 遍歷選中的卡片
         this.selectedCards.forEach(selectedCard => {
             this.highlightCard(selectedCard.id)
@@ -998,22 +1011,22 @@ export default class GameManager {
         if (this.isDragging) return; // 如果正在拖動，不進行點擊處理
         
         if (this.selectedCards[0]) {
-            console.log('debug: -=-=-=-=-=-==--=-=-=-=-=-=-=-=-=')
-            console.log('debug: | ', this.selectedCards[0])
-            console.log('debug: | ', this.selectedCards[0].card)
-            console.log('debug: | ', this.selectedCards[0].card.cardId)
-            console.log('debug: | ', card.card.cardId)
-            console.log('debug: | ', card.x, card.y)
-            console.log('debug: -=-=-=-=-=-==--=-=-=-=-=-=-=-=-=') 
+            console.log('debug-test: -=-=-=-=-=-==--=-=-=-=-=-=-=-=-=')
+            console.log('debug-test: | ', this.selectedCards[0])
+            console.log('debug-test: | ', this.selectedCards[0].card)
+            console.log('debug-test: | ', this.selectedCards[0].card.cardId)
+            console.log('debug-test: | ', card.card.cardId)
+            console.log('debug-test: | ', card.x, card.y)
+            console.log('debug-test: -=-=-=-=-=-==--=-=-=-=-=-=-=-=-=') 
         }
 
         const index = this.selectedCards.findIndex(selectedCard => selectedCard.card && selectedCard.card.cardId === card.card.cardId);
         const moveUpDistance = 50; // 卡片向上移動的距離
-        console.log('debug: ', this.selectedCards, card)
-        console.log('debug: ', index)
+        console.log('debug-test: ', this.selectedCards, card)
+        console.log('debug-test: ', index)
         if (index === -1) {
-            console.log('debug-3: selected!!+++==++=++++=+===+==++=++++++=+')
-            // 如果卡片未被選中，將其設置為高亮並向上移動
+            console.log('debug-test-3: selected!!+++==++=++++=+===+==++=++++++=+')
+            // 如果目前卡片未被選中，將其設置為高亮並向上移動
             card.setTint(0xff69b4);
             this.selectedCards.push(card);
     
@@ -1024,8 +1037,8 @@ export default class GameManager {
                 ease: 'Power2'
             });
         } else {
-            console.log('debug-3: clear+++==++=++++=+===+==++=++++++=+')
-            // 如果卡片已被選中，將其取消高亮並歸位
+            console.log('debug-test-3: clear+++==++=++++=+===+==++=++++++=+')
+            // 如果目前卡片已被選中，將其取消高亮並歸位
             card.clearTint();
             this.selectedCards.splice(index, 1); // 從選中列表中移除卡片
     
@@ -1039,8 +1052,8 @@ export default class GameManager {
                 ease: 'Power2'
             });
         }
-        console.log('debug(after): ', this.selectedCards)
-        console.log('debug(after): ', index)
+        console.log('debug-test(after): ', this.selectedCards)
+        console.log('debug-test(after): ', index)
 
         return card;
     }

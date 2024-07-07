@@ -5,6 +5,8 @@ import { NONE } from 'phaser';
 import { showNotification } from '../helpers/notification';
 import { showLoading, hideLoading } from '../helpers/loading';
 import { updateGameRecord } from '../helpers/game_ui';
+import { addWaveGradientBorder, toggleGradientBorder, changeGradientColor } from '../helpers/waveGradient';
+
 
 export default class GameManager {
     constructor(scene) {
@@ -404,13 +406,13 @@ export default class GameManager {
             this.handPositions = handPositions;
             if (this.scene) {
                 console.log('DEBUG GRADIENTG: on')
-                this.scene.toggleGradientBorder(true); // 開啟漸層效果
+                toggleGradientBorder(this.scene, true); // 開啟漸層效果
             }
         } else {
             this.canPairCards = false;
             if (this.scene) {
                 console.log('DEBUG GRADIENTG: off')
-                this.scene.toggleGradientBorder(false); // 關閉漸層效果
+                toggleGradientBorder(this.scene, false); // 關閉漸層效果
             }
         }
   
@@ -1177,8 +1179,7 @@ export default class GameManager {
     triggerRedGradient() {
         if (this.scene) {
             console.log('trigger red gradient')
-            // this.scene.toggleGradientBorder(false);
-            this.scene.changeGradientColor(0xff0000); // 將顏色改為紅色
+            changeGradientColor(this.scene, 0xff0000); // 將顏色改為紅色
         }
     }
 

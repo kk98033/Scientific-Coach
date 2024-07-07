@@ -8,6 +8,7 @@ import { createPlayerListContainer, createTimeSettingContainer, createCardDeckCo
 import { showNotification } from '../helpers/notification';
 import { createSettingsOverlay, addIPSettings, addIDSettings, addReconnectButton, setCurrentPlayerID, handleSetPlayerIDButton, addLeaveGameButton } from '../helpers/settings';
 import { showAlert } from '../helpers/alert';
+import { addWaveGradientBorder, toggleGradientBorder, changeGradientColor } from '../helpers/waveGradient';
 
 export class Game extends Scene {
     constructor() {
@@ -40,8 +41,8 @@ export class Game extends Scene {
         this.waveIsVisable = true;
 
         // 加入紅色漸層效果
-        this.addWaveGradientBorder();
-        this.toggleGradientBorder(false);
+        addWaveGradientBorder(this, 0xff0000);
+        toggleGradientBorder(this, false);
 
         // this.dealText = this.add.text(75, 350, ['DEAL CARDS']).setFontSize(18).setFontFamily('Trebuchet MS').setColor('#00ffff').setInteractive();
         // this.zone = new Zone(this);
@@ -50,7 +51,7 @@ export class Game extends Scene {
         // this.gameManager.dropZones = this.dropZones;
 
         this.gameManager.setupDragEvents();
-        this.gameManager.setupPointerEvents();
+        this.gameManager.setupPointerEvents(); 
 
         this.createHTMLUI();
 
@@ -529,6 +530,13 @@ export class Game extends Scene {
         document.body.appendChild(actionButtonsContainer);
         document.body.appendChild(playerListContainer); // 放置在左下角
         document.body.appendChild(gameRecordContainer); // 放置在右下角
+
+        // SETTINGS
+        const settingsContainer = createSettingsOverlay();
+        // addIPSettings(settingsContainer);
+        // addIDSettings(settingsContainer, this.gameManager);
+        addReconnectButton(settingsContainer, this.gameManager);
+        addLeaveGameButton(settingsContainer, this.gameManager);
     }
     
 
@@ -573,220 +581,220 @@ export class Game extends Scene {
     }
     
     
-    addWaveGradientBorder(color = 0x00ff00) { // 默認顏色為綠色
-        const width = this.cameras.main.width;
-        const height = this.cameras.main.height;
-        const thickness = 50; // 漸層的厚度
-        this.gradient = this.add.graphics({ x: 0, y: 0 });
-        this.gradient.setDepth(-1); // 確保在最底層
+    // addWaveGradientBorder(color = 0x00ff00) { // 默認顏色為綠色
+    //     const width = this.cameras.main.width;
+    //     const height = this.cameras.main.height;
+    //     const thickness = 50; // 漸層的厚度
+    //     this.gradient = this.add.graphics({ x: 0, y: 0 });
+    //     this.gradient.setDepth(-1); // 確保在最底層
         
-        const maxWaveHeight = 30; // 波浪的最大高度，增加延伸幅度
-        const waveSpeed = 500; // 波浪的速度，增加動畫速度
-        console.log('DEBUG-COLOR', color)
-        // 繪製初始漸層邊框
-        for (let i = 0; i < thickness; i++) {
-            let alpha = 1 - (i / thickness);
+    //     const maxWaveHeight = 30; // 波浪的最大高度，增加延伸幅度
+    //     const waveSpeed = 500; // 波浪的速度，增加動畫速度
+    //     console.log('DEBUG-COLOR', color)
+    //     // 繪製初始漸層邊框
+    //     for (let i = 0; i < thickness; i++) {
+    //         let alpha = 1 - (i / thickness);
             
-            // 上邊
-            this.gradient.fillStyle(color, alpha); // 使用參數顏色
-            this.gradient.fillRect(0, i, width, 1);
+    //         // 上邊
+    //         this.gradient.fillStyle(color, alpha); // 使用參數顏色
+    //         this.gradient.fillRect(0, i, width, 1);
             
-            // 下邊
-            this.gradient.fillStyle(color, alpha); // 使用參數顏色
-            this.gradient.fillRect(0, height - i, width, 1);
+    //         // 下邊
+    //         this.gradient.fillStyle(color, alpha); // 使用參數顏色
+    //         this.gradient.fillRect(0, height - i, width, 1);
             
-            // 左邊
-            this.gradient.fillStyle(color, alpha); // 使用參數顏色
-            this.gradient.fillRect(i, 0, 1, height);
+    //         // 左邊
+    //         this.gradient.fillStyle(color, alpha); // 使用參數顏色
+    //         this.gradient.fillRect(i, 0, 1, height);
             
-            // 右邊
-            this.gradient.fillStyle(color, alpha); // 使用參數顏色
-            this.gradient.fillRect(width - i, 0, 1, height);
-        }
+    //         // 右邊
+    //         this.gradient.fillStyle(color, alpha); // 使用參數顏色
+    //         this.gradient.fillRect(width - i, 0, 1, height);
+    //     }
 
-        // 創建波浪動畫
-        this.waveTween = this.tweens.add({
-            targets: this.gradient,
-            duration: waveSpeed,
-            repeat: -1,
-            yoyo: true,
-            onUpdate: (tween) => {
-                const waveHeight = Math.sin(tween.progress * Math.PI) * maxWaveHeight;
-                this.gradient.clear();
+    //     // 創建波浪動畫
+    //     this.waveTween = this.tweens.add({
+    //         targets: this.gradient,
+    //         duration: waveSpeed,
+    //         repeat: -1,
+    //         yoyo: true,
+    //         onUpdate: (tween) => {
+    //             const waveHeight = Math.sin(tween.progress * Math.PI) * maxWaveHeight;
+    //             this.gradient.clear();
                 
-                for (let i = 0; i < thickness; i++) {
-                    let alpha = 1 - (i / thickness);
-                    let waveOffset = Math.sin((i / thickness) * Math.PI * 2 + tween.progress * Math.PI * 2) * waveHeight;
+    //             for (let i = 0; i < thickness; i++) {
+    //                 let alpha = 1 - (i / thickness);
+    //                 let waveOffset = Math.sin((i / thickness) * Math.PI * 2 + tween.progress * Math.PI * 2) * waveHeight;
                     
-                    // 上邊
-                    this.gradient.fillStyle(color, alpha); // 使用參數顏色
-                    this.gradient.fillRect(0, i + waveOffset, width, 1);
+    //                 // 上邊
+    //                 this.gradient.fillStyle(color, alpha); // 使用參數顏色
+    //                 this.gradient.fillRect(0, i + waveOffset, width, 1);
                     
-                    // 下邊
-                    this.gradient.fillStyle(color, alpha); // 使用參數顏色
-                    this.gradient.fillRect(0, height - i - waveOffset, width, 1);
+    //                 // 下邊
+    //                 this.gradient.fillStyle(color, alpha); // 使用參數顏色
+    //                 this.gradient.fillRect(0, height - i - waveOffset, width, 1);
                     
-                    // 左邊
-                    this.gradient.fillStyle(color, alpha); // 使用參數顏色
-                    this.gradient.fillRect(i + waveOffset, 0, 1, height);
+    //                 // 左邊
+    //                 this.gradient.fillStyle(color, alpha); // 使用參數顏色
+    //                 this.gradient.fillRect(i + waveOffset, 0, 1, height);
                     
-                    // 右邊
-                    this.gradient.fillStyle(color, alpha); // 使用參數顏色
-                    this.gradient.fillRect(width - i - waveOffset, 0, 1, height);
-                }
-            }
-        });
+    //                 // 右邊
+    //                 this.gradient.fillStyle(color, alpha); // 使用參數顏色
+    //                 this.gradient.fillRect(width - i - waveOffset, 0, 1, height);
+    //             }
+    //         }
+    //     });
 
-        console.log("Wave tween created: ", this.waveTween);
-        // 設置透明度
-        this.gradient.setAlpha(0.7);
+    //     console.log("Wave tween created: ", this.waveTween);
+    //     // 設置透明度
+    //     this.gradient.setAlpha(0.7);
 
 
-        // Create settings button
-        // let settingsButton = document.createElement('button');
-        // settingsButton.id = 'settingsButton';
-        // settingsButton.style.position = 'absolute';
-        // settingsButton.style.top = '10px';
-        // settingsButton.style.right = '10px';
-        // settingsButton.style.width = '40px'; 
-        // settingsButton.style.height = '40px';
-        // settingsButton.style.backgroundColor = '#333';
-        // settingsButton.style.border = 'none';
-        // settingsButton.style.borderRadius = '5px';
-        // settingsButton.style.cursor = 'pointer';
+    //     // Create settings button
+    //     // let settingsButton = document.createElement('button');
+    //     // settingsButton.id = 'settingsButton';
+    //     // settingsButton.style.position = 'absolute';
+    //     // settingsButton.style.top = '10px';
+    //     // settingsButton.style.right = '10px';
+    //     // settingsButton.style.width = '40px'; 
+    //     // settingsButton.style.height = '40px';
+    //     // settingsButton.style.backgroundColor = '#333';
+    //     // settingsButton.style.border = 'none';
+    //     // settingsButton.style.borderRadius = '5px';
+    //     // settingsButton.style.cursor = 'pointer';
         
-        // // Add gear icon to settings button
-        // let gearIcon = document.createElement('i');
-        // gearIcon.className = 'fas fa-cog';
-        // gearIcon.style.color = '#fff';
-        // gearIcon.style.fontSize = '24px';
-        // settingsButton.appendChild(gearIcon);
+    //     // // Add gear icon to settings button
+    //     // let gearIcon = document.createElement('i');
+    //     // gearIcon.className = 'fas fa-cog';
+    //     // gearIcon.style.color = '#fff';
+    //     // gearIcon.style.fontSize = '24px';
+    //     // settingsButton.appendChild(gearIcon);
         
-        // document.body.appendChild(settingsButton);
+    //     // document.body.appendChild(settingsButton);
         
-        // // Create settings overlay
-        // let settingsOverlay = document.createElement('div');
-        // settingsOverlay.id = 'settingsOverlay';
-        // settingsOverlay.style.position = 'fixed';
-        // settingsOverlay.style.top = '0';
-        // settingsOverlay.style.left = '0';
-        // settingsOverlay.style.width = '100%';
-        // settingsOverlay.style.height = '100%';
-        // settingsOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-        // settingsOverlay.style.display = 'none';
-        // settingsOverlay.style.justifyContent = 'center';
-        // settingsOverlay.style.alignItems = 'center';
+    //     // // Create settings overlay
+    //     // let settingsOverlay = document.createElement('div');
+    //     // settingsOverlay.id = 'settingsOverlay';
+    //     // settingsOverlay.style.position = 'fixed';
+    //     // settingsOverlay.style.top = '0';
+    //     // settingsOverlay.style.left = '0';
+    //     // settingsOverlay.style.width = '100%';
+    //     // settingsOverlay.style.height = '100%';
+    //     // settingsOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    //     // settingsOverlay.style.display = 'none';
+    //     // settingsOverlay.style.justifyContent = 'center';
+    //     // settingsOverlay.style.alignItems = 'center';
         
-        // // Create settings container
-        // let settingsContainer = document.createElement('div');
-        // settingsContainer.id = 'settingsContainer';
-        // settingsContainer.style.width = '300px';
-        // settingsContainer.style.backgroundColor = '#333';
-        // settingsContainer.style.color = '#fff';
-        // settingsContainer.style.padding = '20px';
-        // settingsContainer.style.borderRadius = '10px';
-        // settingsContainer.style.textAlign = 'center';
+    //     // // Create settings container
+    //     // let settingsContainer = document.createElement('div');
+    //     // settingsContainer.id = 'settingsContainer';
+    //     // settingsContainer.style.width = '300px';
+    //     // settingsContainer.style.backgroundColor = '#333';
+    //     // settingsContainer.style.color = '#fff';
+    //     // settingsContainer.style.padding = '20px';
+    //     // settingsContainer.style.borderRadius = '10px';
+    //     // settingsContainer.style.textAlign = 'center';
         
-        // // Create settings title
-        // let settingsTitle = document.createElement('h2');
-        // settingsTitle.textContent = '設定';
-        // settingsContainer.appendChild(settingsTitle);
+    //     // // Create settings title
+    //     // let settingsTitle = document.createElement('h2');
+    //     // settingsTitle.textContent = '設定';
+    //     // settingsContainer.appendChild(settingsTitle);
         
-        // // Create separator
-        // let separator = document.createElement('hr');
-        // separator.style.border = '1px solid #555';
-        // settingsContainer.appendChild(separator);
+    //     // // Create separator
+    //     // let separator = document.createElement('hr');
+    //     // separator.style.border = '1px solid #555';
+    //     // settingsContainer.appendChild(separator);
         
-        // // Create reconnect button
-        // let reconnectContainer = document.createElement('div');
-        // reconnectContainer.style.marginTop = '20px';
+    //     // // Create reconnect button
+    //     // let reconnectContainer = document.createElement('div');
+    //     // reconnectContainer.style.marginTop = '20px';
         
-        // let reconnectLabel = document.createElement('span');
-        // reconnectLabel.textContent = '重新連線';
-        // reconnectLabel.style.marginRight = '10px';
+    //     // let reconnectLabel = document.createElement('span');
+    //     // reconnectLabel.textContent = '重新連線';
+    //     // reconnectLabel.style.marginRight = '10px';
         
-        // let reconnectButton = document.createElement('button');
-        // reconnectButton.style.width = '40px';
-        // reconnectButton.style.height = '40px';
-        // reconnectButton.style.backgroundColor = '#555';
-        // reconnectButton.style.border = 'none';
-        // reconnectButton.style.borderRadius = '5px';
-        // reconnectButton.style.cursor = 'pointer';
+    //     // let reconnectButton = document.createElement('button');
+    //     // reconnectButton.style.width = '40px';
+    //     // reconnectButton.style.height = '40px';
+    //     // reconnectButton.style.backgroundColor = '#555';
+    //     // reconnectButton.style.border = 'none';
+    //     // reconnectButton.style.borderRadius = '5px';
+    //     // reconnectButton.style.cursor = 'pointer';
         
-        // let reconnectIcon = document.createElement('i');
-        // reconnectIcon.className = 'fas fa-sync-alt';
-        // reconnectIcon.style.color = '#fff';
-        // reconnectButton.appendChild(reconnectIcon);
+    //     // let reconnectIcon = document.createElement('i');
+    //     // reconnectIcon.className = 'fas fa-sync-alt';
+    //     // reconnectIcon.style.color = '#fff';
+    //     // reconnectButton.appendChild(reconnectIcon);
 
-        // reconnectButton.onclick = () => {
-        //     console.log('重新連線按鈕被點擊了');
-        //     this.gameManager.socket.emit('is_game_started_on_this_room', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId });
-        // };
+    //     // reconnectButton.onclick = () => {
+    //     //     console.log('重新連線按鈕被點擊了');
+    //     //     this.gameManager.socket.emit('is_game_started_on_this_room', { roomId: this.gameManager.roomId, playerId: this.gameManager.playerId });
+    //     // };
         
-        // reconnectContainer.appendChild(reconnectLabel);
-        // reconnectContainer.appendChild(reconnectButton);
-        // settingsContainer.appendChild(reconnectContainer);
+    //     // reconnectContainer.appendChild(reconnectLabel);
+    //     // reconnectContainer.appendChild(reconnectButton);
+    //     // settingsContainer.appendChild(reconnectContainer);
         
-        // settingsOverlay.appendChild(settingsContainer);
-        // document.body.appendChild(settingsOverlay);
+    //     // settingsOverlay.appendChild(settingsContainer);
+    //     // document.body.appendChild(settingsOverlay);
         
-        // // Event listener for settings button
-        // settingsButton.onclick = () => {
-        //     settingsOverlay.style.display = 'flex';
-        // };
+    //     // // Event listener for settings button
+    //     // settingsButton.onclick = () => {
+    //     //     settingsOverlay.style.display = 'flex';
+    //     // };
         
-        // // Event listener to hide settings overlay
-        // settingsOverlay.onclick = (e) => {
-        //     if (e.target === settingsOverlay) {
-        //         settingsOverlay.style.display = 'none';
-        //     }
-        // };
+    //     // // Event listener to hide settings overlay
+    //     // settingsOverlay.onclick = (e) => {
+    //     //     if (e.target === settingsOverlay) {
+    //     //         settingsOverlay.style.display = 'none';
+    //     //     }
+    //     // };
 
-        const settingsContainer = createSettingsOverlay();
-        // addIPSettings(settingsContainer);
-        // addIDSettings(settingsContainer, this.gameManager);
-        addReconnectButton(settingsContainer, this.gameManager);
-        addLeaveGameButton(settingsContainer, this.gameManager);
-    }
+    //     const settingsContainer = createSettingsOverlay();
+    //     // addIPSettings(settingsContainer);
+    //     // addIDSettings(settingsContainer, this.gameManager);
+    //     addReconnectButton(settingsContainer, this.gameManager);
+    //     addLeaveGameButton(settingsContainer, this.gameManager);
+    // }
 
-    toggleGradientBorder(visible, color = 0x00ff00) { // 默認顏色為綠色
-        if (visible) {
-            if (this.gradient) {
-                this.gradient.destroy(); // 刪除舊的 gradient
-                if (this.waveTween) {
-                    this.waveTween.stop(); // 停止舊的 waveTween
-                }
-            }
-            this.addWaveGradientBorder(color); // 重新設置新的 gradient
-            this.gradient.setVisible(true);
-            if (this.waveTween) {
-                try {
-                    this.waveTween.resume();
-                } catch (error) {
-                    console.error('Failed to resume waveTween:', error);
-                }
-            }
-        } else {
-            if (this.gradient) {
-                this.gradient.setVisible(false); 
-                if (this.waveTween) {
-                    try {
-                        this.waveTween.pause();
-                    } catch (error) {
-                        console.error('Failed to pause waveTween:', error);
-                    }
-                }
-            }
-        }
-        this.gradientVisible = visible;
-    }
+    // toggleGradientBorder(visible, color = 0x00ff00) { // 默認顏色為綠色
+    //     if (visible) {
+    //         if (this.gradient) {
+    //             this.gradient.destroy(); // 刪除舊的 gradient
+    //             if (this.waveTween) {
+    //                 this.waveTween.stop(); // 停止舊的 waveTween
+    //             }
+    //         }
+    //         this.addWaveGradientBorder(color); // 重新設置新的 gradient
+    //         this.gradient.setVisible(true);
+    //         if (this.waveTween) {
+    //             try {
+    //                 this.waveTween.resume();
+    //             } catch (error) {
+    //                 console.error('Failed to resume waveTween:', error);
+    //             }
+    //         }
+    //     } else {
+    //         if (this.gradient) {
+    //             this.gradient.setVisible(false); 
+    //             if (this.waveTween) {
+    //                 try {
+    //                     this.waveTween.pause();
+    //                 } catch (error) {
+    //                     console.error('Failed to pause waveTween:', error);
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     this.gradientVisible = visible;
+    // }
  
-    changeGradientColor(newColor) {
-        if (this.gradient) {
-            this.gradient.destroy(); // 刪除舊的 gradient
-            this.addWaveGradientBorder(newColor); // 重新設置顏色
-        }
-    }
+    // changeGradientColor(newColor) {
+    //     if (this.gradient) {
+    //         this.gradient.destroy(); // 刪除舊的 gradient
+    //         this.addWaveGradientBorder(newColor); // 重新設置顏色
+    //     }
+    // }
  
     
      

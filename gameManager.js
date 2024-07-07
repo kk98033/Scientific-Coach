@@ -56,6 +56,8 @@ class GameManager {
 
     startTurnTimer(roomId) {
         const room = this.gameRoomManager.rooms[roomId];
+        if (!room) return; // 檢查房間是否存在
+        
         room.turnTimer = room.settings.roundTime; // TODO: 設定時間
         room.timer = setInterval(() => {
             room.turnTimer--;
@@ -80,6 +82,19 @@ class GameManager {
                         // 隨機選擇兩張卡片加入 currentSelected
                         const playerId = room.players[room.currentPlayer];
                         const playerHand = room.hands[playerId];
+                        console.log("-----------")
+                        console.log()
+                        console.log()
+                        console.log()
+                        console.log("暴風雨前寧靜")
+                        console.log("-----ROOM----")
+                        console.log(room)
+                        console.log("-----ROOM----")
+                        console.log(this.gameRoomManager.rooms)
+                        console.log()
+                        console.log()
+                        console.log()
+                        console.log("-----------")
                         if (playerHand.length >= 2) {
                             let selectedCards = [];
                             while (selectedCards.length < 2) {

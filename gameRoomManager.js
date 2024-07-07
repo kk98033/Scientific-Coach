@@ -35,8 +35,8 @@ class GameRoomManager {
                 cardPositions: {}, // { 'playerID': [ 'cardid': [x1, y1], 'cardid': [x2, y2]...], ... }
                 currentSelected: [],
                 state: 0,
-                timer: null,
-                discardTimer: null,
+                timer: null, // 計時器物件
+                discardTimer: null, // 計時器物件
                 usedCards: [],
                 readyPlayers: [],
                 settings: {
@@ -137,6 +137,9 @@ class GameRoomManager {
                 this.rooms[roomId].players.splice(index, 1);
                 console.log(`Player ${playerId} left room ${roomId}.`);
                 if (this.rooms[roomId].players.length === 0) {
+                    clearInterval(this.rooms[roomId].timer); // 停止回合計時器
+                    clearInterval(this.rooms[roomId].discardTimer); // 停止棄牌計時器
+
                     delete this.rooms[roomId];
                     console.log(`Room ${roomId} is empty and deleted.`);
                 }

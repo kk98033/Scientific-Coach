@@ -79,22 +79,66 @@ export function createHostCheckbox() {
     return formGroup;
 }
 
+// src/mainMenuUI.js
+
 export function createRoomListContainer() {
     const roomListContainer = document.createElement('div');
     roomListContainer.id = 'roomListContainer';
-    roomListContainer.className = 'list-group';
+    roomListContainer.className = 'p-3 bg-dark text-white rounded shadow-lg'; // 匹配其他元素的樣式
     roomListContainer.style.position = 'absolute';
     roomListContainer.style.top = '50%';
     roomListContainer.style.left = '80%';
     roomListContainer.style.transform = 'translate(-50%, -50%)';
     roomListContainer.style.overflowY = 'scroll';
-    roomListContainer.style.height = '200px';
-    roomListContainer.style.backgroundColor = '#000';  // 設置背景顏色為黑色
-    roomListContainer.style.color = '#fff';  // 設置文字顏色為白色
-    roomListContainer.style.border = '1px solid #444';  // 設置邊框顏色以匹配黑暗模式
-    roomListContainer.style.borderRadius = '5px';  // 添加圓角
+    roomListContainer.style.height = '150px'; // 調整高度
+    roomListContainer.style.width = '250px'; // 調整寬度
+    roomListContainer.style.zIndex = '1000'; // 保持較高的 z-index 層級
+ 
+    // 添加自定義滾動條樣式
+    const style = document.createElement('style');
+    style.textContent = `
+        #roomListContainer::-webkit-scrollbar {
+            width: 12px;
+        }
+        #roomListContainer::-webkit-scrollbar-track {
+            background: #444;
+            border-radius: 10px;
+        }
+        #roomListContainer::-webkit-scrollbar-thumb {
+            background-color: #888;
+            border-radius: 10px;
+            border: 3px solid #444;
+        }
+        #roomListContainer {
+            scrollbar-width: thin;
+            scrollbar-color: #888 #444;
+        } 
+        .room-item-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .room-item-hover:hover {
+            transform: scale(1.1); /* 增加縮放比例 */
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4); /* 增加陰影效果 */
+        }
+        .room-item-clicked {
+            animation: clickEffect 0.6s forwards; /* 調整動畫持續時間 */
+        }
+        @keyframes clickEffect {
+            0% {
+                transform: scale(1);
+                background-color: #6c757d; /* 初始背景色 */
+            }
+            50% {
+                transform: scale(0.9); /* 縮小效果 */
+                background-color: #ff6347; /* 點擊時變色效果 */
+            }
+            100% {
+                transform: scale(1); /* 恢復原狀 */
+                background-color: #6c757d; /* 恢復背景色 */
+            }
+        }
+    `;
+    document.head.appendChild(style);
 
     return roomListContainer;
 }
-
-

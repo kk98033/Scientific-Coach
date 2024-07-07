@@ -69,21 +69,56 @@ export class MainMenu extends Scene {
         this.gameManager.socket.emit('get_room_list');
     }
 
-    updateRoomList(rooms) {
+    updateRoomList(newRooms) {
         const roomListContainer = document.getElementById('roomListContainer');
         if (roomListContainer) {
-            roomListContainer.innerHTML = '';
-            rooms.forEach(roomId => {
-                const roomItem = document.createElement('button');
-                roomItem.textContent = `房間 ID: ${roomId}`;
-                roomItem.className = 'list-group-item list-group-item-action';
-                roomItem.addEventListener('click', () => { 
-                    document.getElementById('roomInput').value = roomId;
-                });
-                roomListContainer.appendChild(roomItem);
+            const existingRooms = Array.from(roomListContainer.getElementsByClassName('card')).map(card => card.getAttribute('data-room-id'));
+            let isNewRoomAdded = false;
+    
+            newRooms.forEach(roomId => {
+                if (!existingRooms.includes(roomId)) {
+                    isNewRoomAdded = true;
+                    const roomItem = document.createElement('div');
+                    roomItem.className = 'card mb-2 bg-secondary text-white new-room room-item-hover';
+                    roomItem.style.cursor = 'pointer';
+                    roomItem.style.opacity = '0'; // 初始透明度設置為0
+                    roomItem.style.transform = 'scale(0.9)'; // 初始縮放設置為0.9
+                    roomItem.setAttribute('data-room-id', roomId); // 設置房間ID作為屬性
+    
+                    const cardBody = document.createElement('div');
+                    cardBody.className = 'card-body d-flex justify-content-between align-items-center';
+                    cardBody.textContent = `房間 ID: ${roomId}`;
+    
+                    roomItem.appendChild(cardBody);
+                    roomItem.addEventListener('click', () => {
+                        document.getElementById('roomInput').value = roomId;
+                        roomItem.classList.add('room-item-clicked');
+                        setTimeout(() => {
+                            roomItem.classList.remove('room-item-clicked');
+                        }, 600); // 確保動畫效果持續
+                    });
+    
+                    roomListContainer.appendChild(roomItem);
+    
+                    // 添加動畫效果
+                    setTimeout(() => {
+                        roomItem.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+                        roomItem.style.opacity = '1';
+                        roomItem.style.transform = 'scale(1)';
+                    }, 100);
+                }
             });
+    
+            // 滾動到最下面
+            if (isNewRoomAdded) {
+                roomListContainer.scrollTop = roomListContainer.scrollHeight;
+            }
         }
     }
+    
+    
+    
+    
 
     createHTMLUI() {
         const container = document.createElement('div');

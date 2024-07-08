@@ -237,6 +237,8 @@ io.on('connection', (socket) => {
                 matchedTableCards: result.matchedTableCards,
                 matchedTableIndexes: result.matchedTableIndexes,
                 selectedCards: result.selectedCards,
+                matchedCardPositions: result.matchedCardPositions,
+                
                 // 更新玩家的遊戲狀態紀錄
                 resourcePoints: result.resourcePoints,
                 gameLevel: result.gameLevel,

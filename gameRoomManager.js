@@ -104,7 +104,9 @@ class GameRoomManager {
 
         if (!this.rooms[roomId].players.includes(playerId)) {
             this.rooms[roomId].players.push(playerId);
-            this.rooms[roomId].activePlayers.push(playerId); // 活躍玩家也要加入
+
+            if (this.rooms[roomId].activePlayers)
+                this.rooms[roomId].activePlayers.push(playerId); // 活躍玩家也要加入
             // 確保玩家的手牌空間被初始化
             this.rooms[roomId].hands[playerId] = this.rooms[roomId].hands[playerId] || [];
             console.log(`Player ${playerId} joined room ${roomId}.`);

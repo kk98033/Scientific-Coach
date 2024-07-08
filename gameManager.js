@@ -57,7 +57,7 @@ class GameManager {
     startTurnTimer(roomId) {
         const room = this.gameRoomManager.rooms[roomId];
         if (!room) return; // 檢查房間是否存在
-        
+
         room.turnTimer = room.settings.roundTime; // TODO: 設定時間
         room.timer = setInterval(() => {
             room.turnTimer--;
@@ -655,6 +655,7 @@ class GameManager {
             const matchedTableIndexes = [];
             const matchedHandIndexes = [];
             const usedCards = []; // 用於儲存配對的卡牌
+            const matchedCardPositions = []; // 用於儲存配對卡片的位置
     
             // 移除 table 中的配對卡牌
             room.table.forEach((zone, zoneIndex) => {
@@ -678,6 +679,7 @@ class GameManager {
                 console.log('--=-=-=-=-=-==--=-=-afteragfaterafja;fjk;asdfjkasdj;f=-=-==--=-=-=-=-=-=-=-=-=-=-==-=-')
                 console.log(room.cardPositions[playerId])
                 if (index !== -1) {
+                    matchedCardPositions.push(room.cardPositions[playerId][selectedCard.id]); // 添加配對卡片的位置
                     this.removeCardFromCardPositions(roomId, playerId, selectedCard.id);
                     removedCards ++;
                     matchedHandCards.push(room.hands[playerId][index]);
@@ -706,12 +708,22 @@ class GameManager {
             this.dealCardsToDeck(roomId)
             this.updateGameState(roomId);
     
+            console.log("============================")
+            console.log()
+            console.log()
+            console.log(room.hands[playerId])
+            console.log(matchedCardPositions)
+            console.log()
+            console.log()
+            console.log("============================")
+
             return {
                 playerId: playerId, 
                 matchedHandCards: matchedHandCards,
                 matchedHandIndexes: matchedHandIndexes,
                 matchedTableCards: matchedTableCards,
                 matchedTableIndexes: matchedTableIndexes, 
+                matchedCardPositions: matchedCardPositions, // 回傳配對卡片的位置
 
                 // 玩家遊戲狀態
                 resourcePoints: room.playerScores[playerId]['resourcePoints'],

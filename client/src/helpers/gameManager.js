@@ -203,6 +203,7 @@ export default class GameManager {
                 matchedTableIndexes,
                 message,
                 selectedCards,
+                matchedCardPositions, 
 
                 // 更新玩家的遊戲狀態紀錄
                 resourcePoints,
@@ -212,7 +213,7 @@ export default class GameManager {
          
             if (success) {
                 console.log('debug-pair 配對成功');
-                this.handlePairSuccess(playerId, matchedHandCards, matchedHandIndexes, matchedTableCards, matchedTableIndexes, resourcePoints, gameLevel, cardPairCount);
+                this.handlePairSuccess(playerId, matchedHandCards, matchedHandIndexes, matchedTableCards, matchedTableIndexes, resourcePoints, gameLevel, cardPairCount, matchedCardPositions);
             } else {
                 console.log('debug-pair 配對失敗：', message);
                 this.handlePairFailure(playerId, selectedCards); 
@@ -324,42 +325,73 @@ export default class GameManager {
         this.scene.scene.stop(this.isGameTable ? 'GameTable' : 'Game', { gameManager: this.gameManager });
         this.scene.scene.start('MainMenu');
     }
- 
-    handlePairSuccess(playerId, matchedHandCards, matchedHandIndexes, matchedTableCards, matchedTableIndexes, resourcePoints, gameLevel, cardPairCount) {
+  
+    handlePairSuccess(playerId, matchedHandCards, matchedHandIndexes, matchedTableCards, matchedTableIndexes, resourcePoints, gameLevel, cardPairCount, matchedCardPositions) {
+        showAlert("配對成功", "success");
         console.log(`玩家 ${playerId} 配對成功`); 
         console.log('配對成功的手牌：', matchedHandCards);
-        console.log('配對成功的桌牌：', matchedTableCards);
-        console.log("========")
-        console.log(matchedTableIndexes)
+        console.log('配對成功的桌牌：', matchedTableCards); 
+        console.log("========");
+        console.log(matchedTableIndexes);
         if (this.zone) {
             matchedTableIndexes.forEach(zoneIndex => {
                 this.zone.highlightZone(zoneIndex);
-                setTimeout(() => { 
+                setTimeout(() => {  
                     this.zone.clearHighlightZone(zoneIndex);
                 }, 2000); // 框框顯示2秒
-            });
+            }); 
         } else {
-            console.log("DEBUG-PAIR-SUCCESS")
-            updateGameRecord(gameLevel, resourcePoints, cardPairCount)
-        }
-
-        
-        
+            console.log("DEBUG-PAIR-SUCCESS");
+            updateGameRecord(gameLevel, resourcePoints, cardPairCount);
     
-        // 根據需要，更新手牌和其他遊戲狀態
+            // 在配對成功的卡牌位置上面畫出特效
+            this.drawHighlightEffect(matchedCardPositions);
+        }
+    } 
+    
+    drawHighlightEffect(matchedCardPositions) {
+        console.log('debug-j: ', matchedCardPositions);
+        matchedCardPositions.forEach(position => {
+            if (Array.isArray(position) && position.length === 2) {
+                const [x, y] = position;
+    
+                // 創建一個卡片圖示，並設置大小
+                const cardIcon = this.scene.add.image(x, y, 'cyanCardBack'); // 'cyanCardBack' 是預先載入的卡片圖像資源
+                cardIcon.setDisplaySize(50, 70); // 設置卡片圖示的大小
+                cardIcon.setAlpha(0.5); // 設置初始透明度
+                cardIcon.setDepth(10); // 確保圖示在最上層
+    
+                // 創建移動和透明度變化的動畫
+                this.scene.tweens.add({
+                    targets: cardIcon,
+                    y: y - 100, // 向上移動100像素
+                    alpha: 0, // 透明度變為0
+                    duration: 2000, // 持續時間2秒
+                    ease: 'Power1', // 使用平滑效果
+                    onComplete: () => {
+                        cardIcon.destroy(); // 動畫完成後銷毀圖示
+                    }
+                });
+    
+                // 創建螢幕震動效果
+                this.scene.cameras.main.shake(300, 0.001); // 震動500毫秒，強度為0.005
+            } else {
+                console.error('無效的座標格式:', position);
+            }
+        });
     }
-
-    updateScoreAndLevel() {
-
-    }
+    
+    
+    
+    
     
     handlePairFailure(playerId, selectedCards) {
         // 處理失敗的邏輯
         console.log(`玩家 ${playerId} 配對失敗`);
         console.log('選擇的卡牌：', selectedCards);
-        // 可以在這裡給玩家提示或進行其他操作
+        showAlert("配對失敗", "danger");
     }
-
+ 
     
     isPlayerTurn() {
         if (this.playerId === this.currentPlayer)

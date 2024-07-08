@@ -280,3 +280,75 @@ export function handleSetPlayerIDButton(gameManager) {
         }
     };
 }
+
+// 創建並添加 "整理牌桌按鈕"
+export function addClearTableButton(container) {
+    let clearTableContainer = document.createElement('div');
+    clearTableContainer.className = 'd-flex align-items-center mb-3';
+
+    let clearTableLabel = document.createElement('label');
+    clearTableLabel.textContent = '整理牌桌:';
+    clearTableLabel.className = 'me-2';
+    clearTableContainer.appendChild(clearTableLabel);
+
+    let clearTableButton = document.createElement('button');
+    clearTableButton.className = 'btn btn-outline-primary';
+
+    let clearTableIcon = document.createElement('i');
+    clearTableIcon.className = 'fas fa-broom';
+    clearTableButton.appendChild(clearTableIcon);
+
+    clearTableButton.onclick = () => {
+        console.log('整理牌桌按鈕被點擊了');
+        // 處理整理牌桌邏輯
+        // 這裡可以添加相應的邏輯來整理牌桌
+    };
+
+    clearTableContainer.appendChild(clearTableButton);
+    container.appendChild(clearTableContainer);
+}
+
+// 創建並添加 "隱藏/顯示畫面 UI 按鈕"
+export function addToggleUIVisibilityButton(container) {
+    let toggleUIContainer = document.createElement('div');
+    toggleUIContainer.className = 'd-flex align-items-center mb-3';
+
+    let toggleUILabel = document.createElement('label');
+    toggleUILabel.textContent = '隱藏/顯示畫面 UI:';
+    toggleUILabel.className = 'me-2';
+    toggleUIContainer.appendChild(toggleUILabel);
+
+    let toggleUIButton = document.createElement('button');
+    toggleUIButton.className = 'btn btn-outline-secondary';
+
+    let toggleUIIcon = document.createElement('i');
+    toggleUIIcon.className = 'fas fa-eye-slash';
+    toggleUIButton.appendChild(toggleUIIcon);
+
+    toggleUIButton.onclick = () => {
+        console.log('隱藏/顯示畫面 UI 按鈕被點擊了');
+        // 取得所有非 settings 的元素，且排除 id 為 app, actionButtonsContainer, skillContainer, skillOverlay 和 skillButton 的元素
+        const allElements = document.querySelectorAll('body > *:not(#settingsOverlay):not(#settingsButton):not(#app):not(#actionButtonsContainer):not(#skillContainer):not(#skillOverlay):not(#skillButton)');
+        allElements.forEach(element => {
+            if (element.style.display === 'none') {
+                element.classList.remove('fade-out');
+                element.classList.add('fade-in');
+                element.style.display = ''; // 顯示元素
+                toggleUIButton.className = 'btn btn-outline-secondary';
+                toggleUIIcon.className = 'fas fa-eye-slash';
+            } else {
+                element.classList.remove('fade-in');
+                element.classList.add('fade-out');
+                // 在動畫結束後隱藏元素
+                element.addEventListener('animationend', () => {
+                    element.style.display = 'none'; // 隱藏元素
+                }, { once: true });
+                toggleUIButton.className = 'btn btn-outline-success';
+                toggleUIIcon.className = 'fas fa-eye';
+            }
+        });
+    };
+
+    toggleUIContainer.appendChild(toggleUIButton);
+    container.appendChild(toggleUIContainer);
+}

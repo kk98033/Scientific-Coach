@@ -486,8 +486,6 @@ function createAnimation(element, text) {
     }, 0);
 }
 
-// src/helper/ui.js
-
 export function createSkillButtonAndOverlay(gameManager) {
     // 新增動畫樣式
     const style = document.createElement('style');
@@ -605,4 +603,3 @@ export function createSkillButtonAndOverlay(gameManager) {
         }
     }
 }
-

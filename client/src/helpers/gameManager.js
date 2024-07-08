@@ -810,9 +810,12 @@ export default class GameManager {
         console.log('debug-11', this.handPositions);
     }
     
-    
-    
-    
+    resetHandPositions() {
+        this.handPositions = {}; // 清空 handPositions
+        console.log('Hand positions have been reset.');
+        this.socket.emit('update_card_positions', { roomId: this.roomId, playerId: this.playerId, cardPositions: this.handPositions });
+        this.displayPlayerHand();
+    }    
 
     clearPlayerHandDisplay() {
         this.handObj.forEach(card => {
@@ -822,7 +825,7 @@ export default class GameManager {
         this.handObj = [];
     }
 
-    endTurn() {
+    endTurn() { 
         this.socket.emit('end_turn', { roomId: this.roomId, playerId: this.playerId });
     }
 

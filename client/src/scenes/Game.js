@@ -573,7 +573,7 @@ export class Game extends Scene {
         // addIDSettings(settingsContainer, this.gameManager);
         addReconnectButton(settingsContainer, this.gameManager);
         addLeaveGameButton(settingsContainer, this.gameManager);
-        addClearTableButton(settingsContainer);
+        addClearTableButton(settingsContainer, this.gameManager);
         addToggleUIVisibilityButton(settingsContainer);
     } 
     

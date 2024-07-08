@@ -1,5 +1,6 @@
 // src/helper/settings.js
 
+import { showAlert } from "./alert";
 import { showNotification } from "./notification";
 
 export function createSettingsOverlay() {
@@ -282,7 +283,7 @@ export function handleSetPlayerIDButton(gameManager) {
 }
 
 // 創建並添加 "整理牌桌按鈕"
-export function addClearTableButton(container) {
+export function addClearTableButton(container, gameManager) {
     let clearTableContainer = document.createElement('div');
     clearTableContainer.className = 'd-flex align-items-center mb-3';
 
@@ -299,9 +300,10 @@ export function addClearTableButton(container) {
     clearTableButton.appendChild(clearTableIcon);
 
     clearTableButton.onclick = () => {
-        console.log('整理牌桌按鈕被點擊了');
         // 處理整理牌桌邏輯
-        // 這裡可以添加相應的邏輯來整理牌桌
+        console.log('整理牌桌按鈕被點擊了');
+        gameManager.resetHandPositions();
+        showAlert("牌桌已經重整!");
     };
 
     clearTableContainer.appendChild(clearTableButton);

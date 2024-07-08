@@ -210,7 +210,7 @@ io.on('connection', (socket) => {
         // console.log("data", data)
         gameManager.updatePlayersHand(roomId, playerId, hand);
     });
-    
+
     socket.on('update_selected', (data) => {
         const { roomId, card } = data;
         // console.log("-=-=-=-=-=-=-=-=-=-=-=-==--=update_selected-=-=-=-=-=-=-=-=-=-=-=-==--=", data, card)

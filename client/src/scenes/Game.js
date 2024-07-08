@@ -575,7 +575,7 @@ export class Game extends Scene {
         addLeaveGameButton(settingsContainer, this.gameManager);
         addClearTableButton(settingsContainer);
         addToggleUIVisibilityButton(settingsContainer);
-    }
+    } 
     
 
     
@@ -602,8 +602,8 @@ export class Game extends Scene {
             if (element && element.parentNode) {
                 element.parentNode.removeChild(element);
             }
-        });
-    }
+        }); 
+    } 
 
     clearInGameHTMLUI() {
         const elementsToRemove = [

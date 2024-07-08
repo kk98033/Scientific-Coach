@@ -8,6 +8,7 @@ class GameRoomManager {
             "": {
                 gameIsStarted: false,
                 players: [],
+                activePlayers: [],
                 tableScreenId: [],
                 cardCount: 60,
                 gameType: 0,
@@ -103,6 +104,7 @@ class GameRoomManager {
 
         if (!this.rooms[roomId].players.includes(playerId)) {
             this.rooms[roomId].players.push(playerId);
+            this.rooms[roomId].activePlayers.push(playerId); // 活躍玩家也要加入
             // 確保玩家的手牌空間被初始化
             this.rooms[roomId].hands[playerId] = this.rooms[roomId].hands[playerId] || [];
             console.log(`Player ${playerId} joined room ${roomId}.`);
@@ -132,12 +134,15 @@ class GameRoomManager {
     leaveRoom(playerId) {
         for (let roomId in this.rooms) {
             let index = this.rooms[roomId].players.indexOf(playerId);
-            if (index !== -1) {
+            let activePlayerIndex = this.rooms[roomId].activePlayers.indexOf(playerId);
+            if (activePlayerIndex !== -1) {
                 // TODO: don;t delete player
-                this.rooms[roomId].players.splice(index, 1);
+                // this.rooms[roomId].players.splice(index, 1);
+                this.rooms[roomId].activePlayers.splice(activePlayerIndex, 1); // 刪除活躍玩家
+                
                 console.log(`Player ${playerId} left room ${roomId}.`);
-                if (this.rooms[roomId].players.length === 0) {
-                    // 因為房間沒人了，所以直接刪除房間數據和事件，節省資源
+                if (this.rooms[roomId].activePlayers.length === 0) {
+                    // 因為房間沒有活躍玩家了，所以直接刪除房間數據和事件，節省資源
                     clearInterval(this.rooms[roomId].timer); // 停止回合計時器
                     clearInterval(this.rooms[roomId].discardTimer); // 停止棄牌計時器
 

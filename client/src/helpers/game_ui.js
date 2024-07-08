@@ -231,32 +231,137 @@ export function createStartGameContainer(gameManager, isStartGame = false) {
 }
 
 export function createActionButtonsContainer() {
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(-100%);
+            }
+        }
+        @keyframes popUp {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        .slide-in {
+            animation: slideIn 0.5s forwards;
+        }
+        .slide-out {
+            animation: slideOut 0.5s forwards;
+        }
+        .pop-up {
+            animation: popUp 0.3s ease-out forwards;
+        }
+        .hidden {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+    `;
+    document.head.appendChild(style);
+
     let actionButtonsContainer = document.createElement('div');
     actionButtonsContainer.id = 'actionButtonsContainer';
-    actionButtonsContainer.className = 'p-3 bg-dark text-white rounded';
-    actionButtonsContainer.style.display = 'none'; // 默認隱藏
-    actionButtonsContainer.style.position = 'fixed'; // 固定位置
-    actionButtonsContainer.style.top = '50%'; // 垂直居中顯示
-    actionButtonsContainer.style.left = '10px'; // 確保位於最左邊
-    actionButtonsContainer.style.transform = 'translateY(-50%)'; // 垂直居中對齊
-    actionButtonsContainer.style.zIndex = '1000'; // 設置較低的 z-index
+    actionButtonsContainer.className = 'p-3 bg-dark text-white';
+    actionButtonsContainer.style.position = 'fixed';
+    actionButtonsContainer.style.top = '50%';
+    actionButtonsContainer.style.left = '0';
+    actionButtonsContainer.style.transform = 'translateY(-50%) translateX(-100%)';
+    actionButtonsContainer.style.zIndex = '1000';
+    actionButtonsContainer.style.transition = 'transform 0.5s';
+    actionButtonsContainer.style.borderTopRightRadius = '0';
+    actionButtonsContainer.style.borderBottomRightRadius = '0';
+    actionButtonsContainer.style.borderTopLeftRadius = '0.25rem';
+    actionButtonsContainer.style.borderBottomLeftRadius = '0.25rem';
 
     // 配對按鈕
     let pairButton = document.createElement('button');
     pairButton.id = 'pair-button';
-    pairButton.textContent = '配對';
-    pairButton.className = 'btn btn-primary me-2';
+    pairButton.className = 'btn btn-outline-primary me-2 hidden';
+
+    // 配對按鈕圖標和文字
+    let pairIcon = document.createElement('i');
+    pairIcon.className = 'fas fa-handshake me-2';
+    pairButton.appendChild(pairIcon);
+    pairButton.appendChild(document.createTextNode('配對'));
+
     actionButtonsContainer.appendChild(pairButton);
 
     // 丟棄按鈕
     let discardButton = document.createElement('button');
     discardButton.id = 'discard-button';
-    discardButton.textContent = '丟棄';
-    discardButton.className = 'btn btn-outline-danger';
+    discardButton.className = 'btn btn-outline-danger hidden';
+
+    // 丟棄按鈕圖標和文字
+    let discardIcon = document.createElement('i');
+    discardIcon.className = 'fas fa-trash-alt me-2';
+    discardButton.appendChild(discardIcon);
+    discardButton.appendChild(document.createTextNode('丟棄'));
+
     actionButtonsContainer.appendChild(discardButton);
+
+    // 隱藏/顯示按鈕標籤
+    let toggleButton = document.createElement('div');
+    toggleButton.id = 'toggle-button';
+    toggleButton.className = 'bg-dark text-white p-2';
+    toggleButton.style.position = 'absolute';
+    toggleButton.style.top = '0';
+    toggleButton.style.right = '-40px';
+    toggleButton.style.height = '100%';
+    toggleButton.style.transform = 'translateX(-10px)';
+    toggleButton.style.display = 'flex';
+    toggleButton.style.alignItems = 'center';
+    toggleButton.style.cursor = 'pointer';
+    toggleButton.style.zIndex = '1001';
+    toggleButton.style.borderTopRightRadius = '0.25rem';
+    toggleButton.style.borderBottomRightRadius = '0.25rem';
+
+    // 隱藏/顯示按鈕圖標和文字
+    let toggleIcon = document.createElement('i');
+    toggleIcon.className = 'fas fa-bars';
+    toggleButton.appendChild(toggleIcon);
+
+    toggleButton.addEventListener('click', () => {
+        if (actionButtonsContainer.style.transform.includes('translateX(-100%)')) {
+            actionButtonsContainer.style.transform = 'translateY(-50%) translateX(0)';
+            // 展開動畫後顯示按鈕並添加 Pop up 動畫
+            setTimeout(() => {
+                pairButton.classList.remove('hidden');
+                discardButton.classList.remove('hidden');
+                pairButton.classList.add('pop-up');
+                discardButton.classList.add('pop-up');
+            }, 500); // 確保在容器展開後觸發
+        } else {
+            actionButtonsContainer.style.transform = 'translateY(-50%) translateX(-100%)';
+            pairButton.classList.remove('pop-up');
+            discardButton.classList.remove('pop-up');
+            setTimeout(() => {
+                pairButton.classList.add('hidden');
+                discardButton.classList.add('hidden');
+            }, 500); // 確保在容器收起後隱藏
+        }
+    });
+
+    actionButtonsContainer.appendChild(toggleButton);
 
     return actionButtonsContainer;
 }
+
 
 export function createCurrentPlayerIDContainer() {
     let currentPlayerIDContainer = document.createElement('div');
@@ -419,6 +524,7 @@ export function createGameRecordContainer() {
 
     return gameRecordContainer;
 }
+
 export function updateGameRecord(level, points, pairs) {
     const gameLevel = document.getElementById('gameLevel');
     const resourcePoints = document.getElementById('resourcePoints');
@@ -486,6 +592,8 @@ function createAnimation(element, text) {
     }, 0);
 }
 
+// src/helper/ui.js
+
 export function createSkillButtonAndOverlay(gameManager) {
     // 新增動畫樣式
     const style = document.createElement('style');
@@ -526,12 +634,17 @@ export function createSkillButtonAndOverlay(gameManager) {
     // 創建 "使用技能" 按鈕
     const skillButton = document.createElement('button');
     skillButton.id = 'skillButton';
-    skillButton.className = 'btn btn-primary position-fixed';
-    skillButton.textContent = '使用技能';
+    skillButton.className = 'btn btn-outline-primary position-fixed';
     skillButton.style.bottom = '10px';
     skillButton.style.left = '50%';
     skillButton.style.transform = 'translateX(-50%)';
     skillButton.style.zIndex = '1000';
+
+    // 添加技能圖標和文字
+    const skillIcon = document.createElement('i');
+    skillIcon.className = 'fas fa-magic me-2'; // 使用 Font Awesome 的魔法棒圖標，並添加間距
+    skillButton.appendChild(skillIcon);
+    skillButton.appendChild(document.createTextNode('使用技能'));
 
     // 創建技能選擇覆蓋層
     const overlay = document.createElement('div');

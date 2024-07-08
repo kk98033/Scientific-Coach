@@ -152,6 +152,7 @@ class GameRoomManager {
                 return { result: 'player_left' };
             }
         } 
+        return { result: 'none' };
     }
 
     getPlayersInRoom(roomId) {

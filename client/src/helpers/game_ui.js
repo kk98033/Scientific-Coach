@@ -11,9 +11,99 @@ export function createPlayerListContainer() {
     playerListContainer.style.bottom = '10px'; // 確保在玩家ID下方
     playerListContainer.style.left = '10px';
     playerListContainer.style.zIndex = '1000'; // 設置較低的 z-index
+    playerListContainer.style.transition = 'height 0.5s'; // 添加動畫效果
+    playerListContainer.style.boxSizing = 'border-box';
+
+    // 創建收起/展開按鈕
+    let toggleButton = document.createElement('button');
+    toggleButton.className = 'toggle-button';
+    toggleButton.style.position = 'absolute';
+    toggleButton.style.top = '5px';
+    toggleButton.style.right = '5px'; // 固定在右上角
+    toggleButton.style.backgroundColor = 'transparent';
+    toggleButton.style.border = '2px solid white';
+    toggleButton.style.color = 'white';
+    toggleButton.style.borderRadius = '5px';
+    toggleButton.style.padding = '5px';
+    toggleButton.style.cursor = 'pointer';
+    toggleButton.style.display = 'flex';
+    toggleButton.style.alignItems = 'center';
+    toggleButton.style.justifyContent = 'center';
+    toggleButton.style.zIndex = '1001'; // 確保按鈕在最上層
+
+    // 使用 Font Awesome 的圖標
+    toggleButton.innerHTML = '<i class="fas fa-minus"></i>';
+
+    // 創建隱藏時顯示的文字節點
+    let hiddenText = document.createElement('div');
+    hiddenText.className = 'hidden-text';
+    hiddenText.style.display = 'none';
+    hiddenText.style.justifyContent = 'center';
+    hiddenText.style.alignItems = 'center';
+    hiddenText.style.height = '100%';
+    hiddenText.style.color = 'rgba(255, 255, 255, 0.5)'; // 淡化文字顏色
+    hiddenText.style.transition = 'opacity 0.5s ease'; // 添加動畫效果
+    hiddenText.innerText = '已隱藏';
+
+    // 定義 "已隱藏" 文字的 pop-up 動畫
+    const styleSheet = document.styleSheets[0];
+    styleSheet.insertRule(`
+        @keyframes popUp {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    `, styleSheet.cssRules.length);
+
+    // 事件監聽器，用於切換收起/展開
+    toggleButton.addEventListener('click', function() {
+        const children = playerListContainer.children;
+        if (playerListContainer.style.height === '200px') {
+            playerListContainer.style.height = '40px'; // 維持按鈕高度
+            playerListContainer.style.overflowY = 'hidden'; // 隱藏內容
+            toggleButton.innerHTML = '<i class="fas fa-plus"></i>';
+
+            // 在高度縮起完成後顯示 "已隱藏" 文字
+            setTimeout(() => {
+                hiddenText.style.display = 'flex';
+                hiddenText.style.animation = 'popUp 0.5s ease'; // 使用 pop-up 動畫
+                hiddenText.style.opacity = '1';
+            }, 500); // 延遲時間與 height 的過渡時間一致
+
+            // 隱藏其他元素
+            for (let i = 0; i < children.length; i++) {
+                if (children[i] !== toggleButton && children[i] !== hiddenText) {
+                    children[i].style.display = 'none';
+                }
+            }
+        } else {
+            playerListContainer.style.height = '200px';
+            playerListContainer.style.overflowY = 'scroll'; // 顯示滾動條
+            toggleButton.innerHTML = '<i class="fas fa-minus"></i>';
+            hiddenText.style.animation = ''; // 移除動畫
+            hiddenText.style.opacity = '0';
+
+            // 在高度展開完成後隱藏 "已隱藏" 文字
+            setTimeout(() => {
+                hiddenText.style.display = 'none';
+                for (let i = 0; i < children.length; i++) {
+                    if (children[i] !== toggleButton && children[i] !== hiddenText) {
+                        children[i].style.display = 'block';
+                        children[i].style.transition = 'opacity 0.5s'; // 添加顯示動畫
+                        children[i].style.opacity = '0';
+                        setTimeout(() => children[i].style.opacity = '1', 10); // 觸發動畫
+                    }
+                }
+            }, 500); // 延遲時間與 height 的過渡時間一致
+        }
+    });
+
+    playerListContainer.appendChild(toggleButton);
+    playerListContainer.appendChild(hiddenText);
 
     return playerListContainer;
 }
+
 
 export function createTimeSettingContainer(gameManager, isEditable = false) {
     let timeSettingContainer = document.createElement('div');
@@ -202,15 +292,20 @@ export function appendElementsToCenter(elements) {
 }
 
 
+// 用於創建可隱藏的遊戲紀錄容器
 export function createGameRecordContainer() {
     let gameRecordContainer = document.createElement('div');
     gameRecordContainer.id = 'gameRecordContainer';
     gameRecordContainer.className = 'p-3 bg-dark text-white rounded shadow-lg';
     gameRecordContainer.style.width = '250px';
+    gameRecordContainer.style.height = '150px';
+    gameRecordContainer.style.overflowY = 'hidden';
     gameRecordContainer.style.position = 'fixed';
     gameRecordContainer.style.bottom = '10px';
     gameRecordContainer.style.right = '10px';
     gameRecordContainer.style.zIndex = '1000';
+    gameRecordContainer.style.transition = 'height 0.5s';
+    gameRecordContainer.style.boxSizing = 'border-box';
 
     let title = document.createElement('h5');
     title.textContent = '遊戲紀錄';
@@ -231,13 +326,99 @@ export function createGameRecordContainer() {
     cardPairCount.textContent = '卡牌配對數量: N/A';
 
     gameRecordContainer.appendChild(title);
-    gameRecordContainer.appendChild(gameLevel); 
+    gameRecordContainer.appendChild(gameLevel);
     gameRecordContainer.appendChild(resourcePoints);
     gameRecordContainer.appendChild(cardPairCount);
 
+    // 創建收起/展開按鈕
+    let toggleButton = document.createElement('button');
+    toggleButton.className = 'toggle-button';
+    toggleButton.style.position = 'absolute';
+    toggleButton.style.top = '5px';
+    toggleButton.style.right = '5px';
+    toggleButton.style.backgroundColor = 'transparent';
+    toggleButton.style.border = '2px solid white';
+    toggleButton.style.color = 'white';
+    toggleButton.style.borderRadius = '5px';
+    toggleButton.style.padding = '5px';
+    toggleButton.style.cursor = 'pointer';
+    toggleButton.style.display = 'flex';
+    toggleButton.style.alignItems = 'center';
+    toggleButton.style.justifyContent = 'center';
+    toggleButton.style.zIndex = '1001';
+
+    // 使用 Font Awesome 的圖標
+    toggleButton.innerHTML = '<i class="fas fa-minus"></i>';
+
+    // 創建隱藏時顯示的文字節點
+    let hiddenText = document.createElement('div');
+    hiddenText.className = 'hidden-text';
+    hiddenText.style.display = 'none';
+    hiddenText.style.justifyContent = 'center';
+    hiddenText.style.alignItems = 'center';
+    hiddenText.style.height = '100%';
+    hiddenText.style.color = 'rgba(255, 255, 255, 0.5)'; // 淡化文字顏色
+    hiddenText.style.transition = 'opacity 0.5s ease'; // 添加動畫效果
+    hiddenText.innerText = '已隱藏';
+
+    // 定義 "已隱藏" 文字的 pop-up 動畫
+    const styleSheet = document.styleSheets[0];
+    styleSheet.insertRule(`
+        @keyframes popUp {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    `, styleSheet.cssRules.length);
+
+    // 事件監聽器，用於切換收起/展開
+    toggleButton.addEventListener('click', function() {
+        const children = gameRecordContainer.children;
+        if (gameRecordContainer.style.height === '150px') {
+            gameRecordContainer.style.height = '40px'; // 維持按鈕高度
+            gameRecordContainer.style.overflowY = 'hidden'; // 隱藏內容
+            toggleButton.innerHTML = '<i class="fas fa-plus"></i>';
+
+            // 在高度縮起完成後顯示 "已隱藏" 文字
+            setTimeout(() => {
+                hiddenText.style.display = 'flex';
+                hiddenText.style.animation = 'popUp 0.5s ease'; // 使用 pop-up 動畫
+                hiddenText.style.opacity = '1';
+            }, 500); // 延遲時間與 height 的過渡時間一致
+
+            // 隱藏其他元素
+            for (let i = 0; i < children.length; i++) {
+                if (children[i] !== toggleButton && children[i] !== hiddenText) {
+                    children[i].style.display = 'none';
+                }
+            }
+        } else {
+            gameRecordContainer.style.height = '150px';
+            gameRecordContainer.style.overflowY = 'hidden'; // 顯示滾動條
+            toggleButton.innerHTML = '<i class="fas fa-minus"></i>';
+            hiddenText.style.animation = ''; // 移除動畫
+            hiddenText.style.opacity = '0';
+
+            // 在高度展開完成後隱藏 "已隱藏" 文字
+            setTimeout(() => {
+                hiddenText.style.display = 'none';
+                for (let i = 0; i < children.length; i++) {
+                    if (children[i] !== toggleButton && children[i] !== hiddenText) {
+                        children[i].style.display = 'block';
+                        children[i].style.transition = 'opacity 0.5s'; // 添加顯示動畫
+                        children[i].style.opacity = '0';
+                        setTimeout(() => children[i].style.opacity = '1', 10); // 觸發動畫
+                    }
+                }
+            }, 500); // 延遲時間與 height 的過渡時間一致
+        }
+    });
+
+    gameRecordContainer.appendChild(toggleButton);
+    gameRecordContainer.appendChild(hiddenText);
+
     return gameRecordContainer;
 }
-
 export function updateGameRecord(level, points, pairs) {
     const gameLevel = document.getElementById('gameLevel');
     const resourcePoints = document.getElementById('resourcePoints');

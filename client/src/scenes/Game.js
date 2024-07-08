@@ -311,11 +311,46 @@ export class Game extends Scene {
         return Phaser.Geom.Intersects.RectangleToRectangle(card.getBounds(), bounds);
     }
 
+    // updatePlayerList(players) {
+    //     const playerListContainer = document.getElementById('playerListContainer');
+    //     if (!playerListContainer) return;
+    //     playerListContainer.innerHTML = ''; // 清空列表
+
+    //     players.forEach(playerId => {
+    //         const playerItem = document.createElement('div');
+    //         playerItem.textContent = `Player ID: ${playerId}`;
+    //         playerItem.style.marginBottom = '10px';
+            
+    //         // 高亮當前玩家
+    //         if (playerId === this.gameManager.currentPlayer) {
+    //             playerItem.style.color = 'green'; // 將當前玩家 ID 設置為綠色
+    //             playerItem.style.fontWeight = 'bold'; // 讓文字加粗
+    //         }
+    
+    //         playerListContainer.appendChild(playerItem);
+    //     });
+    // }
+
     updatePlayerList(players) {
         const playerListContainer = document.getElementById('playerListContainer');
         if (!playerListContainer) return;
-        playerListContainer.innerHTML = ''; // 清空列表
-
+    
+        // 保存原來的收起/展開按鈕
+        const toggleButton = playerListContainer.querySelector('.toggle-button');
+        const hiddenText = playerListContainer.querySelector('.hidden-text');
+        
+        // 清空列表，但保留收起/展開按鈕
+        playerListContainer.innerHTML = '';
+    
+        // 如果有收起/展開按鈕，重新附加到容器
+        if (toggleButton) {
+            playerListContainer.appendChild(toggleButton);
+        }
+        
+        if (hiddenText) {
+            playerListContainer.appendChild(hiddenText);
+        }
+    
         players.forEach(playerId => {
             const playerItem = document.createElement('div');
             playerItem.textContent = `Player ID: ${playerId}`;
@@ -330,6 +365,7 @@ export class Game extends Scene {
             playerListContainer.appendChild(playerItem);
         });
     }
+    
 
     // showNotification(message, alertType = 'warning') {
     //     // 創建通知元素

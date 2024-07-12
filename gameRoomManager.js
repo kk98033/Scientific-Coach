@@ -132,7 +132,7 @@ class GameRoomManager {
             return false;
         }
     } 
-
+  
     leaveRoom(playerId) {
         for (let roomId in this.rooms) {
             let index = this.rooms[roomId].players.indexOf(playerId);

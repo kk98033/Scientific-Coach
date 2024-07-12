@@ -325,7 +325,7 @@ export default class GameManager {
         this.scene.scene.stop(this.isGameTable ? 'GameTable' : 'Game', { gameManager: this.gameManager });
         this.scene.scene.start('MainMenu');
     }
-  
+   
     handlePairSuccess(playerId, matchedHandCards, matchedHandIndexes, matchedTableCards, matchedTableIndexes, resourcePoints, gameLevel, cardPairCount, matchedCardPositions) {
         showAlert("配對成功", "success");
         console.log(`玩家 ${playerId} 配對成功`); 
@@ -348,7 +348,7 @@ export default class GameManager {
             this.drawHighlightEffect(matchedCardPositions);
         }
     } 
-    
+     
     drawHighlightEffect(matchedCardPositions) {
         console.log('debug-j: ', matchedCardPositions);
         matchedCardPositions.forEach(position => {
@@ -789,7 +789,7 @@ export default class GameManager {
     //     });
     
     //     this.handObj.forEach(card => {
-    //         console.log(card)
+    //         console.log(card) 
     //         card.card.destroy(); 
     //     }); 
     //     console.log("update", this.hand)
@@ -808,13 +808,15 @@ export default class GameManager {
     
         // 重新渲染所有卡片
         console.log('debug debug debug debug debug debug debug debug debug debug debug debug debug ');
-    
-        this.clearPlayerHandDisplay();
+     
+        this.clearPlayerHandDisplay(); 
     
         this.handPositions = this.handPositions || {}; // 確保 handPositions 被初始化
     
-        console.log('debug-10', this.handPositions);
-    
+        
+        console.log(" ======debug-17 START====== ")
+        console.log('debug-17', this.handPositions);
+        console.log('debug-17 hand', this.hand);
         this.handObj = this.hand.map((card, index) => {
             const row = Math.floor(index / cardsPerRow); // 計算卡片所在的 row
             const col = index % cardsPerRow; // 計算卡片所在的 column 
@@ -823,24 +825,50 @@ export default class GameManager {
     
             let x, y;
     
+            
             if (this.handPositions[card.id]) {
                 // 如果 handPositions 中存在該卡片的位置信息，則使用該位置
                 [x, y] = this.handPositions[card.id];
+                console.log(`debug-17: using existing position for card ${card.id}: [${x}, ${y}]`);
+
             } else {
+                console.log(`debug-17: calculating new position for card ${card.id}`);
+                console.log("debug-17: hand position before update: ", this.handPositions, card.id, this.handPositions[card.id]);
+                console.log("debug-17 card:", card);
+                console.log("debug-17 index:", index);
+
                 // 如果 handPositions 中不存在該卡片的位置信息，則使用預設位置
                 x = baseX + (col * cardOffset);
                 y = baseY + (row * rowHeight);
-                // 並將該位置信息加入 handPositions 中
+                // 並將該位置信息加入 handPositions 中 
                 this.handPositions[card.id] = [x, y];
+    
+                // 新增卡片的醒目特效 
+                const cardHighlight = this.scene.add.graphics({ x: x, y: y });
+                cardHighlight.fillStyle(0xffff00, 0.5);
+                cardHighlight.fillRect(-cardWidth / 2, -rowHeight / 2, cardWidth, rowHeight);
+    
+                this.scene.tweens.add({
+                    targets: cardHighlight,
+                    alpha: { from: 0.5, to: 0 },
+                    scale: { from: 1, to: 2 },
+                    duration: 1000,
+                    onComplete: () => {
+                        cardHighlight.destroy();
+                    }
+                }); 
             }
+            
     
             let playerCard = new Card(this.scene, card.id, true); // 可以隨意移動卡牌，無論是否是自己的回合
             playerCard.render(x, y, 'cyanCardFront', card.type);
             return playerCard.card;  
         });
+        console.log(" ======debug-17 END====== ")
     
         console.log('debug-11', this.handPositions);
     }
+    
     
     resetHandPositions() {
         this.handPositions = {}; // 清空 handPositions

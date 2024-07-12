@@ -778,6 +778,16 @@ class GameManager {
     organizePlayerHand(roomId, playerId) {
         const room = this.gameRoomManager.rooms[roomId];
     
+        console.log("--=-=-========BEFORE======-=-=-=-=-=-=");
+        console.log();
+        console.log();
+
+        console.log(room.hands[playerId]);
+
+        console.log();
+        console.log();
+        console.log("--=-=-==================-=-=-=-=-=-=");
+
         if (!room) {
             console.error(`Room with ID ${roomId} does not exist.`);
             return;
@@ -796,6 +806,16 @@ class GameManager {
     
         // 將非空卡片排在前面，空卡片排在後面
         room.hands[playerId] = [...nonEmptyCards, ...emptyCards];
+
+        console.log("--=-=-========ROOM HANDS======-=-=-=-=-=-=");
+        console.log();
+        console.log();
+
+        console.log(room.hands[playerId]);
+
+        console.log();
+        console.log();
+        console.log("--=-=-==================-=-=-=-=-=-=");
     }
     
     onReady(roomId, playerId) {

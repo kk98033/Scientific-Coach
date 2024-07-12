@@ -204,7 +204,7 @@ io.on('connection', (socket) => {
         const players = gameRoomManager.getPlayersInRoom(roomId);
         io.to(roomId).emit('update_player_list', { players });
     });
-
+ 
     socket.on('update_hand', (data) => {
         const { roomId, playerId, hand } = data;
         // console.log("data", data)
@@ -238,7 +238,7 @@ io.on('connection', (socket) => {
                 matchedTableIndexes: result.matchedTableIndexes,
                 selectedCards: result.selectedCards,
                 matchedCardPositions: result.matchedCardPositions,
-                
+
                 // 更新玩家的遊戲狀態紀錄
                 resourcePoints: result.resourcePoints,
                 gameLevel: result.gameLevel,

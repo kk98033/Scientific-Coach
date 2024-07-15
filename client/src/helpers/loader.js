@@ -42,4 +42,8 @@ export function loadImages(scene) {
         let imagePath = `assets/cards/基本卡牌體操12_3/基本卡牌體操12_3_page-${i.toString().padStart(4, '0')}.jpg`;
         scene.load.image(imageKey, imagePath);
     }
+
+    scene.load.image("friendly_completion", 'client\public\assets\card_ui\桌遊正面+技能卡牌3種 x5_page-0002.jpg');
+    scene.load.image("information_collection", 'client\public\assets\card_ui\桌遊正面+技能卡牌3種 x5_page-0003.jpg');
+    scene.load.image("poach", 'client\public\assets\card_ui\桌遊正面+技能卡牌3種 x5_page-0004.jpg');
 }

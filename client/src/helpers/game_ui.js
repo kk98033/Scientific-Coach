@@ -159,6 +159,21 @@ export function createCardDeckContainer(gameManager, isEditable = false) {
     cardDeckContainer.id = 'cardDeckContainer';
     cardDeckContainer.className = 'p-3 bg-dark text-white rounded';
 
+    // 新增 CSS 媒體查詢樣式
+    const style = document.createElement('style');
+    style.innerHTML = `
+        #cardDeckContainer {
+            max-height: 500px; /* 設定預設最大高度 */
+            overflow-y: auto; /* 啟用滾動 */
+        }
+        @media (max-height: 480px) {
+            #cardDeckContainer {
+                max-height: 150px; /* 手機橫向螢幕上設定較小的最大高度 */
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
     let selectedCType = null; // 記錄選擇的C類型（C1或C2）
     let sports = ['體操', '足球', '桌球', '射擊', '棒球', '柔道'];
     let deckCounts = Array(sports.length).fill(0); // 用於記錄每個卡組的數量
@@ -287,6 +302,7 @@ export function createCardDeckContainer(gameManager, isEditable = false) {
         });
     }
 }
+
 
 
 export function createStartGameContainer(gameManager, isStartGame = false) {
@@ -752,8 +768,27 @@ export function createSkillButtonAndOverlay(gameManager) {
     skillContainer.className = 'd-flex justify-content-around w-50 bg-dark p-3 rounded'; // 確保容器也有背景色和圓角
     skillContainer.style.zIndex = '1051'; // 讓技能選擇容器顯示在覆蓋層之上
 
-    // 創建四個技能卡片
-    for (let i = 1; i <= 4; i++) {
+    // 技能卡片資訊
+    const skills = [
+        {
+            name: '友宜賽',
+            image: 'assets\\card_ui\\桌遊正面+技能卡牌3種 x5_page-0002.jpg',
+            description: '描述友宜賽動技能'
+        },
+        {
+            name: '資訊收集',
+            image: 'assets\\card_ui\\桌遊正面+技能卡牌3種 x5_page-0003.jpg',
+            description: '描述資訊收集技能'
+        },
+        {
+            name: '挖角',
+            image: 'assets\\card_ui\\桌遊正面+技能卡牌3種 x5_page-0004.jpg',
+            description: '描述挖角技能'
+        }
+    ];
+
+    // 創建三個技能卡片
+    skills.forEach((skill, index) => {
         const skillCard = document.createElement('div');
         skillCard.className = 'card text-white bg-secondary m-2 skill-card';
         skillCard.style.width = '18rem';
@@ -761,21 +796,41 @@ export function createSkillButtonAndOverlay(gameManager) {
         
         const cardBody = document.createElement('div');
         cardBody.className = 'card-body';
-        cardBody.innerHTML = `<h5 class="card-title">技能 ${i}</h5><p class="card-text">這是技能 ${i} 的描述。</p>`;
-        
-        skillCard.appendChild(cardBody);
-        skillCard.addEventListener('click', () => {
-            const skillFunctionName = `useSkill${i}`;
-            if (typeof gameManager[skillFunctionName] === 'function') {
-                gameManager[skillFunctionName](); // 調用對應的技能函數
-            } else {
-                console.error(`技能函數 ${skillFunctionName} 不存在於 gameManager`);
-            }
-            toggleSkillOverlay();
+        cardBody.innerHTML = `
+            <img src="${skill.image}" class="card-img-top" alt="${skill.name}">
+            <h5 class="card-title">${skill.name}</h5>
+            <p class="card-text">${skill.description}</p>
+        `;
+
+        // 使用 bootstrap 的 tooltip
+        $(cardBody).tooltip({title: skill.description, placement: 'top', trigger: 'hover'});
+
+        // 長按事件
+        let pressTimer;
+        skillCard.addEventListener('mousedown', () => {
+            pressTimer = setTimeout(() => {
+                // alert(`已選擇技能: ${skill.name}`); // 使用 alert 來顯示選擇的技能，可以換成其他提示方式
+                // const skillFunctionName = `useSkill${index + 1}`;
+                // if (typeof gameManager[skillFunctionName] === 'function') {
+                //     gameManager[skillFunctionName](); // 調用對應的技能函數
+                // } else {
+                //     console.error(`技能函數 ${skillFunctionName} 不存在於 gameManager`);
+                // }
+                toggleSkillOverlay();
+            }, 1000); // 長按1秒後觸發
+        });
+
+        skillCard.addEventListener('mouseup', () => {
+            clearTimeout(pressTimer); // 取消長按
+        });
+
+        skillCard.addEventListener('mouseleave', () => {
+            clearTimeout(pressTimer); // 取消長按
         });
         
+        skillCard.appendChild(cardBody);
         skillContainer.appendChild(skillCard);
-    }
+    });
 
     overlay.appendChild(skillContainer);
 

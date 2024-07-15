@@ -1,4 +1,19 @@
-// src/helper/ui.js
+// client\src\helpers\game_ui.js
+
+export function addCanvasBlur() {
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+        canvas.classList.add('blur-canvas');
+    }
+}
+
+export function removeCanvasBlur() {
+    console.log("debug: remove")
+    const canvas = document.querySelector('canvas');
+    if (canvas) {
+        canvas.classList.remove('blur-canvas');
+    }
+}
 
 export function createPlayerListContainer() {
     let playerListContainer = document.createElement('div');

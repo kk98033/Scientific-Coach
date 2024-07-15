@@ -4,7 +4,7 @@ import Zone from '../helpers/zone';
 import { NONE } from 'phaser';
 import { showNotification } from '../helpers/notification';
 import { showLoading, hideLoading } from '../helpers/loading';
-import { updateGameRecord } from '../helpers/game_ui';
+import { removeCanvasBlur, updateGameRecord } from '../helpers/game_ui';
 import { addWaveGradientBorder, toggleGradientBorder, changeGradientColor } from '../helpers/waveGradient';
 import { showAlert } from './alert';
 import { showModal } from './modal';
@@ -126,6 +126,7 @@ export default class GameManager {
             console.log(`Game started!`);
 
             this.getPlayerHand(); 
+            removeCanvasBlur();
             this.socket.emit('get_player_scores', { roomId: this.roomId, playerId: this.playerId });
             showNotification(`遊戲正式開始!`, 'info');
         });

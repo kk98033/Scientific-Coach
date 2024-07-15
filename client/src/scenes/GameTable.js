@@ -2,7 +2,7 @@ import { Scene } from 'phaser';
 import Zone from '../helpers/zone';
 import io from 'socket.io-client';
 import Dealer from '../helpers/dealer';
-import { createPlayerListContainer, createTimeSettingContainer, createCardDeckContainer, createStartGameContainer, createCurrentPlayerIDContainer, appendElementsToCenter } from '../helpers/game_ui';
+import { createPlayerListContainer, createTimeSettingContainer, createCardDeckContainer, createStartGameContainer, createCurrentPlayerIDContainer, appendElementsToCenter, removeCanvasBlur, addCanvasBlur } from '../helpers/game_ui';
 import { addLeaveGameButton, createSettingsOverlay } from '../helpers/settings';
 
 
@@ -162,6 +162,9 @@ export class GameTable extends Scene {
     }
 
     createHTMLUI() {
+        // 背景虛化
+        addCanvasBlur();
+
         const playerListContainer = createPlayerListContainer();
         const timeSettingContainer = createTimeSettingContainer(this.gameManager, true); // 可編輯
         const cardDeckContainer = createCardDeckContainer(this.gameManager, true); // 可編輯
@@ -194,6 +197,10 @@ export class GameTable extends Scene {
                 element.parentNode.removeChild(element);
             }
         });
+
+        // 背景虛化
+        console.log("debug: clear in game html ui");
+        removeCanvasBlur();
     }
 
     clearHTMLUI() {
@@ -209,6 +216,10 @@ export class GameTable extends Scene {
                 element.parentNode.removeChild(element);
             }
         });
+
+        // 背景虛化
+        console.log("debug: clear html ui");
+        removeCanvasBlur();
     }
 
     // createHTMLUI() {

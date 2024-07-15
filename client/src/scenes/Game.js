@@ -4,7 +4,7 @@ import Zone from '../helpers/zone';
 import io from 'socket.io-client';
 import Dealer from '../helpers/dealer';
 import GameRoomManager from '../../../gameRoomManager';
-import { createPlayerListContainer, createTimeSettingContainer, createCardDeckContainer, createStartGameContainer, createActionButtonsContainer, createCurrentPlayerIDContainer, appendElementsToCenter, createGameRecordContainer, createSkillButtonAndOverlay, createControlButtonsContainer } from '../helpers/game_ui';
+import { createPlayerListContainer, createTimeSettingContainer, createCardDeckContainer, createStartGameContainer, createActionButtonsContainer, createCurrentPlayerIDContainer, appendElementsToCenter, createGameRecordContainer, createSkillButtonAndOverlay, createControlButtonsContainer, addBlurOverlay, removeCanvasBlur, addCanvasBlur } from '../helpers/game_ui';
 import { showNotification } from '../helpers/notification';
 import { createSettingsOverlay, addIPSettings, addIDSettings, addReconnectButton, setCurrentPlayerID, handleSetPlayerIDButton, addClearTableButton, addToggleUIVisibilityButton, addLeaveGameButton } from '../helpers/settings';
 import { showAlert } from '../helpers/alert';
@@ -15,6 +15,7 @@ export class Game extends Scene {
         super({
             key: 'Game'
         });
+        this.blurEffect = null;
         // this.selectedCards = [];
     }
 
@@ -550,6 +551,9 @@ export class Game extends Scene {
     // }
 
     createHTMLUI() {
+        // 背景虛化
+        addCanvasBlur();
+
         const playerListContainer = createPlayerListContainer();
         const timeSettingContainer = createTimeSettingContainer(this.gameManager); // 默認不可編輯
         const cardDeckContainer = createCardDeckContainer(this.gameManager); // 默認不可編輯
@@ -561,11 +565,11 @@ export class Game extends Scene {
     
         // 將主要的容器置中
         appendElementsToCenter([timeSettingContainer, cardDeckContainer, startGameContainer]);
-    
+
         // 單獨附加其他容器到文檔中
         document.body.appendChild(actionButtonsContainer);
         document.body.appendChild(playerListContainer); // 放置在左下角
-        document.body.appendChild(gameRecordContainer); // 放置在右下角
+        document.body.appendChild(gameRecordContainer); // 放置在右下角 
     
         // SETTINGS
         const settingsContainer = createSettingsOverlay();
@@ -596,14 +600,17 @@ export class Game extends Scene {
             'cardDeckContainer',
             'startGameContainer',
         ];
-     
+    
         elementsToRemove.forEach(id => {
             const element = document.getElementById(id);
             if (element && element.parentNode) {
                 element.parentNode.removeChild(element);
             }
-        }); 
-    } 
+        });
+
+        // 背景虛化
+        removeCanvasBlur();
+    }
 
     clearInGameHTMLUI() {
         const elementsToRemove = [
@@ -621,7 +628,6 @@ export class Game extends Scene {
             }
         });
     }
-    
     
     // addWaveGradientBorder(color = 0x00ff00) { // 默認顏色為綠色
     //     const width = this.cameras.main.width;

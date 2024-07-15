@@ -2,13 +2,27 @@ import { Scene } from 'phaser';
 import GameManager from '../helpers/gameManager';
 import { createSettingsOverlay, addIPSettings, addIDSettings, setCurrentPlayerID } from '../helpers/settings';
 import { createIPInput, createRoomInput, createHostCheckbox, createRoomListContainer } from '../helpers/mainMenuUI';
-import { hideLoading } from '../helpers/loading';
+import { hideLoading, showLoading } from '../helpers/loading';
 import { showNotification } from '../helpers/notification';
 import { showAlert } from '../helpers/alert';
+import { loadImages } from '../helpers/loader';
 
 export class MainMenu extends Scene {
     constructor() {
         super('MainMenu');
+    }
+    
+    preload() {
+        // 顯示 loading 動畫
+        showLoading();
+
+        // 加載圖片資源
+        loadImages(this);
+
+        // 加載完成後隱藏 loading 動畫
+        this.load.on('complete', () => {
+            hideLoading();
+        });
     }
 
     create() {

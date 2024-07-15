@@ -8,6 +8,7 @@ import { removeCanvasBlur, updateGameRecord } from '../helpers/game_ui';
 import { addWaveGradientBorder, toggleGradientBorder, changeGradientColor } from '../helpers/waveGradient';
 import { showAlert } from './alert';
 import { showModal } from './modal';
+import { renderCard } from './renderCard';
 
 
 export default class GameManager {
@@ -59,7 +60,7 @@ export default class GameManager {
     }
 
     connectSocket() {
-        // this.socket = io('http://localhost:3000'); 
+        // this.socket = io('http://localhost:di'); 
 
         // test on lan
         this.socket = io(this.socketIP + ':3000');
@@ -349,7 +350,7 @@ export default class GameManager {
     
                 // 創建移動和透明度變化的動畫
                 this.scene.tweens.add({
-                    targets: cardIcon,
+                    targets: cardIcon, 
                     y: y - 100, // 向上移動100像素
                     alpha: 0, // 透明度變為0
                     duration: 2000, // 持續時間2秒
@@ -366,11 +367,7 @@ export default class GameManager {
             }
         });
     }
-    
-    
-    
-    
-    
+
     handlePairFailure(playerId, selectedCards) {
         // 處理失敗的邏輯
         console.log(`玩家 ${playerId} 配對失敗`);
@@ -579,7 +576,7 @@ export default class GameManager {
         // 清除舊有的桌面卡片顯示
         this.clearCardsOnTable()
 
-        // this.tableCards = [];
+        // this.tableCards = []; 
         console.log("display cards on table")
         // TODO: 不知道會有甚麼影響
         // this.dropZone.data.values.cards = 0;
@@ -590,13 +587,13 @@ export default class GameManager {
                 const x = dropZone.x + (index * 50);
                 const y = dropZone.y;
                 let tableCard = new Card(this.scene, card.id, false);
-                tableCard.render(x, y, 'cyanCardFront', card.type);
+                tableCard.render(x, y, card.type, card.type); // 牌桌卡面主要渲染位置
                 return tableCard;
-            });
-        });
+            }); 
+        });   
         
         console.log('table', this.tableCardsObj);
-
+ 
         // this.handObj = this.hand.map((card, index) => {
         //     let playerCard = new Card(this.scene, card.id);
         //     playerCard.render(baseX + (index * cardOffset), baseY, 'cyanCardFront', card.type);
@@ -741,7 +738,8 @@ export default class GameManager {
             
     
             let playerCard = new Card(this.scene, card.id, true); // 可以隨意移動卡牌，無論是否是自己的回合
-            playerCard.render(x, y, 'cyanCardFront', card.type);
+            let imageKey = card.type;
+            playerCard.render(x, y, imageKey, card.type); // 這裡是主要渲染卡片圖片的地方
             return playerCard.card;  
         });
         console.log(" ======debug-17 END====== ")
@@ -844,7 +842,7 @@ export default class GameManager {
         const reversedChildren = [...this.scene.children.list].reverse();
 
         reversedChildren.some(child => {
-            if (child.texture && child.texture.key.includes('Card') && child.getBounds().contains(x, y)) {
+            if (child.texture && child.texture.key.includes('_') && child.getBounds().contains(x, y)) {
                 selectedCardObj = this.toggleCardSelection(child);
                 clickedOnCard = true;
 

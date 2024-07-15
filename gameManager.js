@@ -405,19 +405,25 @@ class GameManager {
         room.deck = [];
         let currentId = 1; // 初始化唯一 ID 計數器
     
+        // 定義運動類型對應的 keys
+        const sports = ['gymnastics', 'soccer', 'tableTennis', 'shooting', 'baseball', 'judo'];
+    
         // 根據 settings 將卡片加入 room 的 deck
-        for (let i = 1; i <= 4; i++) {
-            const deckCount = settings[`deck_${i}`];
-            if (deckCount > 0) {
-                const cardTypesInDeck = this.cardDeckManager.getCardsInDeck(i);
+        sports.forEach(sport => {
+            const deckCount = settings[sport].count;
+            const selectedType = settings[sport].type;
+            if (deckCount > 0 && selectedType) {
+                // 獲取對應卡組類型的卡片
+                const cardTypesInDeck = this.cardDeckManager.getCardsInDeck(sport, selectedType);
                 for (let j = 0; j < deckCount; j++) {
                     cardTypesInDeck.forEach(type => {
                         room.deck.push({ id: currentId++, type });
                     });
                 }
             }
-        }
-    }    
+        });
+    }
+    
     
 
     dealCardsToDeck(roomId) {

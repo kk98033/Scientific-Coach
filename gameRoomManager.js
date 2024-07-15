@@ -59,6 +59,7 @@ class GameRoomManager {
             this.rooms[roomId] = {
                 gameIsStarted: false,
                 players: [],
+                activePlayers: [],
                 tableScreenId: [],
                 cardCount: 60, // 牌組初始卡牌數
                 gameType: 0,   // 遊戲類型，根據需要可以設定具體遊戲
@@ -140,6 +141,17 @@ class GameRoomManager {
     leaveRoom(playerId) {
         for (let roomId in this.rooms) {
             let index = this.rooms[roomId].players.indexOf(playerId);
+            
+            console.log()
+            console.log()
+            console.log()
+
+            console.log(this.rooms)
+
+            console.log()
+            console.log()
+            console.log()
+
             let activePlayerIndex = this.rooms[roomId].activePlayers.indexOf(playerId);
             if (activePlayerIndex !== -1) {
                 // TODO: don;t delete player

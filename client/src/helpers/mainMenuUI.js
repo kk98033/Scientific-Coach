@@ -1,3 +1,5 @@
+// client\src\helpers\mainMenuUI.js
+
 export function createIPInput() {
     const formGroup = document.createElement('div');
     formGroup.className = 'mb-3';
@@ -78,8 +80,6 @@ export function createHostCheckbox() {
 
     return formGroup;
 }
-
-// src/mainMenuUI.js
 
 export function createRoomListContainer() {
     const roomListContainer = document.createElement('div');

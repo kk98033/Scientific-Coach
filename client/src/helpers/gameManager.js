@@ -1041,28 +1041,46 @@ export default class GameManager {
 
     updateSettingsUI(settings) {
         if (!settings) return;
+    
         // 更新時間設定
         let timeSettingInput = document.querySelector('#timeSettingContainer input');
-        console.log(settings)
-        console.log('debug-9', settings.roundTime)
-        console.log('debug-10', timeSettingInput)
         if (timeSettingInput) {
             timeSettingInput.value = settings.roundTime;
         }
-
-        // 更新各個牌組的數量
-        for (let i = 1; i <= 4; i++) {
-            let deckCountElement = document.getElementById(`deckCount_${i}`); 
+    
+        // 更新各個牌組的數量和選擇類型
+        let sports = ['gymnastics', 'soccer', 'tableTennis', 'shooting', 'baseball', 'judo'];
+        sports.forEach((sport, index) => {
+            let deckCountElement = document.getElementById(`deckCountSpan_${index + 1}`);
             if (deckCountElement) {
-                deckCountElement.textContent = settings[`deck_${i}`];
-            } else {
-                console.log("NONOONONNOON")
+                deckCountElement.textContent = `已加入 ${settings[sport].count} 組`;
             }
-        }
-
-        
+    
+            let selectC1 = document.querySelector(`#deckContainer_${index + 1} [data-type='C1']`);
+            let selectC2 = document.querySelector(`#deckContainer_${index + 1} [data-type='C2']`);
+    
+            if (selectC1 && selectC2) {
+                if (settings[sport].type === 'C1') {
+                    selectC1.classList.add('selected');
+                    selectC1.style.backgroundColor = '#28a745'; // 綠色
+                    selectC2.classList.remove('selected');
+                    selectC2.style.backgroundColor = '#f48b71'; // 恢復原色
+                } else if (settings[sport].type === 'C2') {
+                    selectC2.classList.add('selected');
+                    selectC2.style.backgroundColor = '#28a745'; // 綠色
+                    selectC1.classList.remove('selected');
+                    selectC1.style.backgroundColor = '#f8b0a2'; // 恢復原色
+                } else {
+                    selectC1.classList.remove('selected');
+                    selectC1.style.backgroundColor = '#f8b0a2'; // 恢復原色
+                    selectC2.classList.remove('selected');
+                    selectC2.style.backgroundColor = '#f48b71'; // 恢復原色
+                }
+            }
+        });
     }
-
+    
+    
     
 
     enableStartGameButton() {
@@ -1085,24 +1103,33 @@ export default class GameManager {
         // 取得時間設定
         let roundTimeInput = document.getElementById('roundTimeInput');
         let roundTime = roundTimeInput ? parseInt(roundTimeInput.value, 10) : 30;
-
-        // 取得排組數量
+    
+        // 取得排組數量和選擇類型
         let deckCounts = [];
-        for (let i = 1; i <= 4; i++) {
-            let deckCountElement = document.getElementById(`deckCount_${i}`);
-            let deckCount = deckCountElement ? parseInt(deckCountElement.textContent, 10) : 0;
+        let selectedCTypes = [];
+        let sports = ['體操', '足球', '桌球', '射擊', '棒球', '柔道'];
+        sports.forEach((sport, index) => {
+            let deckCountElement = document.getElementById(`deckCountSpan_${index + 1}`);
+            let deckCount = deckCountElement ? parseInt(deckCountElement.textContent.split(' ')[1], 10) : 0;
             deckCounts.push(deckCount);
-        }
+    
+            let selectedC1 = document.querySelector(`#deckContainer_${index + 1} [data-type='C1'].selected`);
+            let selectedC2 = document.querySelector(`#deckContainer_${index + 1} [data-type='C2'].selected`);
+            selectedCTypes.push(selectedC1 ? 'C1' : (selectedC2 ? 'C2' : null));
+        });
     
         // 組成設定物件  
         let settings = {
             roundTime: roundTime,
-            deck_1: deckCounts[0],
-            deck_2: deckCounts[1],
-            deck_3: deckCounts[2],
-            deck_4: deckCounts[3]
+            gymnastics: { count: deckCounts[0], type: selectedCTypes[0] },
+            soccer: { count: deckCounts[1], type: selectedCTypes[1] },
+            tableTennis: { count: deckCounts[2], type: selectedCTypes[2] },
+            shooting: { count: deckCounts[3], type: selectedCTypes[3] },
+            baseball: { count: deckCounts[4], type: selectedCTypes[4] },
+            judo: { count: deckCounts[5], type: selectedCTypes[5] }
         };
     
+        console.log('Debug Settings: ', settings);
         return settings;
     }
 

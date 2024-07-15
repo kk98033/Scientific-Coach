@@ -42,10 +42,12 @@ class GameRoomManager {
                 readyPlayers: [],
                 settings: {
                     roundTime: 10,
-                    deck_1: 1,
-                    deck_2: 0,
-                    deck_3: 0,
-                    deck_4: 0,
+                    gymnastics: { count: 1, type: 'C1' },
+                    soccer: { count: 0, type: null },
+                    tableTennis: { count: 0, type: null },
+                    shooting: { count: 0, type: null },
+                    baseball: { count: 0, type: null },
+                    judo: { count: 0, type: null }
                 },
                 playerScores: {} // { 'playerID': { 'cardPairCount': int, 'gameLevel': int, 'cardPairCount': int }, ... }
             }
@@ -74,11 +76,13 @@ class GameRoomManager {
                 usedCards: [],
                 readyPlayers: [],
                 settings: {
-                    roundTime: 30,
-                    deck_1: 0,
-                    deck_2: 0,
-                    deck_3: 0,
-                    deck_4: 0,
+                    roundTime: 10,
+                    gymnastics: { count: 1, type: 'C1' },
+                    soccer: { count: 0, type: null },
+                    tableTennis: { count: 0, type: null },
+                    shooting: { count: 0, type: null },
+                    baseball: { count: 0, type: null },
+                    judo: { count: 0, type: null }
                 },
                 playerScores: {} // { 'playerID': { 'resourcePoints': int, 'gameLevel': int, 'cardPairCount': int }, ... } | gameLevel: 0 => C, 1 => B, 2 => A
             };

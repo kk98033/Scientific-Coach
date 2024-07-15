@@ -159,54 +159,135 @@ export function createCardDeckContainer(gameManager, isEditable = false) {
     cardDeckContainer.id = 'cardDeckContainer';
     cardDeckContainer.className = 'p-3 bg-dark text-white rounded';
 
-    for (let i = 1; i <= 4; i++) {
+    let selectedCType = null; // 記錄選擇的C類型（C1或C2）
+    let sports = ['體操', '足球', '桌球', '射擊', '棒球', '柔道'];
+    let deckCounts = Array(sports.length).fill(0); // 用於記錄每個卡組的數量
+    let deckCountSpans = []; // 用於記錄每個顯示已加入組數的元素
+
+    sports.forEach((sport, index) => {
         let deckContainer = document.createElement('div');
-        deckContainer.id = `deckContainer_${i}`;
+        deckContainer.id = `deckContainer_${index + 1}`;
         deckContainer.className = 'mb-3';
 
         let deckLabel = document.createElement('span');
-        deckLabel.textContent = `排組 ${i}: `;
+        deckLabel.textContent = `${sport}: `;
         deckLabel.className = 'me-2';
 
+        let selectA1 = document.createElement('span');
+        selectA1.textContent = 'A1';
+        selectA1.className = 'badge me-2';
+        selectA1.style.backgroundColor = '#aca86b';
+
+        let selectB1 = document.createElement('span');
+        selectB1.textContent = 'B1';
+        selectB1.className = 'badge me-2';
+        selectB1.style.backgroundColor = '#77bee9';
+
+        let selectC1 = document.createElement('button');
+        selectC1.textContent = 'C1';
+        selectC1.className = 'btn me-2';
+        selectC1.style.backgroundColor = '#f8b0a2';
+        selectC1.setAttribute('data-type', 'C1');
+        selectC1.disabled = !isEditable;
+        selectC1.onclick = () => {
+            toggleSelection(selectC1, selectC2, 'C1', index);
+            selectedCType = selectC1.classList.contains('selected') ? 'C1' : null;
+            updateAddButtonState(addButton, selectedCType);
+            gameManager.updateSettings();
+        };
+
+        let selectC2 = document.createElement('button');
+        selectC2.textContent = 'C2';
+        selectC2.className = 'btn me-2';
+        selectC2.style.backgroundColor = '#f48b71';
+        selectC2.setAttribute('data-type', 'C2');
+        selectC2.disabled = !isEditable;
+        selectC2.onclick = () => {
+            toggleSelection(selectC2, selectC1, 'C2', index);
+            selectedCType = selectC2.classList.contains('selected') ? 'C2' : null;
+            updateAddButtonState(addButton, selectedCType);
+            gameManager.updateSettings();
+        };
+
         let addButton = document.createElement('button');
-        addButton.id = `addButton_${i}`;
+        addButton.id = `addButton_${index + 1}`;
         addButton.textContent = '+';
         addButton.className = 'btn btn-primary me-2';
-        addButton.disabled = !isEditable; // 設置是否可編輯
+        addButton.style.minWidth = '40px';
+        addButton.style.minHeight = '40px';
+        addButton.disabled = !selectedCType || !isEditable;
         addButton.onclick = () => {
-            let deckCount = document.getElementById(`deckCount_${i}`);
-            let currentCount = parseInt(deckCount.textContent, 10);
-            deckCount.textContent = currentCount + 1;
-            gameManager.updateSettings();
+            if (selectedCType) {
+                updateDeckCount(deckCountSpans[index], ++deckCounts[index]);
+                gameManager.updateSettings();
+            }
         };
-
-        let deckCount = document.createElement('span');
-        deckCount.id = `deckCount_${i}`;
-        deckCount.textContent = i === 1 ? '1' : '0';
-        deckCount.className = 'me-2';
 
         let subtractButton = document.createElement('button');
-        subtractButton.id = `subtractButton_${i}`;
+        subtractButton.id = `subtractButton_${index + 1}`;
         subtractButton.textContent = '-';
-        subtractButton.className = 'btn btn-primary';
-        subtractButton.disabled = !isEditable; // 設置是否可編輯
+        subtractButton.className = 'btn btn-primary me-2';
+        subtractButton.style.minWidth = '40px';
+        subtractButton.style.minHeight = '40px';
+        subtractButton.disabled = !isEditable;
         subtractButton.onclick = () => {
-            let currentCount = parseInt(deckCount.textContent, 10);
-            if (currentCount > 0) {
-                deckCount.textContent = currentCount - 1;
+            if (deckCounts[index] > 0) {
+                updateDeckCount(deckCountSpans[index], --deckCounts[index]);
+                gameManager.updateSettings();
             }
-            gameManager.updateSettings();
         };
 
+        let deckCountSpan = document.createElement('span');
+        deckCountSpan.id = `deckCountSpan_${index + 1}`;
+        deckCountSpan.textContent = `已加入 0 組`;
+        deckCountSpan.className = 'ms-3';
+        deckCountSpans.push(deckCountSpan);
+
         deckContainer.appendChild(deckLabel);
+        deckContainer.appendChild(selectA1);
+        deckContainer.appendChild(selectB1);
+        deckContainer.appendChild(selectC1);
+        deckContainer.appendChild(selectC2);
         deckContainer.appendChild(addButton);
-        deckContainer.appendChild(deckCount);
         deckContainer.appendChild(subtractButton);
+        deckContainer.appendChild(deckCountSpan);
         cardDeckContainer.appendChild(deckContainer);
-    }
+    });
 
     return cardDeckContainer;
+
+    function toggleSelection(selectedButton, otherButton, cType, index) {
+        if (!selectedButton.classList.contains('selected')) {
+            selectedButton.classList.add('selected');
+            selectedButton.style.backgroundColor = '#28a745'; // 綠色
+            otherButton.classList.remove('selected');
+            otherButton.style.backgroundColor = otherButton.textContent === 'C1' ? '#f8b0a2' : '#f48b71'; // 恢復原色
+        } else {
+            selectedButton.classList.remove('selected');
+            selectedButton.style.backgroundColor = cType === 'C1' ? '#f8b0a2' : '#f48b71';
+        }
+
+        if (!selectedButton.classList.contains('selected') && !otherButton.classList.contains('selected')) {
+            resetDeckCounts();
+        }
+    }
+
+    function updateDeckCount(deckCountSpan, count) {
+        deckCountSpan.textContent = `已加入 ${count} 組`;
+    }
+
+    function updateAddButtonState(addButton, selectedCType) {
+        addButton.disabled = !selectedCType;
+    }
+
+    function resetDeckCounts() {
+        deckCounts.fill(0);
+        deckCountSpans.forEach(span => {
+            span.textContent = '已加入 0 組';
+        });
+    }
 }
+
 
 export function createStartGameContainer(gameManager, isStartGame = false) {
     let startGameContainer = document.createElement('div');
@@ -606,8 +687,6 @@ function createAnimation(element, text) {
         }, 2000); // 動畫持續2秒
     }, 0);
 }
-
-// src/helper/ui.js
 
 export function createSkillButtonAndOverlay(gameManager) {
     // 新增動畫樣式

@@ -48,8 +48,6 @@ export class GameTable extends Scene {
         // 更新準備玩家 UI
         this.gameManager.updateReadyPlayers();
 
-        this.setupDragEvents();
-
         this.currentPlayerText = this.add.text(10, 15, 'TABLE ', { fontSize: '24px', fill: '#fff' });
         this.currentPlayerText = this.add.text(10, 5, 'Current Player: ', { fontSize: '24px', fill: '#fff' });
         this.timerText = this.add.text(10, 30, '', { fontSize: '24px', fill: '#fff' });

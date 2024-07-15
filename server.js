@@ -292,7 +292,7 @@ io.on('connection', (socket) => {
         // };
         console.log(settings)
         io.to(roomId).emit('update_settings', {
-            settings: settings,
+            settings: settings, 
         });
     });
 

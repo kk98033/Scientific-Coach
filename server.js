@@ -11,47 +11,10 @@ const io = require('socket.io')(http, {
 });
 const GameManager = require('./gameManager');
 const gameManager = new GameManager(io, gameRoomManager);
-// gameManager.init();
-
-
-// let players = [];
-
-// io.on('connection', function (socket) {
-//     console.log('A user connected: ' + socket.id);
-
-//     players.push(socket.id);
-
-//     if (players.length === 1) {
-//         io.emit('isPlayerA');
-//     };
-
-//     socket.on('dealCards', function () {
-//         io.emit('dealCards');
-//     });
-
-//     socket.on('cardPlayed', function (gameObject, isPlayerA) {
-//         io.emit('cardPlayed', gameObject, isPlayerA);
-//     });
-
-//     socket.on('disconnect', function () {
-//         console.log('A user disconnected: ' + socket.id);
-//         players = players.filter(player => player !== socket.id);
-//     });
-// });
-
-
 
 io.on('connection', (socket) => {
     console.log('A user connected with socket id:', socket.id);
     socket.emit('your_player_id', { playerId: socket.id });
-
-    // Game logic
-    // socket.on('play_card', (data) => {
-    //     const { roomId, card, playerId } = data;
-    //     if (gameManager.currentState === 'PlayerTurn') {
-    //         gameManager.playCard(roomId, playerId, card);
-    //     }
-    // });
 
     socket.on('end_turn', (data) => {
         const { roomId, playerId } = data;

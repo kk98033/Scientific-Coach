@@ -297,27 +297,12 @@ export default class GameManager {
             console.log(gameIsStarted, isPlayerInRoom);
             this.leaveRoom();
             
-            // this.scene.clearInGameHTMLUI();
-            // this.scene.clearHTMLUI();
-            // this.scene.scene.stop(this.isGameTable ? 'GameTable' : 'Game', { gameManager: this.gameManager });
-            // this.scene.scene.start('MainMenu');
             this.leaveRoomAndClearUI();
             showAlert(`你已離開房間: ${this.roomId}`, 'success');
             if (!gameIsStarted) {
             }
          
-        });
-
-        // this.socket.on('player_hand', (data) => {
-        //     const { playerId, hand } = data;
-        //     if (playerId === this.playerId) { 
-        //         this.hand = hand;  // Update local hand
-        //         this.displayPlayerHand();
-        //     }
-        //     console.log(playerId);
-        //     console.log(hand);
-        // });
-        
+        });        
     }
 
     leaveRoomAndClearUI() {
@@ -630,30 +615,6 @@ export default class GameManager {
         this.socket.emit('get_player_hand', { roomId: this.roomId, playerId: this.playerId });
     }
 
-    playCard(cardId) {
-        // this.socket.emit('play_card', { roomId, playerId, cardId });
-        // Find the index of the card with the given ID in the tableCards array
-        // const cardIndex = this.tableCards.findIndex(card => card.cardId === cardId);
-
-        // if (cardIndex !== -1) {
-        //     // Remove the card from the table
-        //     const [card] = this.tableCards.splice(cardIndex, 1);
-        //     card.destroy();  // Assuming each card has a destroy method to remove it from the scene
-        //     console.log(`Card with ID ${cardId} was played and removed from the table.`);
-        // } else {
-        //     console.log(`Card with ID ${cardId} not found on the table.`);
-        // }
-    } 
-
-    // clearPlayerHandDisplay() {
-    //     console.log('this.handObj')
-    //     console.log(this.handObj);
-    //     this.handObj.forEach(card => {
-    //         card.destroy();
-    //     });
-    //     this.handObj = [];
-    // }
-
     setupDragEvents() {
         this.scene.input.on('dragstart', (pointer, gameObject) => {
             this.isDragging = true;
@@ -716,88 +677,6 @@ export default class GameManager {
         });
     }
 
-    
-    
-    
-    
-    
-    // checkForCardSwap(draggedCard) {
-    //     const swapMargin = 100; // 定義更大的判定範圍
-    
-    //     this.handObj.forEach(card => {
-    //         if (card !== draggedCard) {
-    //             const distance = Phaser.Math.Distance.Between(draggedCard.x, draggedCard.y, card.x, card.y);
-    //             if (distance < swapMargin) {
-    //                 // 交換兩張卡片的位置
-    //                 let tempX = card.x;
-    //                 let tempY = card.y;
-    //                 card.x = draggedCard.x;
-    //                 card.y = draggedCard.y;
-    //                 draggedCard.x = tempX;
-    //                 draggedCard.y = tempY;
-    
-    //                 // 更新卡片數組中的位置
-    //                 const draggedIndex = this.handObj.indexOf(draggedCard);
-    //                 const targetIndex = this.handObj.indexOf(card);
-    //                 if (draggedIndex !== -1 && targetIndex !== -1) {
-    //                     [this.handObj[draggedIndex], this.handObj[targetIndex]] = [this.handObj[targetIndex], this.handObj[draggedIndex]];
-    //                 }
-    //             }
-    //         }
-    //     });
-    // }
-    
-    
-
-    // TODO: 重新寫一個
-    // insertCardInHand(card) {
-    //     const baseX = 475;
-    //     const baseY = 650;
-    //     const cardOffset = 100;
-    
-    //     // 獲取卡片基本信息
-    //     const cardData = { id: card.card.cardId, type: card.card.type };
-    
-    //     // 移除已經存在於手牌中的相同卡片
-    //     const existingIndex = this.handObj.findIndex(c => c.card.cardId === card.card.cardId);
-    //     if (existingIndex !== -1) {
-    //         this.handObj.splice(existingIndex, 1);
-    //         this.hand.splice(existingIndex, 1); // 同步移除 this.hand 中的相應卡片
-    //     }
-    
-    //     let insertIndex = this.handObj.length;  
-    //     for (let i = 0; i < this.handObj.length; i++) {
-    //         console.log("FFF", card.x, this.handObj[i].x);
-    //         if (card.x < this.handObj[i].x) {
-    //             insertIndex = i;
-    //             break;
-    //         }
-    //     }
-    //     console.log("FFF FINAL", insertIndex);
-    
-    //     this.handObj.splice(insertIndex, 0, card);
-    //     this.hand.splice(insertIndex, 0, cardData); // 同步插入 this.hand 中的相應卡片基本信息
-    
-    //     // 更新所有手牌的位置
-    //     this.handObj.forEach((card, index) => {
-    //         if (card.card) {
-    //             card.card.x = baseX + index * cardOffset;
-    //             card.card.y = baseY;
-    //         } else {
-    //             card.x = baseX + index * cardOffset;
-    //             card.y = baseY; 
-    //         }
-    //     });
-    
-    //     this.handObj.forEach(card => {
-    //         console.log(card) 
-    //         card.card.destroy(); 
-    //     }); 
-    //     console.log("update", this.hand)
-    //     this.socket.emit('update_hand', { roomId: this.roomId, playerId: this.playerId, hand: this.hand });
-    // }
-    
-    
     displayPlayerHand() {
         const screenWidth = this.scene.cameras.main.width;
         const screenHeight = this.scene.cameras.main.height;
@@ -910,18 +789,6 @@ export default class GameManager {
             console.log('highlightCard info:', cardInfo);
             console.log('highlightCard銷毀卡片圖像:', card.card);
      
-            // 渲染新的高亮卡片
-            // const newCard = new Card(this.scene, cardInfo.cardId, cardInfo.isPlayerTurn);
-            // newCard.render(cardInfo.x, cardInfo.y, cardInfo.type, 'cyanCardFront'); // 重新渲染卡片
-            // newCard.card.setTint(0xff0000); // 設置為紅色高亮
-            // console.log('highlightCard設置卡片為紅色高亮:', newCard.card);
-    
-            // 使用計時器在一秒後移除高亮卡片
-            // this.scene.time.delayedCall(1000, () => {
-            //     console.log('highlightCard移除高亮顯示的卡片');
-            //     newCard.card.destroy(); // 銷毀卡片對象的圖像
-            //     console.log('highlightCard銷毀卡片圖像:', newCard.card);
-            // });
         } else {
             console.log('highlightCard未找到卡片:', cardId);
         }
@@ -930,65 +797,6 @@ export default class GameManager {
     findCardById(cardId) {
         return this.scene.children.list.find(child => child.card && child.card.cardId === cardId);
     }
-
-    // handlePairSuccess(cards) {
-    //     console.log("處理配對成功的卡片:", cards);
-    
-    //     // 確保有卡片需要高亮和移除
-    //     if (cards.length > 0) {
-    //         // 記住每張卡片的位置和類型資訊
-    //         const cardInfo = cards.map(card => ({
-    //             x: card.card.x,
-    //             y: card.card.y,
-    //             type: card.card.texture.key,
-    //             cardId: card.cardId,
-    //             isPlayerTurn: card.isPlayerTurn
-    //         }));
-    
-    //         // 先清除舊卡片
-    //         cards.forEach(card => {
-    //             card.card.destroy(); // 銷毀每個卡片對象的圖像
-    //             console.log('銷毀卡片圖像:', card.card);
-    //         });
-    
-    //         // 渲染新的高亮卡片
-    //         const newCards = cardInfo.map(info => {
-    //             const newCard = new Card(this.scene, info.cardId, info.isPlayerTurn);
-    //             newCard.render(info.x, info.y, info.type, 'cyanCardFront'); // 重新渲染卡片
-    //             newCard.card.setTint(0xff0000); // 設置為紅色高亮
-    //             console.log('設置卡片為紅色高亮:', newCard.card); 
-    //             return newCard; 
-    //         });
-    
-    //         // 使用計時器在一秒後移除高亮卡片
-    //         this.scene.time.delayedCall(1000, () => {
-    //             console.log('移除高亮顯示的卡片');
-    //             newCards.forEach(card => {
-    //                 card.card.destroy(); // 銷毀每個卡片對象的圖像
-    //                 console.log('銷毀卡片圖像:', card.card);
-    //             });
-    //         });
-    //     }
-    // }
-    
-    // updatePlayerList(players) {
-    //     const playerListContainer = document.getElementById('playerListContainer');
-    //     playerListContainer.innerHTML = ''; // 清空列表
-
-    //     players.forEach(playerId => {
-    //         const playerItem = document.createElement('div');
-    //         playerItem.textContent = `Player ID: ${playerId}`;
-    //         playerItem.style.marginBottom = '10px';
-            
-    //         // 高亮當前玩家
-    //         if (playerId === this.gameManager.currentPlayer) {
-    //             playerItem.style.color = 'green'; // 將當前玩家 ID 設置為綠色
-    //             playerItem.style.fontWeight = 'bold'; // 讓文字加粗
-    //         }
-    
-    //         playerListContainer.appendChild(playerItem);
-    //     });
-    // }
 
     updatePlayerList(players) {
         const playerListContainer = document.getElementById('playerListContainer');
@@ -1057,18 +865,6 @@ export default class GameManager {
         });
 
     
-        // if (!clickedOnCard) {
-        //     this.clearAllSelections();  
-        // } else {
-        //     // 發送卡片資訊給 socket server
-        //     if (this.selectedCards.length === 0) return;
-        //     const selectedCard = this.selectedCards[this.selectedCards.length - 1].card;
-        //     console.log('selectedddd', selectedCard);   
-            
-        //     if (selectedCard) {
-        //         this.socket.emit('update_selected', { roomId: this.roomId, card: { id: selectedCard.cardId, type: selectedCard.type } });
-        //     }
-        // }
         console.log('"debug-3 SELECTED CARDS",  clicked 0', this.selectedCards)
         // 發送卡片資訊給 socket server
         

@@ -14,7 +14,8 @@ import { renderCard } from './renderCard';
 export default class GameManager {
     constructor(scene) {
         this.serverIP = '192.168.31.202';
-        this.socketIP = '192.168.31.202'; 
+        // this.socketIP = '192.168.31.202'; 
+        this.socketIP = 'localhost'; 
 
         this.scene = scene;
         this.dropZones = null;

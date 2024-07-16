@@ -1,9 +1,5 @@
 import { Scene } from 'phaser';
 // import Card from '../helpers/card';
-import Zone from '../helpers/zone';
-import io from 'socket.io-client';
-import Dealer from '../helpers/dealer';
-import GameRoomManager from '../../../gameRoomManager';
 import { createPlayerListContainer, createTimeSettingContainer, createCardDeckContainer, createStartGameContainer, createActionButtonsContainer, createCurrentPlayerIDContainer, appendElementsToCenter, createGameRecordContainer, createSkillButtonAndOverlay, createControlButtonsContainer, addBlurOverlay, removeCanvasBlur, addCanvasBlur } from '../helpers/game_ui';
 import { showNotification } from '../helpers/notification';
 import { createSettingsOverlay, addIPSettings, addIDSettings, addReconnectButton, setCurrentPlayerID, handleSetPlayerIDButton, addClearTableButton, addToggleUIVisibilityButton, addLeaveGameButton } from '../helpers/settings';

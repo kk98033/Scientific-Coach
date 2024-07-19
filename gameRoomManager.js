@@ -200,6 +200,7 @@ class GameRoomManager {
 
     onReady(roomId, playerId) {
         const room = this.rooms[roomId];
+        if (!room) return;
         if (!room.readyPlayers.includes(playerId)) {
             room.readyPlayers.push(playerId);
         }
@@ -237,7 +238,7 @@ class GameRoomManager {
             return {
                 readyPlayers: room.readyPlayers,
                 count: room.readyPlayers.length,
-                total: room.players.length
+                total: room.activePlayers.length
             };
         } else {
             return {

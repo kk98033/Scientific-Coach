@@ -862,6 +862,7 @@ class GameManager {
 
     isGameStartedInRoom(roomId, playerId) {
         const room = this.gameRoomManager.rooms[roomId];
+        if (!room) return;
         const isPlayerInRoom = room.players.includes(playerId); 
         return {
             gameIsStarted: room.gameIsStarted,

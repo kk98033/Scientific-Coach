@@ -13,16 +13,16 @@ import { renderCard } from './renderCard';
 
 export default class GameManager {
     constructor(scene) {
-        this.serverIP = '192.168.31.202';
+        this.serverIP = '192.168.0.233';
         // this.socketIP = '192.168.31.202'; 
-        this.socketIP = 'localhost'; 
+        this.socketIP = '192.168.0.233'; 
 
         this.scene = scene;
         this.dropZones = null;
         this.zone = null;
-        this.socket = null;
+        this.socket = null;   
         this.turnTimer = 10; 
-
+ 
         this.roomId = null;
         this.playerId = null;
         this.currentPlayer = null;
@@ -30,7 +30,7 @@ export default class GameManager {
 
         this.isGameTable = false;
         this.canPairCards = false;
-
+ 
         this.hand = [];  // Store player's hand locally
         this.handObj = [];  // Card object to store cards on hands
         this.handPositions = {}; // [[x1, y1], [x2, y2]...],
@@ -38,10 +38,10 @@ export default class GameManager {
         this.tableCardsObj = Array.from({ length: 8 }, () => []); // Array to store cards on the table
 
         this.selectedCards = [];
-        this.currentDraggedCard = null;
-
+        this.currentDraggedCard = null;    
+ 
         
-
+ 
         this.connectSocket();
         this.setupEventListeners();
         this.setupBeforeUnloadListener();

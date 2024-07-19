@@ -80,7 +80,7 @@ export function createHostCheckbox() {
 
     return formGroup;
 }
-
+ 
 export function createRoomListContainer() {
     const roomListContainer = document.createElement('div');
     roomListContainer.id = 'roomListContainer';
@@ -94,7 +94,7 @@ export function createRoomListContainer() {
     roomListContainer.style.width = '250px'; // 調整寬度
     roomListContainer.style.zIndex = '1000'; // 保持較高的 z-index 層級
  
-    // 添加自定義滾動條樣式
+    // 添加自定義滾動條樣式 
     const style = document.createElement('style');
     style.textContent = `
         #roomListContainer::-webkit-scrollbar {

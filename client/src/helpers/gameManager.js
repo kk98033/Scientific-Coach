@@ -61,8 +61,6 @@ export default class GameManager {
     }
 
     connectSocket() {
-        // this.socket = io('http://localhost:di'); 
-
         // test on lan
         this.socket = io(this.socketIP + ':3000');
     }

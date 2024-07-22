@@ -76,10 +76,10 @@ export default class GameManager {
             console.log(data)
         });
 
-        this.socket.on('your_player_id', (data) => {
-            this.playerId = data.playerId;
-            console.log('My player ID is:', data.playerId);
-        });
+        // this.socket.on('your_player_id', (data) => {
+        //     this.playerId = data.playerId;
+        //     console.log('My player ID is:', data.playerId);
+        // });
 
         this.socket.on('room_not_found', (data) => {
             hideLoading();

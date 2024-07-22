@@ -210,6 +210,7 @@ export class MainMenu extends Scene {
         console.log('Updating player ID:', userID);
         this.gameManager.playerId = userID;
         setCurrentPlayerID(this.gameManager.playerId);
+        console.log('after updating: ', this.gameManager.playerId);
     }
 
     removeHTMLUI() {

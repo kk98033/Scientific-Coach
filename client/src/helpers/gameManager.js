@@ -210,13 +210,17 @@ export default class GameManager {
                 cardPairCount,
             } = data;
          
+            showAlert(`玩家 ${playerId} 配對成功`, "success");
+
+            if (playerId !== this.playerId) return;
+
             if (success) {
                 console.log('debug-pair 配對成功');
                 this.handlePairSuccess(playerId, matchedHandCards, matchedHandIndexes, matchedTableCards, matchedTableIndexes, resourcePoints, gameLevel, cardPairCount, matchedCardPositions);
             } else {
                 console.log('debug-pair 配對失敗：', message);
                 this.handlePairFailure(playerId, selectedCards); 
-            }
+            } 
         });
 
         this.socket.on('time_to_discard_some_cards', (data) => {
@@ -315,7 +319,7 @@ export default class GameManager {
     }
    
     handlePairSuccess(playerId, matchedHandCards, matchedHandIndexes, matchedTableCards, matchedTableIndexes, resourcePoints, gameLevel, cardPairCount, matchedCardPositions) {
-        showAlert("配對成功", "success");
+        // showAlert("配對成功", "success");
         console.log(`玩家 ${playerId} 配對成功`); 
         console.log('配對成功的手牌：', matchedHandCards);
         console.log('配對成功的桌牌：', matchedTableCards); 

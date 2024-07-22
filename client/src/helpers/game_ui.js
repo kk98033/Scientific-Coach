@@ -159,7 +159,6 @@ export function createCardDeckContainer(gameManager, isEditable = false) {
     cardDeckContainer.id = 'cardDeckContainer';
     cardDeckContainer.className = 'p-3 bg-dark text-white rounded';
 
-    // 新增 CSS 媒體查詢樣式
     const style = document.createElement('style');
     style.innerHTML = `
         #cardDeckContainer {
@@ -208,6 +207,9 @@ export function createCardDeckContainer(gameManager, isEditable = false) {
             toggleSelection(selectC1, selectC2, 'C1', index);
             selectedCType = selectC1.classList.contains('selected') ? 'C1' : null;
             updateAddButtonState(addButton, selectedCType);
+            if (selectedCType) { // 如果選中了 C1
+                addButton.click(); // 自動添加一組
+            }
             gameManager.updateSettings();
         };
 
@@ -221,6 +223,9 @@ export function createCardDeckContainer(gameManager, isEditable = false) {
             toggleSelection(selectC2, selectC1, 'C2', index);
             selectedCType = selectC2.classList.contains('selected') ? 'C2' : null;
             updateAddButtonState(addButton, selectedCType);
+            if (selectedCType) { // 如果選中了 C2
+                addButton.click(); // 自動添加一組
+            }
             gameManager.updateSettings();
         };
 
@@ -246,7 +251,7 @@ export function createCardDeckContainer(gameManager, isEditable = false) {
         subtractButton.style.minHeight = '40px';
         subtractButton.disabled = !isEditable;
         subtractButton.onclick = () => {
-            if (deckCounts[index] > 0) {
+            if (deckCounts[index] > 1) { // 最多減少到剩下一組
                 updateDeckCount(deckCountSpans[index], --deckCounts[index]);
                 gameManager.updateSettings();
             }
@@ -281,9 +286,9 @@ export function createCardDeckContainer(gameManager, isEditable = false) {
             selectedButton.classList.remove('selected');
             selectedButton.style.backgroundColor = cType === 'C1' ? '#f8b0a2' : '#f48b71';
         }
-
+    
         if (!selectedButton.classList.contains('selected') && !otherButton.classList.contains('selected')) {
-            resetDeckCounts();
+            resetDeckCount(index); // 只重置當前項目的數量
         }
     }
 
@@ -295,11 +300,9 @@ export function createCardDeckContainer(gameManager, isEditable = false) {
         addButton.disabled = !selectedCType;
     }
 
-    function resetDeckCounts() {
-        deckCounts.fill(0);
-        deckCountSpans.forEach(span => {
-            span.textContent = '已加入 0 組';
-        });
+    function resetDeckCount(index) {
+        deckCounts[index] = 0;
+        updateDeckCount(deckCountSpans[index], deckCounts[index]);
     }
 }
 

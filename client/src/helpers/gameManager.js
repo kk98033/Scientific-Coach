@@ -70,8 +70,6 @@ export default class GameManager {
             console.log('Room created:', data.roomId);
         });
 
-        
-
         this.socket.on('room_created', (data) => {
             const roomId = data.roomId;
             const rooms = data.rooms;
@@ -303,6 +301,10 @@ export default class GameManager {
             }
          
         });        
+    }
+
+    setPlayerID(playerID) {
+        this.playerId = playerID;
     }
 
     leaveRoomAndClearUI() {

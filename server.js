@@ -53,16 +53,7 @@ io.on('connection', (socket) => {
 
     socket.on('get_player_hand', (data) => {
         const { roomId, playerId } = data;
-
-        console.log()
-        console.log()
-        console.log()
-        console.log('GET PLAYER HAND')
-        console.log(data)
-        console.log()
-        console.log()
-        console.log()
-
+        
         const hand = gameManager.getPlayerHand(roomId, playerId);
         io.to(roomId).emit('get_player_hand', { playerId: playerId, hand: hand });
     });

@@ -38,7 +38,7 @@ export function createSettingsOverlay() {
     // Create settings button
     let settingsButton = document.createElement('button');
     settingsButton.id = 'settingsButton';
-    settingsButton.className = 'btn btn-dark'; // 使用 Bootstrap 樣式
+    settingsButton.className = 'btn btn-dark'; 
     settingsButton.style.position = 'absolute';
     settingsButton.style.top = '10px';
     settingsButton.style.right = '10px';
@@ -71,7 +71,7 @@ export function createSettingsOverlay() {
     // Create settings container
     let settingsContainer = document.createElement('div');
     settingsContainer.id = 'settingsContainer';
-    settingsContainer.className = 'bg-dark text-white p-4 rounded'; // 使用 Bootstrap 樣式
+    settingsContainer.className = 'bg-dark text-white p-4 rounded'; 
     settingsContainer.style.width = '300px';
     settingsContainer.style.textAlign = 'center';
     settingsContainer.style.position = 'relative'; // 確保 z-index 生效
@@ -122,28 +122,26 @@ export function createSettingsOverlay() {
     return settingsContainer; // Return the container so additional settings can be added
 }
 
-
-
 export function addIPSettings(container) {
     // IP setting elements
     let ipSettingContainer = document.createElement('div');
-    ipSettingContainer.className = 'd-flex align-items-center mb-3'; // 使用 Bootstrap 樣式
+    ipSettingContainer.className = 'd-flex align-items-center mb-3'; 
 
     let ipSettingLabel = document.createElement('label');
     ipSettingLabel.textContent = '連線伺服器:';
-    ipSettingLabel.className = 'me-2'; // 使用 Bootstrap 樣式
+    ipSettingLabel.className = 'me-2'; 
     ipSettingContainer.appendChild(ipSettingLabel);
 
     let ipSettingInput = document.createElement('input');
     ipSettingInput.type = 'text';
     ipSettingInput.id = 'ipSettingInput';
     ipSettingInput.placeholder = 'IP地址';
-    ipSettingInput.className = 'form-control me-2'; // 使用 Bootstrap 樣式
+    ipSettingInput.className = 'form-control me-2'; 
     ipSettingContainer.appendChild(ipSettingInput);
 
     let ipSettingButton = document.createElement('button');
     ipSettingButton.textContent = '連接';
-    ipSettingButton.className = 'btn btn-primary'; // 使用 Bootstrap 樣式
+    ipSettingButton.className = 'btn btn-primary'; 
     ipSettingButton.onclick = () => {
         // 連接伺服器邏輯
         console.log('連接伺服器: ' + ipSettingInput.value);
@@ -156,18 +154,18 @@ export function addIPSettings(container) {
 export function addIDSettings(container, gameManager) {
     // ID setting elements
     let idSettingContainer = document.createElement('div');
-    idSettingContainer.className = 'd-flex align-items-center mb-3'; // 使用 Bootstrap 樣式
+    idSettingContainer.className = 'd-flex align-items-center mb-3'; 
 
     let idSettingLabel = document.createElement('label');
     idSettingLabel.textContent = '設置ID:';
-    idSettingLabel.className = 'me-2'; // 使用 Bootstrap 樣式
+    idSettingLabel.className = 'me-2'; 
     idSettingContainer.appendChild(idSettingLabel);
 
     let idSettingInput = document.createElement('input');
     idSettingInput.type = 'text';
     idSettingInput.id = 'idSettingInput';
     idSettingInput.placeholder = '玩家ID';
-    idSettingInput.className = 'form-control me-2'; // 使用 Bootstrap 樣式
+    idSettingInput.className = 'form-control me-2'; 
 
     // 添加 input 事件監聽器，僅允許英文和數字
     idSettingInput.addEventListener('input', (e) => {
@@ -178,7 +176,7 @@ export function addIDSettings(container, gameManager) {
 
     let idSettingButton = document.createElement('button');
     idSettingButton.textContent = '設置';
-    idSettingButton.className = 'btn btn-primary'; // 使用 Bootstrap 樣式
+    idSettingButton.className = 'btn btn-primary'; 
     idSettingButton.onclick = handleSetPlayerIDButton(gameManager); // 綁定處理函數
     idSettingContainer.appendChild(idSettingButton);
 
@@ -186,11 +184,11 @@ export function addIDSettings(container, gameManager) {
 
     // Display current player ID
     let currentPlayerIDContainer = document.createElement('div');
-    currentPlayerIDContainer.className = 'd-flex align-items-center mb-3'; // 使用 Bootstrap 樣式
+    currentPlayerIDContainer.className = 'd-flex align-items-center mb-3'; 
 
     let currentPlayerIDLabel = document.createElement('label');
     currentPlayerIDLabel.textContent = '目前玩家ID:';
-    currentPlayerIDLabel.className = 'me-2'; // 使用 Bootstrap 樣式
+    currentPlayerIDLabel.className = 'me-2'; 
     currentPlayerIDContainer.appendChild(currentPlayerIDLabel);
 
     let currentPlayerID = document.createElement('span');
@@ -204,15 +202,15 @@ export function addIDSettings(container, gameManager) {
 export function addReconnectButton(container, gameManager) {
     // Reconnect button
     let reconnectContainer = document.createElement('div');
-    reconnectContainer.className = 'd-flex align-items-center mb-3'; // 使用 Bootstrap 樣式
+    reconnectContainer.className = 'd-flex align-items-center mb-3'; 
 
     let reconnectLabel = document.createElement('label');
     reconnectLabel.textContent = '重新連線:';
-    reconnectLabel.className = 'me-2'; // 使用 Bootstrap 樣式
+    reconnectLabel.className = 'me-2'; 
     reconnectContainer.appendChild(reconnectLabel);
 
     let reconnectButton = document.createElement('button');
-    reconnectButton.className = 'btn btn-primary'; // 使用 Bootstrap 樣式
+    reconnectButton.className = 'btn btn-primary'; 
 
     let reconnectIcon = document.createElement('i');
     reconnectIcon.className = 'fas fa-sync-alt';
@@ -243,15 +241,15 @@ export function setCurrentPlayerID(playerID) {
 export function addLeaveGameButton(container, gameManager) {
     // Leave game button
     let leaveGameContainer = document.createElement('div');
-    leaveGameContainer.className = 'd-flex align-items-center mb-3'; // 使用 Bootstrap 樣式
+    leaveGameContainer.className = 'd-flex align-items-center mb-3'; 
 
     let leaveGameLabel = document.createElement('label');
     leaveGameLabel.textContent = '離開遊戲:';
-    leaveGameLabel.className = 'me-2'; // 使用 Bootstrap 樣式
+    leaveGameLabel.className = 'me-2'; 
     leaveGameContainer.appendChild(leaveGameLabel);
 
     let leaveGameButton = document.createElement('button');
-    leaveGameButton.className = 'btn btn-outline-danger'; // 使用 Bootstrap 樣式
+    leaveGameButton.className = 'btn btn-outline-danger'; 
 
     let leaveGameIcon = document.createElement('i');
     leaveGameIcon.className = 'fas fa-sign-out-alt'; // 使用 Font Awesome 的"離開"圖標

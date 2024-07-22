@@ -6,6 +6,8 @@ import { hideLoading, showLoading } from '../helpers/loading';
 import { showNotification } from '../helpers/notification';
 import { showAlert } from '../helpers/alert';
 import { loadImages } from '../helpers/loader';
+import { showUserIDModal } from '../helpers/userIDModal';
+import { getCookie } from '../helpers/cookie';
 
 export class MainMenu extends Scene {
     constructor() {
@@ -34,17 +36,13 @@ export class MainMenu extends Scene {
         const gameManager = new GameManager();
         this.gameManager = gameManager;
 
-        this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 3, '主選單', { 
-            fontFamily: 'Arial Black', fontSize: '38px', color: '#ffffff',
-            stroke: '#000000', strokeThickness: 8,
-            align: 'center'
-        }).setOrigin(0.5, 0.5);
+        
 
-        this.gameManager.socket.on('your_player_id', (data) => {
-            this.playerId = data.playerId;
-            console.log('My player ID is:', data.playerId);
-            setCurrentPlayerID(data.playerId);
-        });
+        // this.gameManager.socket.on('your_player_id', (data) => {
+        //     this.playerId = data.playerId;
+        //     console.log('My player ID is:', data.playerId);
+        //     setCurrentPlayerID(data.playerId);
+        // });
 
         this.gameManager.socket.on('player_joined_success', (data) => {
             // 成功加入房間!
@@ -81,6 +79,32 @@ export class MainMenu extends Scene {
         });
 
         this.gameManager.socket.emit('get_room_list');
+
+        // 檢查用戶 ID
+        const userID = getCookie('userID');
+        if (!userID) {
+            showUserIDModal(
+                (userID) => {
+                    console.log('User ID set to:', userID);
+                    showAlert(`成功設定玩家 ID 為: ${userID}`, 'success'); 
+                    showNotification('如果需要修改 ID，請去設定修改!', 'info');
+                    this.gameManager.setPlayerID(userID);
+                    this.updatePlayerID(userID); // 更新 player ID
+                }
+            );
+        } else {
+            showAlert(`瀏覽器 Cookie 中你目前的 ID 為: ${userID}`, 'info'); 
+            showNotification('如果需要修改 ID，請去設定修改!', 'info');
+            this.gameManager.setPlayerID(userID);
+            this.updatePlayerID(userID); // 更新 player ID
+        }
+
+
+        this.add.text(this.cameras.main.width / 2, this.cameras.main.height / 3, '主選單', { 
+            fontFamily: 'Arial Black', fontSize: '38px', color: '#ffffff',
+            stroke: '#000000', strokeThickness: 8,
+            align: 'center'
+        }).setOrigin(0.5, 0.5);
     }
 
     updateRoomList(newRooms) {
@@ -129,10 +153,6 @@ export class MainMenu extends Scene {
             }
         }
     }
-    
-    
-    
-    
 
     createHTMLUI() {
         const container = document.createElement('div');
@@ -153,7 +173,8 @@ export class MainMenu extends Scene {
         const settingsContainer = createSettingsOverlay();
         addIPSettings(settingsContainer);
         addIDSettings(settingsContainer, this.gameManager);
-
+        // console.log('player id: ', this.gameManager.playerId)
+        // setCurrentPlayerID(this.gameManager.playerId);
         // ipInputGroup.querySelector('#ipSettingInputBtn').addEventListener('click', () => {
         //     const inputID = document.getElementById('ipSettingInputElement').value;
         //     console.log('ip', inputID);
@@ -163,7 +184,7 @@ export class MainMenu extends Scene {
         roomInputGroup.querySelector('#createRoomBtn').addEventListener('click', () => {
             console.log('創建房間');
             this.gameManager.createRoom();
-            showAlert('這是一個警告訊息！', 'warning'); 
+            showAlert('成功創建房間!', 'success'); 
         });
 
         roomInputGroup.querySelector('#joinRoomBtn').addEventListener('click', () => {
@@ -183,6 +204,12 @@ export class MainMenu extends Scene {
             // this.scene.stop('MainMenu');
             // this.scene.start(isHost ? 'GameTable' : 'Game', { gameManager: this.gameManager });
         });
+    }
+
+    updatePlayerID(userID) {
+        console.log('Updating player ID:', userID);
+        this.gameManager.playerId = userID;
+        setCurrentPlayerID(this.gameManager.playerId);
     }
 
     removeHTMLUI() {

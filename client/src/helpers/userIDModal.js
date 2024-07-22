@@ -1,6 +1,8 @@
-// \src\helpers\modal.js
+// client/src/helpers/userIDModal.js
 
-export function showModal(title, message, confirmCallback, cancelCallback) {
+import { setCookie } from './cookie';
+
+export function showUserIDModal(confirmCallback) {
     // 創建模態框背景遮罩
     let overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
@@ -28,16 +30,27 @@ export function showModal(title, message, confirmCallback, cancelCallback) {
     // 標題
     let modalTitle = document.createElement('h5');
     modalTitle.className = 'modal-title';
-    modalTitle.innerText = title;
+    modalTitle.innerText = '輸入用戶 ID';
     modalTitle.style.color = '#fff'; // 設置標題文字顏色為白色
     modal.appendChild(modalTitle);
 
     // 消息內容
     let modalBody = document.createElement('p');
     modalBody.className = 'modal-body';
-    modalBody.innerText = message;
+    modalBody.innerText = '請輸入您的用戶 ID 以繼續。';
     modalBody.style.color = '#ccc'; // 設置消息文字顏色為淡灰色
     modal.appendChild(modalBody);
+
+    // 輸入框
+    const userIDInput = document.createElement('input');
+    userIDInput.type = 'text';
+    userIDInput.id = 'userIDInput';
+    userIDInput.placeholder = '請輸入用戶ID';
+    userIDInput.style.width = '100%';
+    userIDInput.style.padding = '10px';
+    userIDInput.style.marginTop = '10px';
+    userIDInput.style.marginBottom = '20px';
+    modal.appendChild(userIDInput);
 
     // 按鈕容器
     let buttonContainer = document.createElement('div');
@@ -54,8 +67,14 @@ export function showModal(title, message, confirmCallback, cancelCallback) {
     confirmButton.style.border = 'none'; // 移除按鈕邊框
     confirmButton.style.marginRight = '10px';
     confirmButton.addEventListener('click', () => {
-        if (confirmCallback) confirmCallback();
-        hideModal();
+        const userID = userIDInput.value;
+        if (userID) {
+            setCookie('userID', userID, 30); // 設置 Cookie 有效期為 30 天
+            if (confirmCallback) confirmCallback(userID);
+            hideUserIDModal();
+        } else {
+            alert('請輸入有效的用戶 ID');
+        }
     });
     buttonContainer.appendChild(confirmButton);
 
@@ -67,8 +86,7 @@ export function showModal(title, message, confirmCallback, cancelCallback) {
     cancelButton.style.color = '#fff'; // 設置按鈕文字顏色為白色
     cancelButton.style.border = 'none'; // 移除按鈕邊框
     cancelButton.addEventListener('click', () => {
-        if (cancelCallback) cancelCallback();
-        hideModal();
+        hideUserIDModal();
     });
     buttonContainer.appendChild(cancelButton);
 
@@ -77,7 +95,7 @@ export function showModal(title, message, confirmCallback, cancelCallback) {
     document.body.appendChild(overlay);
 }
 
-export function hideModal() {
+export function hideUserIDModal() {
     let overlay = document.querySelector('.modal-overlay');
     if (overlay) {
         overlay.remove();

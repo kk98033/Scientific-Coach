@@ -53,7 +53,7 @@ io.on('connection', (socket) => {
 
     socket.on('get_player_hand', (data) => {
         const { roomId, playerId } = data;
-        
+
         const hand = gameManager.getPlayerHand(roomId, playerId);
         io.to(roomId).emit('get_player_hand', { playerId: playerId, hand: hand });
     });
@@ -298,7 +298,7 @@ io.on('connection', (socket) => {
         console.log([roomId, playerId])
         const { gameIsStarted, isPlayerInRoom } = gameManager.isGameStartedInRoom(roomId, playerId);
 
-        io.emit('is_game_started_on_this_room', {
+        io.to(roomId).emit('is_game_started_on_this_room', {
             gameIsStarted: gameIsStarted,
             isPlayerInRoom: isPlayerInRoom,
             playerId: playerId
@@ -310,7 +310,7 @@ io.on('connection', (socket) => {
         console.log([roomId, playerId])
         const { gameIsStarted, isPlayerInRoom } = gameManager.isGameStartedInRoom(roomId, playerId);
 
-        io.emit('is_game_started_on_this_room_for_leaving_request', {
+        io.to(roomId).emit('is_game_started_on_this_room_for_leaving_request', {
             gameIsStarted: gameIsStarted,
             isPlayerInRoom: isPlayerInRoom,
             playerId: playerId
@@ -336,13 +336,48 @@ io.on('connection', (socket) => {
         const result = gameManager.getPlayerScores(roomId, playerId);
         if (result) {
             const { resourcePoints, gameLevel, cardPairCount } = result
-            io.emit('get_player_scores', {
+            io.to(roomId).emit('get_player_scores', {
                 resourcePoints: resourcePoints,
                 gameLevel: gameLevel,
                 cardPairCount: cardPairCount
             });
         }
     });
+
+    // skill logics
+    socket.on('use_skill_1', (data) => {
+        /* 友誼賽 */
+        const { roomId, playerId } = data;
+
+        // TODO: check points before use skill
+        io.to(roomId).emit('use_skill_1', {
+            roomId: roomId,
+            playerId: playerId,
+        });
+    });
+
+    socket.on('use_skill_2', (data) => {
+        /* 情蒐 */
+        const { roomId, playerId } = data;
+
+        // TODO: check points before use skill
+        io.to(roomId).emit('use_skill_2', {
+            roomId: roomId,
+            playerId: playerId,
+        });
+    });
+
+    socket.on('use_skill_3', (data) => {
+        /* 挖角 */
+        const { roomId, playerId } = data;
+
+        // TODO: check points before use skill
+        io.to(roomId).emit('use_skill_3', {
+            roomId: roomId,
+            playerId: playerId,
+        });
+    });
+    // End skill logics
 });
 
 http.listen(3000, function () {

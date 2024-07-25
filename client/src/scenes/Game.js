@@ -1,10 +1,11 @@
 import { Scene } from 'phaser';
 // import Card from '../helpers/card';
-import { createPlayerListContainer, createTimeSettingContainer, createCardDeckContainer, createStartGameContainer, createActionButtonsContainer, createCurrentPlayerIDContainer, appendElementsToCenter, createGameRecordContainer, createSkillButtonAndOverlay, createControlButtonsContainer, addBlurOverlay, removeCanvasBlur, addCanvasBlur } from '../helpers/game_ui';
+import { createPlayerListContainer, createTimeSettingContainer, createCardDeckContainer, createStartGameContainer, createActionButtonsContainer, createCurrentPlayerIDContainer, appendElementsToCenter, createGameRecordContainer, createControlButtonsContainer, addBlurOverlay, removeCanvasBlur, addCanvasBlur } from '../helpers/game_ui';
 import { showNotification } from '../helpers/notification';
 import { createSettingsOverlay, addIPSettings, addIDSettings, addReconnectButton, setCurrentPlayerID, handleSetPlayerIDButton, addClearTableButton, addToggleUIVisibilityButton, addLeaveGameButton } from '../helpers/settings';
 import { showAlert } from '../helpers/alert';
 import { addWaveGradientBorder, toggleGradientBorder, changeGradientColor } from '../helpers/waveGradient';
+import { createSkillButtonAndOverlay } from '../helpers/skills'
 
 export class Game extends Scene {
     constructor() {

@@ -28,14 +28,14 @@ export function showModal(title, message, confirmCallback, cancelCallback) {
     // 標題
     let modalTitle = document.createElement('h5');
     modalTitle.className = 'modal-title';
-    modalTitle.innerText = title;
+    modalTitle.innerHTML = title;
     modalTitle.style.color = '#fff'; // 設置標題文字顏色為白色
     modal.appendChild(modalTitle);
 
     // 消息內容
     let modalBody = document.createElement('p');
     modalBody.className = 'modal-body';
-    modalBody.innerText = message;
+    modalBody.innerHTML = message;
     modalBody.style.color = '#ccc'; // 設置消息文字顏色為淡灰色
     modal.appendChild(modalBody);
 

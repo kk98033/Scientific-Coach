@@ -304,7 +304,40 @@ export default class GameManager {
             if (!gameIsStarted) {
             }
          
-        });        
+        });      
+
+        // skill logics
+        this.socket.on('use_skill_1', (data) => {
+            /* 友誼賽 */
+            const { roomId, playerId } = data;
+            if (this.isGameTable || playerId === this.playerId) return;
+
+            console.log(`${playerId} used skill 1`);
+        }); 
+
+        this.socket.on('use_skill_2', (data) => {
+            if (this.isGameTable) return;
+            /* 情蒐 */
+            const { roomId, playerId } = data;
+            if (this.isGameTable || playerId === this.playerId) return;
+
+            console.log(`${playerId} used skill 2`);
+            showModal(
+                `玩家<span style="color: red; font-weight: bold;"> ${playerId} </span> 使用了<span style="color: red; font-weight: bold;">情蒐</span>`, 
+                `<span style="font-weight: bold;"><i><u>你必須要將你的手牌給玩家 ${playerId} 看!</u></i></span>`, 
+                () => {},
+                () => {}
+            );
+        });
+
+        this.socket.on('use_skill_3', (data) => { 
+            /* 挖角 */
+            const { roomId, playerId } = data;
+            if (this.isGameTable || playerId === this.playerId) return;
+            
+            console.log(`${playerId} used skill 3`);
+        }); 
+        // End skill logics
     }
 
     setPlayerID(playerID) {

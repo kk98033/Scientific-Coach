@@ -58,8 +58,10 @@ class GameManager {
         const room = this.gameRoomManager.rooms[roomId];
         if (!room) return; // 檢查房間是否存在
 
-        room.turnTimer = room.settings.roundTime; // TODO: 設定時間
+        room.turnTimer = room.settings.roundTime;
         room.timer = setInterval(() => {
+            if (room.timerStoppedOnSkillTime) return; // 如果正在使用技能，停止計時
+
             room.turnTimer--;
             console.log(`Remaining time for player ${room.currentPlayerIndex} in room ${roomId}: ${room.turnTimer} seconds`);
             this.io.to(roomId).emit('update_timer', { turnTimer: room.turnTimer });
@@ -68,7 +70,7 @@ class GameManager {
                 clearInterval(room.timer);
                 this.io.to(roomId).emit('time_to_discard_some_cards', { turnTimer: room.turnTimer });
                 
-                // 新增 10 秒的計時器
+                // 新增 10 秒的丟棄卡片計時器
                 let discardTimer = 10;
                 room.discardTimer = setInterval(() => {
                     discardTimer--;
@@ -82,19 +84,19 @@ class GameManager {
                         // 隨機選擇兩張卡片加入 currentSelected
                         const playerId = room.players[room.currentPlayer];
                         const playerHand = room.hands[playerId];
-                        console.log("-----------")
-                        console.log()
-                        console.log()
-                        console.log()
-                        console.log("暴風雨前寧靜")
-                        console.log("-----ROOM----")
-                        console.log(room)
-                        console.log("-----ROOM----")
-                        console.log(this.gameRoomManager.rooms)
-                        console.log()
-                        console.log()
-                        console.log()
-                        console.log("-----------")
+                        // console.log("-----------")
+                        // console.log()
+                        // console.log()
+                        // console.log()
+                        // console.log("暴風雨前寧靜")
+                        // console.log("-----ROOM----")
+                        // console.log(room)
+                        // console.log("-----ROOM----")
+                        // console.log(this.gameRoomManager.rooms)
+                        // console.log()
+                        // console.log()
+                        // console.log()
+                        // console.log("-----------")
                         if (playerHand.length >= 2) {
                             let selectedCards = [];
                             while (selectedCards.length < 2) {
@@ -132,10 +134,14 @@ class GameManager {
         this.dealCardsToDeck(roomId);
 
         this.updateGameState(roomId);
-        // TODO: 強制出牌 
-        // dealCards(XXXXXX)   
+        
         this.startTurnTimer(roomId);
         this.clearCurrentSelectedCards(roomId);
+        this.clearCurrentSelectedCardsForSkills(roomId);
+
+        // 重製交換技能
+        room.readyToSwapCards = false;
+        room.currentSelectedForSkills = {};
 
         
 
@@ -519,6 +525,103 @@ class GameManager {
         console.log(room.currentSelected);
     }
 
+    // 專門處理技能使用期間的選取
+    appendCurrentSelectedCardsForSkills(roomId, card, playerId, currentSkill) {
+        console.log('----');
+        console.log(playerId);
+        console.log('----');
+        const room = this.gameRoomManager.rooms[roomId];
+        if (!room) {
+            console.error(`Room ${roomId} does not exist`);
+            return;
+        }
+
+        if (!room.currentSelectedForSkills) {
+            room.currentSelectedForSkills = {};
+        }
+
+        if (!room.currentSelectedForSkills[playerId]) {
+            // 檢查 currentSelectedForSkills 中 playerId 的數量，如果已經有兩個，則不允許新增
+            if (Object.keys(room.currentSelectedForSkills).length >= 2) {
+                console.error(`Cannot add more players. Only 2 players are allowed in room ${roomId}`);
+                return;
+            }
+            room.currentSelectedForSkills[playerId] = [];
+        }
+
+        const playerCards = room.currentSelectedForSkills[playerId];
+        const cardExists = playerCards.some(existingCard => existingCard.id === card.id);
+
+        if (!cardExists) {
+            playerCards.push(card);
+            console.log(`Card with id ${card.id} added for player ${playerId} in room ${roomId}`);
+        } else {
+            room.currentSelectedForSkills[playerId] = playerCards.filter(existingCard => existingCard.id !== card.id);
+            console.log(`Card with id ${card.id} removed for player ${playerId} in room ${roomId}`);
+        }
+
+        console.log("-=-=-=-=-=-=-=-=-=-=-=-==--=appended!!!!!!-=-=-=-=-=-=-=-=-=-=-=-==--=");
+        console.log(room.currentSelectedForSkills);
+
+        // 傳送選擇的結果到客戶端更新 UI
+        this.sendCurrentSelectedForSkills(roomId, currentSkill);
+    }
+
+    // 傳送選擇的結果到客戶端更新 UI
+    sendCurrentSelectedForSkills(roomId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        if (!room) {
+            console.error(`Room ${roomId} does not exist`);
+            return;
+        }
+
+        if (!room.currentSelectedForSkills) {
+            console.error(`No selected cards for room ${roomId}`);
+            return;
+        }
+
+        // 檢查玩家數量
+        const playerIds = Object.keys(room.currentSelectedForSkills);
+        if (playerIds.length > 2) {
+            console.error(`More than 2 players in room ${roomId}`);
+            this.io.to(roomId).emit('error', { message: 'Too many players selected cards' });
+            return;
+        }
+
+        // 構建選擇卡片數量的資料
+        const cardCounts = {};
+        let canExchange = true;
+
+        // 更新 cardCounts，並檢查是否剛好有兩位玩家且每位玩家剛好選擇兩張牌
+        playerIds.forEach(playerId => {
+            const playerCards = room.currentSelectedForSkills[playerId];
+            cardCounts[playerId] = playerCards.length;
+            if (playerCards.length !== 2) {
+                canExchange = false;
+            }
+        });
+
+        // 如果玩家數量不等於兩個，不能交換
+        if (playerIds.length !== 2) {
+            canExchange = false;
+        }
+
+        console.log("========SEND TO CLIENT============");
+        console.log(room.currentSelectedForSkills);
+        console.log(cardCounts);
+        console.log(canExchange);
+
+        // 使用 socket 傳送資料
+        this.io.to(roomId).emit('update_current_selected_for_skills', {
+            currentSelectedForSkills: room.currentSelectedForSkills,
+            cardCounts: cardCounts,
+            canExchange: canExchange
+        });
+
+        console.log("Current selected cards sent to room:", roomId);
+        console.log({ currentSelectedForSkills: room.currentSelectedForSkills, cardCounts, canExchange });
+    }
+
     clearCurrentSelectedCards(roomId) {
         const room = this.gameRoomManager.rooms[roomId];
         if (room) {
@@ -527,6 +630,81 @@ class GameManager {
         }
 
         room.currentSelected = [];
+    }
+    clearCurrentSelectedCardsForSkills(roomId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        if (room) {
+            console.error(`Room ${roomId} does not exist`);
+            return;
+        }
+
+        room.currentSelectedForSkills = [];
+    }
+
+    confirmSwap(roomId, playerId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        room.readyToSwapCards = true;
+    }
+
+    cancelSwap(roomId, playerId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        room.readyToSwapCards = false;
+    }
+
+    swapCards(roomId, playerId) {
+        console.log()
+        console.log()
+        console.log()
+        console.log()
+        console.log()
+        console.log("===============SWAP CARDS=============")
+    
+        const room = this.gameRoomManager.rooms[roomId];
+        if (!room) {
+            console.error(`Room ${roomId} does not exist`);
+            return { success: false, message: `Room ${roomId} does not exist` };
+        }
+    
+        const playerIds = Object.keys(room.currentSelectedForSkills || {});
+        if (playerIds.length !== 2) {
+            console.error('There are not exactly two players');
+            return { success: false, message: 'There are not exactly two players' };
+        }
+    
+        const [player1, player2] = playerIds;
+        const player1SelectedCards = room.currentSelectedForSkills[player1];
+        const player2SelectedCards = room.currentSelectedForSkills[player2];
+    
+        if (player1SelectedCards.length !== 2 || player2SelectedCards.length !== 2) {
+            console.error('Both players do not have exactly two cards selected');
+            return { success: false, message: 'Both players do not have exactly two cards selected' };
+        }
+    
+        const player1Hand = room.hands[player1];
+        const player2Hand = room.hands[player2];
+    
+        // 確保在hands裡面找到對應的卡片
+        const player1CardsToSwap = player1SelectedCards.map(card => player1Hand.find(c => c.id === card.id));
+        const player2CardsToSwap = player2SelectedCards.map(card => player2Hand.find(c => c.id === card.id));
+    
+        if (player1CardsToSwap.includes(undefined) || player2CardsToSwap.includes(undefined)) {
+            console.error('Some selected cards were not found in players\' hands');
+            return { success: false, message: 'Some selected cards were not found in players\' hands' };
+        }
+    
+        // 執行交換
+        room.hands[player1] = player1Hand.filter(card => !player1SelectedCards.some(selected => selected.id === card.id)).concat(player2CardsToSwap);
+        room.hands[player2] = player2Hand.filter(card => !player2SelectedCards.some(selected => selected.id === card.id)).concat(player1CardsToSwap);
+    
+        room.readyToSwapCards = false;
+    
+        console.log(`Cards swapped between player ${player1} and player ${player2} in room ${roomId}`);
+    
+        this.updateGameState(roomId); // 重新渲染
+    
+        room.currentSelectedForSkills = {}; // 重製
+    
+        return { success: true, message: 'Cards swapped successfully' };
     }
 
     discardCards(roomId, playerId) {
@@ -870,7 +1048,19 @@ class GameManager {
         };
     }
     
+    usingSills(roomId, playerId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        if (!room) return;
 
+        room.timerStoppedOnSkillTime = true;
+    }
+
+    endTheSkill(roomId, playerId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        if (!room) return;
+
+        room.timerStoppedOnSkillTime = false;
+    }
 }
 
 module.exports = GameManager;

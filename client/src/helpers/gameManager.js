@@ -7,15 +7,16 @@ import { showLoading, hideLoading } from '../helpers/loading';
 import { removeCanvasBlur, updateGameRecord } from '../helpers/game_ui';
 import { addWaveGradientBorder, toggleGradientBorder, changeGradientColor } from '../helpers/waveGradient';
 import { showAlert } from './alert';
-import { showModal } from './modal';
+import { hideModal, showModal } from './modal';
 import { renderCard } from './renderCard';
+import { createSwapCardsContainer, createSwapCardsContainerForPOACH, removeSwapCardsContainer, updateSwapCardsButton, updateSwapStatusText } from './skills';
 
 
 export default class GameManager {
     constructor(scene) {
         this.serverIP = 'localhost';
-        // this.socketIP = '192.168.31.202'; 
-        this.socketIP = 'localhost'; 
+        this.socketIP = '192.168.10.104'; 
+        // this.socketIP = 'localhost'; 
 
         this.scene = scene;
         this.dropZones = null;
@@ -25,6 +26,7 @@ export default class GameManager {
  
         this.roomId = null;
         this.playerId = null;
+        this.players = [];
         this.currentPlayer = null;
         this.gameState = null;
 
@@ -39,7 +41,8 @@ export default class GameManager {
 
         this.selectedCards = [];
         this.currentDraggedCard = null;    
- 
+        this.isUsingSkills = false;
+        this.currentSkill = null;
         
  
         this.connectSocket();
@@ -61,7 +64,7 @@ export default class GameManager {
     }
  
     connectSocket() {
-        // test on lan
+        // test on lan 
         this.socket = io(this.socketIP + ':3000');
     }
 
@@ -165,15 +168,19 @@ export default class GameManager {
                 showModal(
                     '房間已關閉', // 標題
                     '此房間內所有玩家皆退出了，因此已經關閉', // 消息
-                    () => { // 確認回調
-                        console.log('確認按鈕被點擊');
-                        this.leaveRoomAndClearUI();
-                        showAlert("已自動離開已被刪除的房間");
-                    },
-                    () => { // 取消回調
-                        console.log('取消按鈕被點擊');
-                        this.leaveRoomAndClearUI();
-                        showAlert("已自動離開已被刪除的房間");
+                    {
+                        buttons: [
+                            {
+                                text: '確認',
+                                className: 'btn btn-primary',
+                                backgroundColor: '#007bff',
+                                callback: () => {
+                                    console.log('確認按鈕被點擊');
+                                    this.leaveRoomAndClearUI();
+                                    showAlert("已自動離開已被刪除的房間");
+                                }
+                            }
+                        ]
                     }
                 );
             }
@@ -307,38 +314,231 @@ export default class GameManager {
         });      
 
         // skill logics
-        this.socket.on('use_skill_1', (data) => {
-            /* 友誼賽 */
+        this.socket.on('end_the_skill', (data) => {
+            /* 結束技能通知 */
+            const { roomId, playerId, skillType } = data;
+            showAlert(`玩家發動的: ${skillType} 技能已經結束!`, 'info');
+
+            this.currentSkill = null;
+            this.isUsingSkills = false;
+        });
+ 
+        this.socket.on('swap_cards', (data) => {
+            /* 確認交換訊息 */
+            if (this.isGameTable) return;
+        
+            const { success, message } = data;
+         
+            if (success) {
+                showAlert("卡片交換成功！", 'success');
+                this.endTheSkill("友誼賽");
+                this.isUsingSkills = false;
+                this.removeSkillContainers();
+
+            } else {
+                showAlert(`卡片交換失敗：${message}`, 'error');
+            }
+        });
+        
+
+        this.socket.on('confirm_swap', (data) => {
+            /* 確認交換 */
+            if (this.isGameTable || !this.isPlayerTurn()) return;
             const { roomId, playerId } = data;
-            if (this.isGameTable || playerId === this.playerId) return;
+            updateSwapCardsButton('enabled'); // 使按鈕可按，文字顯示 "交換"
+        });
+        this.socket.on('cancel_swap', (data) => {
+            /* 確認交換 */
+            if (this.isGameTable || !this.isPlayerTurn()) return;
+            const { roomId, playerId } = data;
+            updateSwapCardsButton('disabled'); // 修改 "交換卡片" 按鈕的狀態為無法交換
+        });
+
+        this.socket.on('update_current_selected_for_skills', (data) => {
+            /* 處理要選擇卡片技能的 UI 回傳資料 */
+            const { currentSelectedForSkills, cardCounts, canExchange, error } = data;
+
+            if (this.isGameTable) return;
+            
+            if (error) {
+                showNotification(`Error: ${error.message}`, 'error');
+                return;
+            }
+   
+            if (!currentSelectedForSkills || !cardCounts) {
+                showNotification('No selected cards data received', 'error');
+                return;
+            } 
+  
+            if (!this.playerId) {
+                showNotification('Player ID not found', 'error');
+                return;
+            }
+  
+            const mySelectedCount = cardCounts[this.playerId] || 0;
+            const opponentId = Object.keys(cardCounts).find(id => id !== this.playerId);
+            const opponentSelectedCount = (opponentId ? cardCounts[opponentId] : 0) || 0;
+
+
+            console.log("debug skill", mySelectedCount, opponentSelectedCount);
+            console.log("debug skill data: ", data);
+
+            // 更新狀態文字
+            showNotification(`已選擇 ${mySelectedCount}/2 張卡片，對手選擇了 ${opponentSelectedCount}/2 張卡片`, 'info');
+            updateSwapStatusText(mySelectedCount, opponentSelectedCount); // 更新選擇狀態文字為 "我選擇了 1/2 ，對方選擇了 1/2 張卡片"
+ 
+            if (this.currentSkill === 1) {
+                /* 友誼賽(-1點) */
+                if (canExchange) {
+                    // 顯示交換卡片的通知或執行交換邏輯
+                    showAlert('可以交換卡片了！', 'success');
+                    if (this.isPlayerTurn()) {
+                        
+                    } else {
+                        // 非技能發動者要點及按鈕先確認
+                        updateSwapCardsButton('enabled'); // 使按鈕可按，文字顯示 "交換"
+                    } 
+                } else {
+                    updateSwapCardsButton('disabled'); // 無法交換
+                    this.socket.emit('cancel_swap', { roomId: this.roomId, playerId: this.playerId });
+                }
+
+            } else {
+                /* 挖角(-2點) */
+                if (canExchange) {
+                    // 顯示交換卡片的通知或執行交換邏輯
+                    showAlert('可以交換卡片了！', 'success');
+                    updateSwapCardsButton('enabled'); // 使按鈕可按，文字顯示 "交換"
+                } else {
+                    updateSwapCardsButton('disabled'); // 無法交換
+                    this.socket.emit('cancel_swap', { roomId: this.roomId, playerId: this.playerId });
+                }
+            }
+        });
+ 
+        this.socket.on('use_skill_1', (data) => {
+            /* 友誼賽(-1點) */
+            const { roomId, playerId, targetPlayerId } = data;
+            if (this.isGameTable) return;
+            
+            this.currentSkill = 1;
 
             console.log(`${playerId} used skill 1`);
-        }); 
+ 
+            if (this.playerId === playerId || this.playerId === targetPlayerId) {
+                // 只允許發動技能的玩家以及被發動技能的玩家動作
+                this.isUsingSkills = true;
+ 
+                // 創建 "交換卡片" 按鈕和容器
+                createSwapCardsContainer(this);
+
+            } else {
+                // 在其他玩家上面提醒正在使用技能中
+                showModal(
+                    `${playerId} 正在對 ${targetPlayerId} 使用技能 <span style="color: red; font-weight: bold;">友誼賽</span>`,
+                    `使用技能期間時間暫停`,
+                    {
+                        buttons: [
+                            {
+                                text: '確認',
+                                className: 'btn btn-primary',
+                                callback: hideModal // 按下按鈕關閉模態框
+                            }
+                        ]
+                    }
+                );
+            }
+        });  
 
         this.socket.on('use_skill_2', (data) => {
             if (this.isGameTable) return;
-            /* 情蒐 */
+            /* 情蒐(-1點) */
             const { roomId, playerId } = data;
-            if (this.isGameTable || playerId === this.playerId) return;
 
-            console.log(`${playerId} used skill 2`);
-            showModal(
-                `玩家<span style="color: red; font-weight: bold;"> ${playerId} </span> 使用了<span style="color: red; font-weight: bold;">情蒐</span>`, 
-                `<span style="font-weight: bold;"><i><u>你必須要將你的手牌給玩家 ${playerId} 看!</u></i></span>`, 
-                () => {},
-                () => {}
-            );
+            this.currentSkill = 2;
+
+            if (playerId === this.playerId) {
+                showModal(
+                    `你使用了<span style="color: red; font-weight: bold;">情蒐</span>`,
+                    `要結束技能請<span style="font-weight: bold;"><i><u>點擊下方的按鈕!</u></i></span>`,
+                    {
+                        buttons: [
+                            {
+                                text: '結束',
+                                className: 'btn btn-primary',
+                                backgroundColor: '#007bff',
+                                callback: () => {
+                                    this.endTheSkill("情蒐");
+                                }
+                            }
+                        ]
+                    }
+                );
+            } else {
+                console.log(`${playerId} used skill 2`);
+                showModal(
+                    `玩家<span style="color: red; font-weight: bold;"> ${playerId} </span> 使用了<span style="color: red; font-weight: bold;">情蒐</span>`,
+                    `<span style="font-weight: bold;"><i><u>你必須要將你的手牌給玩家 ${playerId} 看!</u></i></span>`,
+                    {
+                        buttons: [
+                            {
+                                text: '我了解了',
+                                className: 'btn btn-primary',
+                                backgroundColor: '#007bff',
+                                callback: () => {
+                                    console.log('我了解了按鈕被點擊');
+                                }
+                            }
+                        ]
+                    }
+                );
+            }
         });
 
         this.socket.on('use_skill_3', (data) => { 
-            /* 挖角 */
-            const { roomId, playerId } = data;
-            if (this.isGameTable || playerId === this.playerId) return;
+            /* 挖角(-2點) */
+            const { roomId, playerId, targetPlayerId } = data;
+            if (this.isGameTable) return;
             
+            this.currentSkill = 3;
+
             console.log(`${playerId} used skill 3`);
-        }); 
+
+            if (this.playerId === playerId || this.playerId === targetPlayerId) {
+                // 只允許發動技能的玩家以及被發動技能的玩家動作
+                this.isUsingSkills = true;
+
+                // 創建 "交換卡片" 按鈕和容器
+                createSwapCardsContainerForPOACH(this);
+
+            } else {
+                // 在其他玩家上面提醒正在使用技能中
+                showModal(
+                    `${playerId} 正在對 ${targetPlayerId} 使用技能 <span style="color: red; font-weight: bold;">挖角</span>`,
+                    `使用技能期間時間暫停`,
+                    {
+                        buttons: [
+                            {
+                                text: '確認',
+                                className: 'btn btn-primary',
+                                callback: hideModal // 按下按鈕關閉模態框
+                            }
+                        ]
+                    }
+                );
+            }
+        });   
         // End skill logics
     }
+
+    endTheSkill(skillType) {    
+        this.socket.emit('end_the_skill', { roomId: this.roomId, playerId: this.playerId, skillType: skillType });
+    } 
+
+    removeSkillContainers() {
+        // 刪除 "交換卡片" 按鈕和容器
+        removeSwapCardsContainer();
+    } 
 
     setPlayerID(playerID) {
         this.playerId = playerID;
@@ -869,13 +1069,13 @@ export default class GameManager {
     }
 
     handlePointerDown(pointer) {
-        if (!this.isPlayerTurn() && !this.isGameTable) return;
+        if (!this.isPlayerTurn() && !this.isGameTable && !this.isUsingSkills) return;
         
         const { x, y } = pointer;
         let clickedOnCard = false;
         let selectedCard = null;
         let selectedCardObj = null;
-    
+     
         // 反轉 children 列表
         const reversedChildren = [...this.scene.children.list].reverse();
 
@@ -900,7 +1100,7 @@ export default class GameManager {
             return false;
         });
 
-    
+     
         console.log('"debug-3 SELECTED CARDS",  clicked 0', this.selectedCards)
         // 發送卡片資訊給 socket server
         
@@ -910,9 +1110,22 @@ export default class GameManager {
         // selectedCard = this.selectedCards[this.selectedCards.length - 1].card;
         selectedCard = selectedCardObj.card;
         console.log('debug-3 selectedddd', selectedCard);
-          
+           
         console.log('debug-3 clicked 1') 
-        this.socket.emit('update_selected', { roomId: this.roomId, card: { id: selectedCard.cardId, type: selectedCard.type } });
+
+        if (this.isUsingSkills) {
+            // 使用技能時的選取
+            this.socket.emit('update_selected_on_skills', 
+            { 
+                roomId: this.roomId, 
+                card: { id: selectedCard.cardId, type: selectedCard.type } ,
+                playerId: this.playerId
+            });
+
+        } else {
+            // 普通的選取
+            this.socket.emit('update_selected', { roomId: this.roomId, card: { id: selectedCard.cardId, type: selectedCard.type } });
+        }
     
     }
 

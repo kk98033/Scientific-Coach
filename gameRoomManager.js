@@ -7,6 +7,7 @@ class GameRoomManager {
         this.rooms = {
             "": {
                 gameIsStarted: false,
+                timerStoppedOnSkillTime: false,
                 players: [],
                 activePlayers: [],
                 tableScreenId: [],
@@ -35,6 +36,8 @@ class GameRoomManager {
                 hands: {},
                 cardPositions: {}, // { 'playerID': [ 'cardid': [x1, y1], 'cardid': [x2, y2]...], ... }
                 currentSelected: [],
+                currentSelectedForSkills: [],
+                readyToSwapCards: false,
                 state: 0,
                 timer: null, // 計時器物件
                 discardTimer: null, // 計時器物件
@@ -58,6 +61,7 @@ class GameRoomManager {
         if (!this.rooms[roomId]) {
             this.rooms[roomId] = {
                 gameIsStarted: false,
+                timerStoppedOnSkillTime: false,
                 players: [],
                 activePlayers: [],
                 tableScreenId: [],
@@ -72,6 +76,8 @@ class GameRoomManager {
                 cardPositions: {}, // { 'playerID': { 'cardId1': [x1, y1], 'cardId2': [x2, y2]...}, ... }
                 state: 0,
                 currentSelected: [], // ex: [ { id: 20, type: '5' },  { id: 21, type: '6' }]
+                currentSelectedForSkills: [], // { playerId: [{ id, cardid, type: cardtype }, {...}], playerId: [...] }
+                readyToSwapCards: false,
                 timer: null,
                 discardTimer: null,
                 usedCards: [],

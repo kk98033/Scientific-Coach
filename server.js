@@ -165,10 +165,21 @@ io.on('connection', (socket) => {
         gameManager.updatePlayersHand(roomId, playerId, hand);
     });
 
+    // 處理卡片的選取
     socket.on('update_selected', (data) => {
         const { roomId, card } = data;
         // console.log("-=-=-=-=-=-=-=-=-=-=-=-==--=update_selected-=-=-=-=-=-=-=-=-=-=-=-==--=", data, card)
         gameManager.appendCurrentSelectedCards(roomId, card);
+    });
+
+    // 專門處理技能使用期間的選取
+    socket.on('update_selected_on_skills', (data) => {
+        const { roomId, card, playerId } = data;
+        console.log()
+        console.log("playerID: ", playerId)
+        console.log()
+        // console.log("-=-=-=-=-=-=-=-=-=-=-=-==--=update_selected-=-=-=-=-=-=-=-=-=-=-=-==--=", data, card)
+        gameManager.appendCurrentSelectedCardsForSkills(roomId, card, playerId);
     });
 
     socket.on('pair_cards', (data) => {
@@ -346,19 +357,26 @@ io.on('connection', (socket) => {
 
     // skill logics
     socket.on('use_skill_1', (data) => {
-        /* 友誼賽 */
-        const { roomId, playerId } = data;
+        /* 友誼賽(-1點) */
+        const { roomId, playerId, targetPlayerId } = data;
+        gameManager.usingSills(roomId, playerId);
+
+        console.log('skill 1 | target: ', targetPlayerId);
 
         // TODO: check points before use skill
         io.to(roomId).emit('use_skill_1', {
             roomId: roomId,
             playerId: playerId,
+            targetPlayerId: targetPlayerId,
         });
     });
 
     socket.on('use_skill_2', (data) => {
-        /* 情蒐 */
+        /* 情蒐(-1點) */
         const { roomId, playerId } = data;
+        gameManager.usingSills(roomId, playerId);
+
+        console.log('skill 2 ');
 
         // TODO: check points before use skill
         io.to(roomId).emit('use_skill_2', {
@@ -368,15 +386,61 @@ io.on('connection', (socket) => {
     });
 
     socket.on('use_skill_3', (data) => {
-        /* 挖角 */
-        const { roomId, playerId } = data;
+        /* 挖角(-2點) */
+        const { roomId, playerId, targetPlayerId } = data;
+        gameManager.usingSills(roomId, playerId);
+
+        console.log('skill 3 | target: ', targetPlayerId);
 
         // TODO: check points before use skill
         io.to(roomId).emit('use_skill_3', {
             roomId: roomId,
             playerId: playerId,
+            targetPlayerId: targetPlayerId,
         });
     });
+
+    socket.on('end_the_skill', (data) => {
+        /* 結束技能 */
+        const { roomId, playerId, skillType } = data;
+        gameManager.endTheSkill(roomId, playerId);
+
+        io.to(roomId).emit('end_the_skill', {
+            roomId: roomId,
+            playerId: playerId,
+            skillType: skillType,
+        });
+    });
+
+    socket.on('confirm_swap', (data) => {
+        /* 確認交換 */
+        const { roomId, playerId } = data;
+        gameManager.confirmSwap(roomId, playerId);
+
+        io.to(roomId).emit('confirm_swap', {
+            roomId: roomId,
+            playerId: playerId,
+        });
+    });
+    socket.on('cancel_swap', (data) => {
+        /* 確認交換 */
+        const { roomId, playerId } = data;
+        gameManager.cancelSwap(roomId, playerId);
+
+        io.to(roomId).emit('cancel_swap', {
+            roomId: roomId,
+            playerId: playerId,
+        });
+    });
+
+    socket.on('swap_cards', (data) => {
+        /* 確認交換 */
+        const { roomId, playerId } = data;
+        const result = gameManager.swapCards(roomId, playerId);   
+      
+        io.to(roomId).emit('swap_cards', result);
+    });
+    
     // End skill logics
 });
 

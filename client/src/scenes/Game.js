@@ -1,11 +1,12 @@
 import { Scene } from 'phaser';
 // import Card from '../helpers/card';
-import { createPlayerListContainer, createTimeSettingContainer, createCardDeckContainer, createStartGameContainer, createActionButtonsContainer, createCurrentPlayerIDContainer, appendElementsToCenter, createGameRecordContainer, createControlButtonsContainer, addBlurOverlay, removeCanvasBlur, addCanvasBlur } from '../helpers/game_ui';
+import { createPlayerListContainer, createTimeSettingContainer, createCardDeckContainer, createStartGameContainer, createActionButtonsContainer, createCurrentPlayerIDContainer, appendElementsToCenter, createGameRecordContainer, createControlButtonsContainer, addBlurOverlay, removeCanvasBlur, addCanvasBlur, updatePlayerList } from '../helpers/game_ui';
 import { showNotification } from '../helpers/notification';
 import { createSettingsOverlay, addIPSettings, addIDSettings, addReconnectButton, setCurrentPlayerID, handleSetPlayerIDButton, addClearTableButton, addToggleUIVisibilityButton, addLeaveGameButton } from '../helpers/settings';
 import { showAlert } from '../helpers/alert';
 import { addWaveGradientBorder, toggleGradientBorder, changeGradientColor } from '../helpers/waveGradient';
-import { createSkillButtonAndOverlay } from '../helpers/skills'
+import { createSkillButtonAndOverlay, createSkillPlayerListContainer, hideSkillPlayerListContainer, updateSkillPlayerList } from '../helpers/skills'
+import { hideModal, showModal } from '../helpers/modal';
 
 export class Game extends Scene {
     constructor() {
@@ -70,12 +71,14 @@ export class Game extends Scene {
 
         this.isPlayerA = false; 
         this.opponentCards = [];
-
+ 
  
         this.gameManager.socket.on('update_player_list',  (data) => {
             console.log("AAAAA") 
             console.log(data)
-            this.updatePlayerList(data.players);
+            this.gameManager.players = data.players;
+            updatePlayerList(data.players, this.gameManager);
+            updateSkillPlayerList(data.players, this.gameManager);
         }); 
 
         this.gameManager.socket.on('game_started',  (data) => {
@@ -115,6 +118,7 @@ export class Game extends Scene {
     update() {
     }
 
+    // todo: remove this, I forgor what is this
     setupDragEvents() {
         this.input.on('pointermove', (pointer) => {
             // 檢測滑鼠在哪個 drop zone 中
@@ -186,62 +190,7 @@ export class Game extends Scene {
     isCardInZone(card, zone) {
         const bounds = zone.getBounds();
         return Phaser.Geom.Intersects.RectangleToRectangle(card.getBounds(), bounds);
-    }
-
-    // updatePlayerList(players) {
-    //     const playerListContainer = document.getElementById('playerListContainer');
-    //     if (!playerListContainer) return;
-    //     playerListContainer.innerHTML = ''; // 清空列表
-
-    //     players.forEach(playerId => {
-    //         const playerItem = document.createElement('div');
-    //         playerItem.textContent = `Player ID: ${playerId}`;
-    //         playerItem.style.marginBottom = '10px';
-            
-    //         // 高亮當前玩家
-    //         if (playerId === this.gameManager.currentPlayer) {
-    //             playerItem.style.color = 'green'; // 將當前玩家 ID 設置為綠色
-    //             playerItem.style.fontWeight = 'bold'; // 讓文字加粗
-    //         }
-    
-    //         playerListContainer.appendChild(playerItem);
-    //     });
-    // }
-
-    updatePlayerList(players) {
-        const playerListContainer = document.getElementById('playerListContainer');
-        if (!playerListContainer) return;
-    
-        // 保存原來的收起/展開按鈕
-        const toggleButton = playerListContainer.querySelector('.toggle-button');
-        const hiddenText = playerListContainer.querySelector('.hidden-text');
-        
-        // 清空列表，但保留收起/展開按鈕
-        playerListContainer.innerHTML = '';
-    
-        // 如果有收起/展開按鈕，重新附加到容器
-        if (toggleButton) {
-            playerListContainer.appendChild(toggleButton);
-        }
-
-        if (hiddenText) {
-            playerListContainer.appendChild(hiddenText);
-        }
-    
-        players.forEach(playerId => {
-            const playerItem = document.createElement('div');
-            playerItem.textContent = `Player ID: ${playerId}`;
-            playerItem.style.marginBottom = '10px';
-            
-            // 高亮當前玩家
-            if (playerId === this.gameManager.currentPlayer) {
-                playerItem.style.color = 'green'; // 將當前玩家 ID 設置為綠色
-                playerItem.style.fontWeight = 'bold'; // 讓文字加粗
-            }
-    
-            playerListContainer.appendChild(playerItem);
-        });
-    }
+    }  
 
     createHTMLUI() {
         // 背景虛化
@@ -272,6 +221,8 @@ export class Game extends Scene {
         addLeaveGameButton(settingsContainer, this.gameManager);
         addClearTableButton(settingsContainer, this.gameManager);
         addToggleUIVisibilityButton(settingsContainer);
+
+        createSkillPlayerListContainer();
     } 
     
 

@@ -5,7 +5,7 @@ import { showNotification } from '../helpers/notification';
 import { createSettingsOverlay, addIPSettings, addIDSettings, addReconnectButton, setCurrentPlayerID, handleSetPlayerIDButton, addClearTableButton, addToggleUIVisibilityButton, addLeaveGameButton } from '../helpers/settings';
 import { showAlert } from '../helpers/alert';
 import { addWaveGradientBorder, toggleGradientBorder, changeGradientColor } from '../helpers/waveGradient';
-import { createSkillButtonAndOverlay, createSkillPlayerListContainer, hideSkillPlayerListContainer, updateSkillPlayerList } from '../helpers/skills'
+import { createSkillButtonAndOverlay, createSkillPlayerListContainer, hideSkillButton, hideSkillPlayerListContainer, updateSkillPlayerList } from '../helpers/skills'
 import { hideModal, showModal } from '../helpers/modal';
 
 export class Game extends Scene {
@@ -84,7 +84,11 @@ export class Game extends Scene {
         this.gameManager.socket.on('game_started',  (data) => {
             this.clearHTMLUI();
             this.showActionButtons(); 
-        });
+
+            if (!this.gameManager.isPlayerTurn()) {
+                hideSkillButton(); 
+            }
+        }); 
 
         this.gameManager.socket.on('is_game_started_on_this_room', (data) => {
             const { gameIsStarted, isPlayerInRoom, playerId } = data; 

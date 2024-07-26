@@ -9,7 +9,7 @@ import { addWaveGradientBorder, toggleGradientBorder, changeGradientColor } from
 import { showAlert } from './alert';
 import { hideModal, showModal } from './modal';
 import { renderCard } from './renderCard';
-import { createSwapCardsContainer, createSwapCardsContainerForPOACH, removeSwapCardsContainer, updateSwapCardsButton, updateSwapStatusText } from './skills';
+import { createSwapCardsContainer, createSwapCardsContainerForPOACH, hideSkillButton, removeSwapCardsContainer, showSkillButton, updateSwapCardsButton, updateSwapStatusText } from './skills';
 
 
 export default class GameManager {
@@ -147,7 +147,7 @@ export default class GameManager {
                     console.log('debug-get_player_hand: ', "not game table")
                     this.displayPlayerHand();
                 }
-            }
+            } 
         });
 
         this.socket.on('pair_success', (data) => {
@@ -690,12 +690,14 @@ export default class GameManager {
             if (this.scene) {
                 console.log('DEBUG GRADIENTG: on')
                 toggleGradientBorder(this.scene, true); // 開啟漸層效果
-            }
+                showSkillButton(); // 顯示 "使用技能" 按鈕
+            } 
         } else {
             this.canPairCards = false;
             if (this.scene) {
                 console.log('DEBUG GRADIENTG: off')
                 toggleGradientBorder(this.scene, false); // 關閉漸層效果
+                hideSkillButton(); // 隱藏 "使用技能" 按鈕
             }
         }
   

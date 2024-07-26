@@ -349,6 +349,25 @@ export function updateSkillPlayerList(players, gameManager) {
     }
 }
 
+// 隱藏 "使用技能" 按鈕
+export function hideSkillButton() {
+    const skillButton = document.getElementById('skillButton');
+    if (skillButton) {
+        skillButton.style.display = 'none';
+    }
+}
+
+// 顯示 "使用技能" 按鈕
+export function showSkillButton() {
+    const skillButton = document.getElementById('skillButton');
+    console.log('debug gradi', skillButton)
+    if (skillButton) {
+        skillButton.style.display = 'block';
+    } else {
+        console.log('debug gradi create');
+    }
+}
+
 // 創建 "交換卡片" 按鈕和容器(友誼賽)
 export function createSwapCardsContainer(gameManager) {
     // 檢查容器是否已存在
@@ -357,10 +376,7 @@ export function createSwapCardsContainer(gameManager) {
     }
 
     // 隱藏 "使用技能" 按鈕
-    const skillButton = document.getElementById('skillButton');
-    if (skillButton) {
-        skillButton.style.display = 'none';
-    }
+    hideSkillButton();
 
     // 創建容器
     const container = document.createElement('div');
@@ -467,7 +483,7 @@ export function createSwapCardsContainerForPOACH(gameManager) {
         });
         container.appendChild(swapButton);
     }
-    
+
     // 將容器添加到文檔
     document.body.appendChild(container);
 }
@@ -478,10 +494,7 @@ export function removeSwapCardsContainer() {
     if (container) {
         container.remove();
         // 顯示 "使用技能" 按鈕
-        const skillButton = document.getElementById('skillButton');
-        if (skillButton) {
-            skillButton.style.display = 'block';
-        }
+        showSkillButton();
     }
 }
 

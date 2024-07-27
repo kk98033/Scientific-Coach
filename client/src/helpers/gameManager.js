@@ -445,6 +445,25 @@ export default class GameManager {
                 // 創建 "交換卡片" 按鈕和容器
                 createSwapCardsContainer(this);
 
+                if (this.playerId === targetPlayerId) {
+                    showModal(
+                        `玩家<span style="color: red; font-weight: bold;"> ${playerId} </span> 對你使用了<span style="color: red; font-weight: bold;">友誼賽</span>`,
+                        `<span style="font-weight: bold;"><i><u>你必須選擇兩張卡片跟玩家 ${playerId} 進行交換!</u></i></span><br>(你不需要將手機給玩家 ${playerId} 看!)<br>當雙方都各選擇兩張卡片後請在下方按下 <span style="color: red; font-weight: bold;">交換按鈕</span>`,
+                        {
+                            buttons: [
+                                {
+                                    text: '我了解了',
+                                    className: 'btn btn-primary',
+                                    backgroundColor: '#007bff',
+                                    callback: () => {
+                                        console.log('我了解了按鈕被點擊');
+                                    }
+                                }
+                            ]
+                        }
+                    );
+                }
+
             } else {
                 // 在其他玩家上面提醒正在使用技能中
                 showModal(
@@ -523,6 +542,25 @@ export default class GameManager {
 
                 // 創建 "交換卡片" 按鈕和容器
                 createSwapCardsContainerForPOACH(this);
+
+                if (this.playerId === targetPlayerId) {
+                    showModal(
+                        `玩家<span style="color: red; font-weight: bold;"> ${playerId} </span> 對你使用了<span style="color: red; font-weight: bold;">挖角</span>`,
+                        `<span style="font-weight: bold;"><i><u>你必須要將你的手機給玩家 ${playerId} 選擇卡片交換!</u></i></span>`,
+                        {
+                            buttons: [
+                                {
+                                    text: '我了解了',
+                                    className: 'btn btn-primary',
+                                    backgroundColor: '#007bff',
+                                    callback: () => {
+                                        console.log('我了解了按鈕被點擊');
+                                    }
+                                }
+                            ]
+                        }
+                    );
+                }
 
             } else {
                 // 在其他玩家上面提醒正在使用技能中

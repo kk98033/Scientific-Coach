@@ -650,9 +650,9 @@ export default class GameManager {
         //     this.leaveRoom();
         // }
     }
-
+ 
     leaveRoom(reason = '') {
-        this.socket.emit('leave_room', { roomId: this.roomId, reason: reason });
+        this.socket.emit('leave_room', { roomId: this.roomId, reason: reason, playerId: this.playerId });
         console.log(`Requested to leave room ${this.roomId}`);
         // TODO: ui
     }

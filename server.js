@@ -129,20 +129,21 @@ io.on('connection', (socket) => {
     socket.on('leave_room', (data) => {
         const roomId = data.roomId;
         const reason = data.reason;
+        const playerId = data.playerId;
         socket.leave(roomId); // leave room 
-        const { result } = gameRoomManager.leaveRoom(socket.id)
+        const { result } = gameRoomManager.leaveRoom(playerId)
         if (result === 'room_deleted') {
            // 向房間發送"房間已刪除"訊息 
            io.to(roomId).emit('this_room_has_been_deleted', { roomId });
         }
-        console.log(`Player ${socket.id} left room ${roomId}. Reason: ${reason}`); 
+        console.log(`Player ${playerId} left room ${roomId}. Reason: ${reason}`); 
     
         // 向房間內的所有玩家發送更新後的玩家列表
         const players = gameRoomManager.getPlayersInRoom(roomId);
         io.to(roomId).emit('update_player_list', { players });
     
         // tell everyone
-        socket.to(roomId).emit('player_left', { playerId: socket.id });
+        socket.to(roomId).emit('player_left', { playerId: playerId });
     });
 
     socket.on('get_room_list', () => {

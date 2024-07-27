@@ -72,8 +72,34 @@ export function createSkillButtonAndOverlay(gameManager) {
     // 創建技能選擇容器
     const skillContainer = document.createElement('div');
     skillContainer.id = 'skillContainer';
-    skillContainer.className = 'd-flex justify-content-around w-50 bg-dark p-3 rounded'; // 確保容器也有背景色和圓角
+    skillContainer.className = 'd-flex flex-column align-items-center bg-dark p-3 rounded'; // 確保容器也有背景色和圓角
     skillContainer.style.zIndex = '1051'; // 讓技能選擇容器顯示在覆蓋層之上
+    skillContainer.style.width = '80%';
+
+    // 創建標題
+    const titleRow = document.createElement('div');
+    titleRow.className = 'w-100 mb-3';
+
+    const title = document.createElement('h2');
+    title.className = 'text-center text-white';
+    title.textContent = '選擇技能';
+    titleRow.appendChild(title);
+    skillContainer.appendChild(titleRow);
+
+    // 創建資源點數顯示區域
+    const resourcePointsRow = document.createElement('div');
+    resourcePointsRow.className = 'w-100 mb-3';
+
+    const resourcePointsInfo = document.createElement('p');
+    resourcePointsInfo.className = 'text-center text-white';
+    resourcePointsInfo.id = 'resourcePointsInfo';
+    resourcePointsInfo.textContent = `你目前的資源點數數量: XXX`;
+    resourcePointsRow.appendChild(resourcePointsInfo);
+    skillContainer.appendChild(resourcePointsRow);
+
+    // 創建技能卡片容器
+    const cardsRow = document.createElement('div');
+    cardsRow.className = 'd-flex justify-content-around w-100';
 
     // 技能卡片資訊
     const skills = [
@@ -137,9 +163,10 @@ export function createSkillButtonAndOverlay(gameManager) {
         });
 
         skillCard.appendChild(cardBody);
-        skillContainer.appendChild(skillCard);
+        cardsRow.appendChild(skillCard);
     });
 
+    skillContainer.appendChild(cardsRow);
     overlay.appendChild(skillContainer);
 
     // 添加按鈕點擊事件
@@ -177,7 +204,7 @@ export function createSkillButtonAndOverlay(gameManager) {
     function useSkill(skill) {
         selectedSkill = skill;
         console.log(`已選擇技能: ${skill}`);
-        
+
         toggleSkillOverlay();
         if (skill !== Skills.INFORMATION_GATHERING) {
             showSkillPlayerListContainer();
@@ -186,7 +213,7 @@ export function createSkillButtonAndOverlay(gameManager) {
             gameManager.socket.emit(Skills.INFORMATION_GATHERING, { roomId: gameManager.roomId, playerId: gameManager.playerId });
         }
     }
-}
+} 
 
 // 創建技能玩家列表容器
 export function createSkillPlayerListContainer() {
@@ -252,6 +279,15 @@ export function createSkillPlayerListContainer() {
     document.body.appendChild(overlay);
 
     return playerListContainer;
+}
+
+export function updateResourcePointsUI(points) {
+    const resourcePointsInfo = document.getElementById('resourcePointsInfo');
+    if (resourcePointsInfo) {
+        resourcePointsInfo.textContent = `你目前的資源點數數量: ${points}`;
+    } else {
+        console.error('Resource points info element not found');
+    }
 }
 
 // 顯示技能玩家列表容器

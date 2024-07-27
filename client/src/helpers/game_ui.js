@@ -741,3 +741,46 @@ function createAnimation(element, text) {
         }, 2000); // 動畫持續2秒
     }, 0);
 }
+
+// 處理減少的動畫
+function createReductionAnimation(element, text) {
+    let animation = document.createElement('div');
+    animation.textContent = text;
+    animation.className = 'text-danger position-absolute';
+    animation.style.fontSize = '1rem'; // 初始字體較大
+    animation.style.fontWeight = 'bold'; // 設置字體為粗體
+    animation.style.transition = 'opacity 2s ease-out, transform 2s ease-out, font-size 2s ease-out'; // 調慢動畫速度並增加字體大小過渡
+    animation.style.opacity = '1';
+    animation.style.zIndex = '2000'; // 確保在最上層
+
+    // 設置動畫位置
+    const rect = element.getBoundingClientRect();
+    animation.style.top = `${rect.top - 20}px`; // 在元素上方顯示動畫
+    animation.style.left = `${rect.left + rect.width / 2}px`;
+    animation.style.transform = 'translate(-50%, 0)';
+
+    document.body.appendChild(animation);
+
+    // 觸發動畫
+    setTimeout(() => {
+        animation.style.opacity = '0';
+        animation.style.transform = 'translate(-50%, -30px)'; // 動畫上移更多
+        animation.style.fontSize = '1.5rem'; // 字體變大
+        setTimeout(() => {
+            document.body.removeChild(animation);
+        }, 2000); // 動畫持續2秒
+    }, 0);
+}
+
+export function updateResourcePoints(points) {
+    const resourcePoints = document.getElementById('resourcePoints');
+
+    if (resourcePoints) {
+        resourcePoints.textContent = `資源點數數量: ${points}`;
+
+        // 確保動畫每次都會觸發
+        setTimeout(() => {
+            createReductionAnimation(resourcePoints, "減少");
+        }, 100); // 延遲一點時間以確保動畫效果能夠重新觸發
+    }
+}

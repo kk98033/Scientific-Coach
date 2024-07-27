@@ -360,45 +360,106 @@ io.on('connection', (socket) => {
     socket.on('use_skill_1', (data) => {
         /* 友誼賽(-1點) */
         const { roomId, playerId, targetPlayerId } = data;
-        gameManager.usingSills(roomId, playerId);
 
-        console.log('skill 1 | target: ', targetPlayerId);
+        if (gameManager.hasSufficientResourcePoints(roomId, playerId, 1)) {
+            gameManager.usingSills(roomId, playerId);
+            gameManager.deductResourcePoints(roomId, playerId, 1);
 
-        // TODO: check points before use skill
-        io.to(roomId).emit('use_skill_1', {
-            roomId: roomId,
-            playerId: playerId,
-            targetPlayerId: targetPlayerId,
-        });
+            console.log('skill 1 | target: ', targetPlayerId);
+    
+            // TODO: check points before use skill
+            io.to(roomId).emit('use_skill_1', {
+                roomId: roomId,
+                playerId: playerId,
+                targetPlayerId: targetPlayerId,
+            });
+
+            const result = gameManager.getPlayerScores(roomId, playerId);
+            if (result) {
+                const { resourcePoints, gameLevel, cardPairCount } = result
+                // 更新點數 UI
+                io.to(roomId).emit('update_resource_points_ui', {
+                    roomId: roomId,
+                    playerId: playerId,
+                    resourcePoints: resourcePoints,
+                    gameLevel: gameLevel,
+                    cardPairCount: cardPairCount
+                });
+            }
+
+        } else {
+            errorNotification(roomId, `你沒有足夠的點數! 需要"1點"!`);
+        }
+
     });
 
     socket.on('use_skill_2', (data) => {
         /* 情蒐(-1點) */
         const { roomId, playerId } = data;
-        gameManager.usingSills(roomId, playerId);
 
-        console.log('skill 2 ');
+        if (gameManager.hasSufficientResourcePoints(roomId, playerId, 1)) {
+            gameManager.usingSills(roomId, playerId);
+            gameManager.deductResourcePoints(roomId, playerId, 1);
+    
+            console.log('skill 2 ');
+    
+            // TODO: check points before use skill
+            io.to(roomId).emit('use_skill_2', {
+                roomId: roomId,
+                playerId: playerId,
+            });
 
-        // TODO: check points before use skill
-        io.to(roomId).emit('use_skill_2', {
-            roomId: roomId,
-            playerId: playerId,
-        });
+            const result = gameManager.getPlayerScores(roomId, playerId);
+            if (result) {
+                const { resourcePoints, gameLevel, cardPairCount } = result
+                // 更新點數 UI
+                io.to(roomId).emit('update_resource_points_ui', {
+                    roomId: roomId,
+                    playerId: playerId,
+                    resourcePoints: resourcePoints,
+                    gameLevel: gameLevel,
+                    cardPairCount: cardPairCount
+                });
+            }
+
+        } else {
+            errorNotification(roomId, `你沒有足夠的點數! 需要"1點"!`);
+        }
     });
 
     socket.on('use_skill_3', (data) => {
         /* 挖角(-2點) */
         const { roomId, playerId, targetPlayerId } = data;
-        gameManager.usingSills(roomId, playerId);
 
-        console.log('skill 3 | target: ', targetPlayerId);
+        if (gameManager.hasSufficientResourcePoints(roomId, playerId, 2)) {
+            gameManager.usingSills(roomId, playerId);
+            gameManager.deductResourcePoints(roomId, playerId, 2);
+    
+            console.log('skill 3 | target: ', targetPlayerId);
+    
+            // TODO: check points before use skill
+            io.to(roomId).emit('use_skill_3', {
+                roomId: roomId,
+                playerId: playerId,
+                targetPlayerId: targetPlayerId,
+            });
 
-        // TODO: check points before use skill
-        io.to(roomId).emit('use_skill_3', {
-            roomId: roomId,
-            playerId: playerId,
-            targetPlayerId: targetPlayerId,
-        });
+            const result = gameManager.getPlayerScores(roomId, playerId);
+            if (result) {
+                const { resourcePoints, gameLevel, cardPairCount } = result
+                // 更新點數 UI
+                io.to(roomId).emit('update_resource_points_ui', {
+                    roomId: roomId,
+                    playerId: playerId,
+                    resourcePoints: resourcePoints,
+                    gameLevel: gameLevel,
+                    cardPairCount: cardPairCount
+                });
+            }
+
+        } else {
+            errorNotification(roomId, `你沒有足夠的點數! 需要"2點"!`);
+        }
     });
 
     socket.on('end_the_skill', (data) => {
@@ -444,6 +505,10 @@ io.on('connection', (socket) => {
     
     // End skill logics
 });
+
+function errorNotification(roomId, errorMessage) {
+    io.to(roomId).emit('error_occurred', { errorMessage: errorMessage });
+}
 
 http.listen(3000, function () {
     console.log('Server started!');

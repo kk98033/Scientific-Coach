@@ -1048,6 +1048,7 @@ class GameManager {
         };
     }
     
+    // SKILL LOGICS
     usingSills(roomId, playerId) {
         const room = this.gameRoomManager.rooms[roomId];
         if (!room) return;
@@ -1061,6 +1062,51 @@ class GameManager {
 
         room.timerStoppedOnSkillTime = false;
     }
+
+    hasSufficientResourcePoints(roomId, playerId, requiredPoints) {
+        const room = this.gameRoomManager.rooms[roomId];
+        if (!room) {
+            console.error(`Room ${roomId} does not exist`);
+            return false;
+        }
+    
+        const playerScore = room.playerScores[playerId];
+        if (!playerScore) {
+            console.error(`Player ${playerId} does not exist in room ${roomId}`);
+            return false;
+        }
+    
+        const playerResourcePoints = playerScore.resourcePoints;
+    
+        return playerResourcePoints >= requiredPoints;
+    }
+
+    deductResourcePoints(roomId, playerId, pointsToDeduct) {
+        const room = this.gameRoomManager.rooms[roomId];
+        if (!room) {
+            console.error(`Room ${roomId} does not exist`);
+            return { success: false, message: `Room ${roomId} does not exist` };
+        }
+    
+        const playerScore = room.playerScores[playerId];
+        if (!playerScore) {
+            console.error(`Player ${playerId} does not exist in room ${roomId}`);
+            return { success: false, message: `Player ${playerId} does not exist in room ${roomId}` };
+        }
+    
+        const playerResourcePoints = playerScore.resourcePoints;
+    
+        if (playerResourcePoints < pointsToDeduct) {
+            console.error(`Player ${playerId} does not have enough resource points`);
+            return { success: false, message: `Player ${playerId} does not have enough resource points` };
+        }
+    
+        playerScore.resourcePoints -= pointsToDeduct;
+    
+        console.log(`Deducted ${pointsToDeduct} resource points from player ${playerId} in room ${roomId}`);
+        return { success: true, message: `Resource points deducted successfully` };
+    }
+    // END SKILL LOGICS
 }
 
 module.exports = GameManager;

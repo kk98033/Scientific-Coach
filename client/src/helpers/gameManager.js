@@ -4,12 +4,12 @@ import Zone from '../helpers/zone';
 import { NONE } from 'phaser';
 import { showNotification } from '../helpers/notification';
 import { showLoading, hideLoading } from '../helpers/loading';
-import { removeCanvasBlur, updateGameRecord } from '../helpers/game_ui';
+import { removeCanvasBlur, updateGameRecord, updateResourcePoints } from '../helpers/game_ui';
 import { addWaveGradientBorder, toggleGradientBorder, changeGradientColor } from '../helpers/waveGradient';
 import { showAlert } from './alert';
 import { hideModal, showModal } from './modal';
 import { renderCard } from './renderCard';
-import { createSwapCardsContainer, createSwapCardsContainerForPOACH, hideSkillButton, removeSwapCardsContainer, showSkillButton, updateSwapCardsButton, updateSwapStatusText } from './skills';
+import { createSwapCardsContainer, createSwapCardsContainerForPOACH, hideSkillButton, removeSwapCardsContainer, showSkillButton, updateResourcePointsUI, updateSwapCardsButton, updateSwapStatusText } from './skills';
 
 
 export default class GameManager {
@@ -159,7 +159,8 @@ export default class GameManager {
 
         this.socket.on('get_player_scores', (data) => {
             const { resourcePoints, gameLevel, cardPairCount } = data;
-            updateGameRecord(gameLevel, resourcePoints, cardPairCount)
+            updateGameRecord(gameLevel, resourcePoints, cardPairCount);
+            updateResourcePointsUI(resourcePoints);
         });
 
         this.socket.on('this_room_has_been_deleted', (data) => {
@@ -260,8 +261,6 @@ export default class GameManager {
             }, 10000);
         });
         
-        
-
         this.socket.on('get_ready_players', (data) => {
             const { readyPlayers, count, total } = data;
             console.log('debug-4', readyPlayers)
@@ -284,6 +283,11 @@ export default class GameManager {
 
             this.updateSettingsUI(settings)
 
+        }); 
+
+        this.socket.on('error_occurred', (data) => {
+            const { errorMessage } = data;
+            showAlert(errorMessage, 'danger');
         }); 
 
         this.socket.on('discard_timer', (data) => {
@@ -340,7 +344,7 @@ export default class GameManager {
             }
         });
         
-
+ 
         this.socket.on('confirm_swap', (data) => {
             /* 確認交換 */
             if (this.isGameTable || !this.isPlayerTurn()) return;
@@ -353,6 +357,15 @@ export default class GameManager {
             const { roomId, playerId } = data;
             updateSwapCardsButton('disabled'); // 修改 "交換卡片" 按鈕的狀態為無法交換
         });
+ 
+        this.socket.on('update_resource_points_ui', (data) => {
+            const { roomId, playerId, resourcePoints, gameLevel, cardPairCount } = data;
+            if (this.isGameTable || this.playerId !== playerId) return;
+            console.log("debug for resource", resourcePoints);
+            updateResourcePoints(resourcePoints);
+            updateResourcePointsUI(resourcePoints);
+        });
+
 
         this.socket.on('update_current_selected_for_skills', (data) => {
             /* 處理要選擇卡片技能的 UI 回傳資料 */
@@ -567,8 +580,11 @@ export default class GameManager {
             }); 
         } else {
             console.log("DEBUG-PAIR-SUCCESS");
+
+            // 更新分數，等級，配對數量 UI
             updateGameRecord(gameLevel, resourcePoints, cardPairCount);
-    
+            updateResourcePointsUI(resourcePoints);
+
             // 在配對成功的卡牌位置上面畫出特效
             this.drawHighlightEffect(matchedCardPositions);
         }
@@ -1419,26 +1435,5 @@ export default class GameManager {
         const roomId = this.roomId;
         this.socket.emit('initialize_game', { roomId, settings });
     }
-    
-    useSkill1() {
-        console.log('使用技能 1');
-        // 實現技能 1 的效果
-    }
-
-    useSkill2() {
-        console.log('使用技能 2');
-        // 實現技能 2 的效果
-    }
-
-    useSkill3() {
-        console.log('使用技能 3');
-        // 實現技能 3 的效果
-    }
-
-    useSkill4() {
-        console.log('使用技能 4');
-        // 實現技能 4 的效果
-    }
- 
 } 
           

@@ -1099,6 +1099,11 @@ class GameManager {
         this.gameRoomManager.onCancelReady(roomId, playerId);
     }
 
+    getSettings(roomId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        return room.settings;
+    }
+
     updateSettings(roomId, settings) {
         const room = this.gameRoomManager.rooms[roomId]; 
         room.settings = settings;

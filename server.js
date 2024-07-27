@@ -312,6 +312,15 @@ io.on('connection', (socket) => {
         });
     });
 
+    socket.on('get_and_update_settings', (data) => {
+        const { roomId } = data;
+        const settings = gameManager.getSettings(roomId);
+        console.log(settings)
+        io.to(roomId).emit('update_settings', {
+            settings: settings, 
+        });
+    });
+
     socket.on('update_card_positions', (data) => {
         const { roomId, playerId, cardPositions } = data;
         console.log('update card positions', data)

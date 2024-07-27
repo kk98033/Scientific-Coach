@@ -279,10 +279,9 @@ export default class GameManager {
         
         this.socket.on('update_settings', (data) => {
             const { settings } = data;
-            console.log('debug-4', settings, data)
+            console.log('debug-4', settings, data);
 
-            this.updateSettingsUI(settings)
-
+            this.updateSettingsUI(settings);
         }); 
 
         // 遊戲結束 socket
@@ -294,8 +293,6 @@ export default class GameManager {
 
             setTimeout(() => {
                 // 離開房間
-                // this.leaveRoom();
-                
                 this.leaveRoomAndClearUI();
             }, 10000);
         }); 
@@ -322,7 +319,6 @@ export default class GameManager {
                                                 callback: () => {
                                                     hideModal();
                                                     // 離開房間
-                                                    // this.leaveRoom();
                                                     this.leaveRoomAndClearUI();
                                                 }
                                             }
@@ -1504,9 +1500,14 @@ export default class GameManager {
     
 
     updateSettings() {
+        // 這是將本地端的 setting 丟到 server 做更新
         let settings = this.getGameSettings();
         console.log('debug-6', settings)
         this.socket.emit('update_settings', { roomId: this.roomId, settings: settings }); 
+    }
+
+    getAndUpdateSettings() {
+        this.socket.emit('get_and_update_settings', { roomId: this.roomId }); 
     }
 
     triggerRedGradient() {

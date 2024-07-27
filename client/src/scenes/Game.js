@@ -116,7 +116,8 @@ export class Game extends Scene {
  
         this.gameManager.socket.emit('update_player_list', { roomId: this.gameManager.roomId });
 
-        
+        // 在剛進入遊戲的時候抓取 server 上面的 settings 並且更新 UI
+        this.gameManager.getAndUpdateSettings();
     }
 
     update() {

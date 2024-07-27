@@ -15,37 +15,81 @@ export function createSkillButtonAndOverlay(gameManager) {
     // 新增動畫樣式
     const style = document.createElement('style');
     style.innerHTML = `
-        @keyframes expandContainerFromButton {
-            from {
-                transform: scale(0.1);
-                opacity: 0;
-                transform-origin: bottom center;
-            }
-            to {
-                transform: scale(1);
-                opacity: 1;
-                transform-origin: bottom center;
-            }
+    @keyframes expandContainerFromButton {
+        from {
+            transform: scale(0.1);
+            opacity: 0;
+            transform-origin: bottom center;
         }
-        @keyframes collapseContainerToButton {
-            from {
-                transform: scale(1);
-                opacity: 1;
-                transform-origin: bottom center;
-            }
-            to {
-                transform: scale(0.1);
-                opacity: 0;
-                transform-origin: bottom center;
-            }
+        to {
+            transform: scale(1);
+            opacity: 1;
+            transform-origin: bottom center;
         }
-        #skillContainer.show {
-            animation: expandContainerFromButton 0.3s forwards;
+    }
+    @keyframes collapseContainerToButton {
+        from {
+            transform: scale(1);
+            opacity: 1;
+            transform-origin: bottom center;
         }
-        #skillContainer.hide {
-            animation: collapseContainerToButton 0.3s forwards;
+        to {
+            transform: scale(0.1);
+            opacity: 0;
+            transform-origin: bottom center;
         }
-    `;
+    }
+    #skillContainer.show {
+        animation: expandContainerFromButton 0.3s forwards;
+    }
+    #skillContainer.hide {
+        animation: collapseContainerToButton 0.3s forwards;
+    }
+    /* 手機適配樣式 */
+    @media (max-width: 900px) {
+        #skillContainer {
+            width: 95%;
+            padding: 1rem;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .skill-card {
+            width: 100%; /* 每張卡片佔據100%寬度 */
+            margin-bottom: 0.5rem; /* 調整間隔更緊湊 */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 水平居中 */
+        }
+        .skill-card img {
+            width: 50%; /* 等比例縮小圖片 */
+            height: auto;
+            display: block;
+            margin: 0 auto; /* 確保圖片居中 */
+        }
+        .card-title {
+            font-size: 0.9rem; /* 調整字體大小 */
+            text-align: center; /* 居中文字 */
+        }
+        .card-text {
+            font-size: 0.8rem; /* 調整字體大小 */
+            text-align: center; /* 居中文字 */
+        }
+    }
+    /* 桌面設備適配樣式 */
+    @media (min-width: 901px) {
+        #skillContainer {
+            width: 80%;
+        }
+        .skill-card {
+            width: 18rem;
+        }
+        .skill-card img {
+            width: 100%;
+            height: auto;
+        }
+    }
+`;
+
     document.head.appendChild(style);
     
     // 創建 "使用技能" 按鈕

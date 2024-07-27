@@ -2,6 +2,10 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const path = require("path");
 const webpack = require("webpack");
+const dotenv = require('dotenv');
+
+// 加載 .env 文件中的環境變數
+dotenv.config();
 
 module.exports = {
     mode: "development",
@@ -41,6 +45,7 @@ module.exports = {
             cleanOnceBeforeBuildPatterns: [path.join(__dirname, "dist/**/*")]
         }),
         new webpack.DefinePlugin({
+            'process.env.SOCKET_IP': JSON.stringify(process.env.SOCKET_IP),
             "typeof CANVAS_RENDERER": JSON.stringify(true),
             "typeof WEBGL_RENDERER": JSON.stringify(true),
             "typeof WEBGL_DEBUG": JSON.stringify(true),

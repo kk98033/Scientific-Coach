@@ -13,6 +13,10 @@ RUN npm install
 # 複製所有源文件，包括 public 文件夾
 COPY . .
 
+# 設置環境變數
+ARG SOCKET_IP
+ENV SOCKET_IP=${SOCKET_IP}
+
 # 構建前端應用
 RUN npm run build
 
@@ -20,7 +24,7 @@ RUN npm run build
 RUN npm install -g serve
 
 # 暴露應用運行的端口
-EXPOSE 5000
+EXPOSE 8080
 
 # 使用 serve 提供應用
-CMD ["serve", "-s", "dist", "-l", "5000"]
+CMD ["serve", "-s", "dist", "-l", "8080"]

@@ -4,6 +4,10 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const path = require("path");
 const TerserPlugin = require("terser-webpack-plugin");
 const webpack = require("webpack");
+const dotenv = require('dotenv');
+
+// 加載 .env 文件中的環境變數
+dotenv.config();
 
 const line = "---------------------------------------------------------";
 const msg = `❤️❤️❤️ Tell us about your game! - games@phaser.io ❤️❤️❤️`;
@@ -54,6 +58,7 @@ module.exports = {
     plugins: [
         new CleanWebpackPlugin(),
         new webpack.DefinePlugin({
+            'process.env.SOCKET_IP': JSON.stringify(process.env.SOCKET_IP),
             "typeof CANVAS_RENDERER": JSON.stringify(true),
             "typeof WEBGL_RENDERER": JSON.stringify(true),
             "typeof WEBGL_DEBUG": JSON.stringify(false),

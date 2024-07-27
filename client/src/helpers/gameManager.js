@@ -15,8 +15,11 @@ import { createSwapCardsContainer, createSwapCardsContainerForPOACH, hideSkillBu
 export default class GameManager {
     constructor(scene) {
         this.serverIP = 'localhost';
-        this.socketIP = '192.168.10.104'; 
+        this.socketIP = process.env.SOCKET_IP || '192.168.10.104'; // '192.168.10.104' 是臨時測試的 ip
         // this.socketIP = 'localhost'; 
+        console.log('Socket IP:', this.socketIP); // 調試輸出
+        console.log('Socket IP:', process.env); // 調試輸出
+        
 
         this.scene = scene;
         this.dropZones = null;
@@ -177,6 +180,7 @@ export default class GameManager {
                                 backgroundColor: '#007bff',
                                 callback: () => {
                                     console.log('確認按鈕被點擊');
+                                    this.leaveRoom();
                                     this.leaveRoomAndClearUI();
                                     showAlert("已自動離開已被刪除的房間");
                                 }
@@ -293,6 +297,7 @@ export default class GameManager {
 
             setTimeout(() => {
                 // 離開房間
+                this.leaveRoom();
                 this.leaveRoomAndClearUI();
             }, 10000);
         }); 

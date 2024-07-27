@@ -4,12 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "build": "webpack --config webpack/config.prod.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "crypto-browserify": "^3.12.0",
+    "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "nodemon": "^3.1.0",
     "socket.io": "^4.7.5"

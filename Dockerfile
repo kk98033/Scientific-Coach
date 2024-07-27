@@ -16,5 +16,9 @@ COPY . .
 # 暴露應用運行的端口
 EXPOSE 3000
 
+# 健康檢查（可選）
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
+
 # 啟動應用
 CMD ["node", "server.js"]

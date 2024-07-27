@@ -47,7 +47,7 @@ export function createSkillButtonAndOverlay(gameManager) {
         }
     `;
     document.head.appendChild(style);
-
+    
     // 創建 "使用技能" 按鈕
     const skillButton = document.createElement('button');
     skillButton.id = 'skillButton';
@@ -212,6 +212,10 @@ export function createSkillButtonAndOverlay(gameManager) {
         } else {
             gameManager.socket.emit(Skills.INFORMATION_GATHERING, { roomId: gameManager.roomId, playerId: gameManager.playerId });
         }
+    }
+
+    if (!gameManager.isPlayerTurn()) {
+        hideSkillButton();
     }
 } 
 
@@ -525,12 +529,15 @@ export function createSwapCardsContainerForPOACH(gameManager) {
 }
 
 // 刪除 "交換卡片" 按鈕和容器
-export function removeSwapCardsContainer() {
+export function removeSwapCardsContainer(gameManager) {
     const container = document.getElementById('swapCardsContainer');
     if (container) {
         container.remove();
         // 顯示 "使用技能" 按鈕
-        showSkillButton();
+
+        if (gameManager.isPlayerTurn()) {
+            showSkillButton();
+        }
     }
 }
 

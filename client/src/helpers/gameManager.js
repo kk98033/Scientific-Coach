@@ -550,7 +550,7 @@ export default class GameManager {
 
     removeSkillContainers() {
         // 刪除 "交換卡片" 按鈕和容器
-        removeSwapCardsContainer();
+        removeSwapCardsContainer(this);
     } 
 
     setPlayerID(playerID) {

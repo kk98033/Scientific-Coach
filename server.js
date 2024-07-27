@@ -327,7 +327,7 @@ io.on('connection', (socket) => {
             isPlayerInRoom: isPlayerInRoom,
             playerId: playerId
         });
-    });
+    }); 
     
     socket.on('update_game_state', (data) => {
         const { roomId } = data;

@@ -160,34 +160,59 @@ export function createTimeSettingContainer(gameManager, isEditable = false) {
     timeSettingContainer.id = 'timeSettingContainer';
     timeSettingContainer.className = 'p-3 bg-dark text-white rounded';
 
+    // 時間設定標籤和輸入框
     let timeSettingLabel = document.createElement('label');
     timeSettingLabel.textContent = '時間設定 (秒):';
-    timeSettingLabel.className = 'me-2';
+    timeSettingLabel.className = 'd-block mb-2'; // 使用 d-block 和 mb-2 來確保垂直排列並添加下方間距
 
     let timeSettingInput = document.createElement('input');
     timeSettingInput.id = 'roundTimeInput';
     timeSettingInput.type = 'number';
     timeSettingInput.value = '30';
     timeSettingInput.min = '1';
-    timeSettingInput.className = 'form-control d-inline-block w-auto';
+    timeSettingInput.className = 'form-control mb-3'; // 使用 mb-3 來添加下方間距
     timeSettingInput.readOnly = !isEditable; // 設置是否可編輯
 
     timeSettingContainer.appendChild(timeSettingLabel);
     timeSettingContainer.appendChild(timeSettingInput);
 
+    // 配對卡片及獲勝標籤和輸入框
+    let matchCardsToWinLabel = document.createElement('label');
+    matchCardsToWinLabel.textContent = '配對卡片即獲勝:';
+    matchCardsToWinLabel.className = 'd-block mb-2'; // 使用 d-block 和 mb-2 來確保垂直排列並添加下方間距
+
+    let matchCardsToWinInput = document.createElement('input');
+    matchCardsToWinInput.id = 'matchCardsToWinInput';
+    matchCardsToWinInput.type = 'number';
+    matchCardsToWinInput.value = '5';
+    matchCardsToWinInput.min = '1';
+    matchCardsToWinInput.className = 'form-control mb-3'; // 使用 mb-3 來添加下方間距
+    matchCardsToWinInput.readOnly = !isEditable; // 設置是否可編輯
+
+    timeSettingContainer.appendChild(matchCardsToWinLabel);
+    timeSettingContainer.appendChild(matchCardsToWinInput);
+
     if (isEditable) {
-        timeSettingInput.addEventListener('input', (event) => {
-            console.log(gameManager);
+        timeSettingInput.addEventListener('input', () => {
             gameManager.updateSettings();
         });
 
         timeSettingInput.onclick = () => {
             gameManager.updateSettings();
         };
+
+        matchCardsToWinInput.addEventListener('input', () => {
+            gameManager.updateSettings();
+        });
+
+        matchCardsToWinInput.onclick = () => {
+            gameManager.updateSettings();
+        };
     }
 
     return timeSettingContainer;
 }
+
 
 export function createCardDeckContainer(gameManager, isEditable = false) {
     let cardDeckContainer = document.createElement('div');

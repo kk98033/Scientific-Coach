@@ -210,7 +210,20 @@ io.on('connection', (socket) => {
                 gameLevel: result.gameLevel,
                 cardPairCount: result.cardPairCount,
             });
+
+            const gameOverResult = gameManager.isGameOver(roomId, playerId);
+            if (gameOverResult.gameOver) {
+                // 遊戲結束
+                const { gameOver, winnerId } = gameOverResult;
+                console.log(`遊戲結束！獲勝者是玩家 ${winnerId}`);
+
+                gameManager.handleGameOver(roomId, winnerId);
+
+            } else {
+                console.log('遊戲尚未結束');
+            }
         }
+
     });
 
     socket.on('discard_cards', (data) => {

@@ -162,6 +162,95 @@ class GameManager {
         // console.log(room.currentPlayer)
     }
 
+    handleGameOver(roomId, winnerId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        
+        console.log();
+        console.log();
+        console.log();
+        console.log("========GAME OVER=======");
+        console.log();
+        console.log();
+        console.log();
+
+        if (!room) {
+            console.error(`Room with ID ${roomId} does not exist.`);
+            return;
+        }
+    
+        // 停止回合計時器
+        if (room.timer) {
+            clearInterval(room.timer);
+            room.timer = null;
+        }
+    
+        // 停止棄牌計時器
+        if (room.discardTimer) {
+            clearInterval(room.discardTimer);
+            room.discardTimer = null;
+        }
+    
+        // 停止技能計時器
+        room.timerStoppedOnSkillTime = false;
+    
+        // 將遊戲狀態設定為結束
+        room.state = 'GameOver';
+    
+        // 清除選取的卡片
+        this.clearCurrentSelectedCards(roomId);
+        this.clearCurrentSelectedCardsForSkills(roomId);
+    
+        // 通知所有玩家遊戲結束並宣佈獲勝者
+        this.io.to(roomId).emit('game_is_over', {
+            roomId: roomId,
+            winnerId: winnerId,
+            matchCardsToWin: room.settings.matchCardsToWin,
+            gameState: room,
+        }); 
+    
+        // 設置計時器，一分鐘後將所有玩家踢出房間並刪除該房間
+        setTimeout(() => {
+            console.log();
+            console.log();
+            console.log();
+            console.log("========DELETE ROOM=======");
+
+            this.io.to(roomId).emit('kicked_from_room', { roomId }); // 通知玩家被踢出
+
+            const players = [...room.players]; // 複製玩家列表
+            players.forEach(playerId => {
+                this.gameRoomManager.leaveRoom(playerId); // 將玩家踢出房間
+            });
+            delete this.gameRoomManager.rooms[roomId]; // 刪除房間
+
+            console.log(`Room ${roomId} deleted after game over.`);
+            console.log();
+            console.log();
+            console.log();
+            console.log("========END DELETE ROOM=======");
+        }, 300000); // 1分鐘 = 60000 毫秒
+    }    
+    
+    
+    isGameOver(roomId, playerId) {
+        const room = this.gameRoomManager.rooms[roomId];
+        if (!room) {
+            console.error(`房間 ${roomId} 不存在`);
+            return { gameOver: false, winnerId: null };
+        }
+    
+        const { matchCardsToWin } = room.settings;
+        const playerScores = room.playerScores;
+    
+        for (let player in playerScores) {
+            if (playerScores[player].cardPairCount >= matchCardsToWin) {
+                return { gameOver: true, winnerId: player };  
+            }
+        }
+    
+        return { gameOver: false, winnerId: null };
+    }
+
     checkCardPositions(roomId, playerId) {
         const room = this.gameRoomManager.rooms[roomId];
     
@@ -923,7 +1012,7 @@ class GameManager {
             };
         }
     }
-
+    
     removeCardFromCardPositions(roomId, playerId, cardId) {
         const room = this.gameRoomManager.rooms[roomId];
         
@@ -1013,7 +1102,12 @@ class GameManager {
     updateSettings(roomId, settings) {
         const room = this.gameRoomManager.rooms[roomId]; 
         room.settings = settings;
-        this.io.to(roomId).emit('update_settings', { turnTimer: room.turnTimer });
+        console.log()
+        console.log()
+        console.log()
+        console.log('===========SETTING=========');
+        console.log(room.settings);
+        // this.io.to(roomId).emit('update_settings', { turnTimer: room.turnTimer });
     }
     
     updateCardPositions(roomId, playerId, cardPositions) {

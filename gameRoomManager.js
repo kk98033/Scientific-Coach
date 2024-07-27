@@ -45,7 +45,8 @@ class GameRoomManager {
                 readyPlayers: [],
                 settings: {
                     roundTime: 10,
-                    gymnastics: { count: 1, type: 'C1' },
+                    matchCardsToWin: 5,
+                    gymnastics: { count: 0, type: null },
                     soccer: { count: 0, type: null },
                     tableTennis: { count: 0, type: null },
                     shooting: { count: 0, type: null },
@@ -84,7 +85,8 @@ class GameRoomManager {
                 readyPlayers: [],
                 settings: {
                     roundTime: 10,
-                    gymnastics: { count: 1, type: 'C1' },
+                    matchCardsToWin: 5,
+                    gymnastics: { count: 0, type: null },
                     soccer: { count: 0, type: null },
                     tableTennis: { count: 0, type: null },
                     shooting: { count: 0, type: null },

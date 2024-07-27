@@ -285,6 +285,58 @@ export default class GameManager {
 
         }); 
 
+        // 遊戲結束 socket
+        this.socket.on('kicked_from_room', (data) => {
+            console.log("DEBUG: KICKED")
+            const { roomId } = data;
+
+            showAlert('遊戲已結束，房間將會在10秒鐘後自動關閉!');
+
+            setTimeout(() => {
+                // 離開房間
+                // this.leaveRoom();
+                
+                this.leaveRoomAndClearUI();
+            }, 10000);
+        }); 
+ 
+        this.socket.on('game_is_over', (data) => {
+            const { roomId, winnerId, gameState, matchCardsToWin } = data;
+              
+            showModal(
+                '<span style="color: green; font-weight: bold;">遊戲結束</span>', 
+                `<span style="color: green; font-weight: bold;">${winnerId}</span> 成功配對了 <span style="color: green; font-weight: bold;">${matchCardsToWin}</span> 張卡片~! <br>房間將會在五分鐘後自動關閉`, 
+                {
+                    buttons: [
+                        {
+                            text: '觀看結果',
+                            className: 'btn btn-outline-primary',
+                            callback: () => {
+                                hideModal();
+                                setTimeout(() => {
+                                    showModal('遊戲結果', 'lorem', {
+                                        buttons: [
+                                            {
+                                                text: '離開房間',
+                                                className: 'btn btn-outline-danger',
+                                                callback: () => {
+                                                    hideModal();
+                                                    // 離開房間
+                                                    // this.leaveRoom();
+                                                    this.leaveRoomAndClearUI();
+                                                }
+                                            }
+                                        ]
+                                    });
+                                }, 100); // 延遲1秒（1000毫秒）
+                            }
+                        }
+                    ]
+                }
+            );
+        });   
+        // END 遊戲結束 socket
+
         this.socket.on('error_occurred', (data) => {
             const { errorMessage } = data;
             showAlert(errorMessage, 'danger');
@@ -1348,9 +1400,15 @@ export default class GameManager {
         if (!settings) return;
     
         // 更新時間設定
-        let timeSettingInput = document.querySelector('#timeSettingContainer input');
+        let timeSettingInput = document.querySelector('#timeSettingContainer input#roundTimeInput');
         if (timeSettingInput) {
             timeSettingInput.value = settings.roundTime;
+        }
+    
+        // 更新配對卡片即獲勝設定
+        let matchCardsToWinInput = document.querySelector('#timeSettingContainer input#matchCardsToWinInput');
+        if (matchCardsToWinInput) {
+            matchCardsToWinInput.value = settings.matchCardsToWin;
         }
     
         // 更新各個牌組的數量和選擇類型
@@ -1387,6 +1445,7 @@ export default class GameManager {
     
     
     
+    
 
     enableStartGameButton() {
         let createRoomBtn = document.getElementById('start-game');
@@ -1409,6 +1468,10 @@ export default class GameManager {
         let roundTimeInput = document.getElementById('roundTimeInput');
         let roundTime = roundTimeInput ? parseInt(roundTimeInput.value, 10) : 30;
     
+        // 取得配對卡片即獲勝設定
+        let matchCardsToWinInput = document.getElementById('matchCardsToWinInput');
+        let matchCardsToWin = matchCardsToWinInput ? parseInt(matchCardsToWinInput.value, 10) : 5;
+    
         // 取得排組數量和選擇類型
         let deckCounts = [];
         let selectedCTypes = [];
@@ -1426,6 +1489,7 @@ export default class GameManager {
         // 組成設定物件  
         let settings = {
             roundTime: roundTime,
+            matchCardsToWin: matchCardsToWin,
             gymnastics: { count: deckCounts[0], type: selectedCTypes[0] },
             soccer: { count: deckCounts[1], type: selectedCTypes[1] },
             tableTennis: { count: deckCounts[2], type: selectedCTypes[2] },
@@ -1437,12 +1501,12 @@ export default class GameManager {
         console.log('Debug Settings: ', settings);
         return settings;
     }
+    
 
     updateSettings() {
         let settings = this.getGameSettings();
         console.log('debug-6', settings)
         this.socket.emit('update_settings', { roomId: this.roomId, settings: settings }); 
-
     }
 
     triggerRedGradient() {

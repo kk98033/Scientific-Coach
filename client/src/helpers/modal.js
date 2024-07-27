@@ -20,36 +20,52 @@ export function showModal(title, message, options = {}) {
     overlay.style.display = 'flex';
     overlay.style.justifyContent = 'center';
     overlay.style.alignItems = 'center';
+    overlay.style.animation = 'fadeIn 0.3s'; // 添加淡入動畫
 
     // 創建模態框元素
     let modal = document.createElement('div');
     modal.className = 'modal-content';
-    modal.style.backgroundColor = '#333'; // 設置模態框背景顏色為黑暗模式
-    modal.style.padding = '20px';
+    modal.style.backgroundColor = '#1e1e1e'; // 設置模態框背景顏色為深灰色
     modal.style.borderRadius = '8px';
     modal.style.maxWidth = '500px';
     modal.style.width = '100%';
-    modal.style.color = '#fff'; // 設置文字顏色為白色
+    modal.style.overflow = 'hidden'; // 防止內部元素溢出
+    modal.style.animation = 'scaleIn 0.3s'; // 添加縮放動畫
+
+    // 標題容器
+    let titleContainer = document.createElement('div');
+    titleContainer.style.backgroundColor = '#2c2c2c'; // 設置標題容器背景顏色為稍微不同
+    titleContainer.style.padding = '10px';
+    titleContainer.style.textAlign = 'center'; // 標題置中
+    titleContainer.style.borderBottom = '1px solid #555'; // 下底線
 
     // 標題
     let modalTitle = document.createElement('h5');
     modalTitle.className = 'modal-title';
     modalTitle.innerHTML = title;
-    modalTitle.style.color = '#fff'; // 設置標題文字顏色為白色
-    modal.appendChild(modalTitle);
+    modalTitle.style.color = '#ffffff'; // 設置標題文字顏色為白色
+    modalTitle.style.margin = '0';
+
+    titleContainer.appendChild(modalTitle);
+    modal.appendChild(titleContainer);
 
     // 消息內容
-    let modalBody = document.createElement('p');
+    let modalBody = document.createElement('div');
     modalBody.className = 'modal-body';
     modalBody.innerHTML = message;
-    modalBody.style.color = '#ccc'; // 設置消息文字顏色為淡灰色
+    modalBody.style.color = '#b0b0b0'; // 設置消息文字顏色為淡灰色
+    modalBody.style.backgroundColor = '#1e1e1e'; // 設置內容容器背景顏色
+    modalBody.style.padding = '20px';
+
     modal.appendChild(modalBody);
 
     // 按鈕容器
     let buttonContainer = document.createElement('div');
     buttonContainer.style.display = 'flex';
     buttonContainer.style.justifyContent = 'flex-end';
-    buttonContainer.style.marginTop = '20px';
+    buttonContainer.style.backgroundColor = '#1e1e1e'; // 設置按鈕容器背景顏色
+    buttonContainer.style.padding = '10px';
+    buttonContainer.style.borderTop = '1px solid #555'; // 上邊框
 
     // 動態創建按鈕
     buttons.forEach(button => {
@@ -57,7 +73,7 @@ export function showModal(title, message, options = {}) {
         btn.className = button.className || 'btn';
         btn.innerText = button.text;
         btn.style.backgroundColor = button.backgroundColor || '#007bff';
-        btn.style.color = button.color || '#fff';
+        btn.style.color = button.color || '#ffffff';
         btn.style.border = button.border || 'none';
         btn.style.marginRight = '10px';
         btn.addEventListener('click', () => {
@@ -73,7 +89,7 @@ export function showModal(title, message, options = {}) {
         confirmButton.className = 'btn btn-primary';
         confirmButton.innerText = '確認';
         confirmButton.style.backgroundColor = '#007bff'; // 設置按鈕背景顏色為藍色
-        confirmButton.style.color = '#fff'; // 設置按鈕文字顏色為白色
+        confirmButton.style.color = '#ffffff'; // 設置按鈕文字顏色為白色
         confirmButton.style.border = 'none'; // 移除按鈕邊框
         confirmButton.style.marginRight = '10px';
         confirmButton.addEventListener('click', () => {
@@ -86,7 +102,7 @@ export function showModal(title, message, options = {}) {
         cancelButton.className = 'btn btn-secondary';
         cancelButton.innerText = '取消';
         cancelButton.style.backgroundColor = '#777'; // 設置按鈕背景顏色為黑暗模式
-        cancelButton.style.color = '#fff'; // 設置按鈕文字顏色為白色
+        cancelButton.style.color = '#ffffff'; // 設置按鈕文字顏色為白色
         cancelButton.style.border = 'none'; // 移除按鈕邊框
         cancelButton.addEventListener('click', () => {
             if (cancelCallback) cancelCallback();
@@ -114,6 +130,37 @@ export function showModal(title, message, options = {}) {
 export function hideModal() {
     let overlay = document.querySelector('.modal-overlay.modal-specific-overlay');
     if (overlay) {
-        overlay.remove();
+        overlay.style.animation = 'fadeOut 0.3s'; // 添加淡出動畫
+        setTimeout(() => {
+            overlay.remove();
+        }, 300); // 延遲移除以顯示淡出動畫
     }
 }
+
+// CSS 動畫
+const style = document.createElement('style');
+style.innerHTML = `
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.8); }
+    to { transform: scale(1); }
+}
+
+.modal-overlay {
+    animation: fadeIn 0.3s;
+}
+
+.modal-content {
+    animation: scaleIn 0.3s;
+}
+`;
+document.head.appendChild(style);

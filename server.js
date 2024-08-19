@@ -1,9 +1,15 @@
+const fs = require('fs');
+const https = require('https');
 const GameRoomManager = require("./gameRoomManager");
 const gameRoomManager = new GameRoomManager();
 
 const server = require('express')();
-const http = require('http').createServer(server);
-const io = require('socket.io')(http, {
+const options = {
+    key: fs.readFileSync(process.env.SSL_KEY_PATH),
+    cert: fs.readFileSync(process.env.SSL_CERT_PATH)
+};
+const httpsServer = https.createServer(options, server);
+const io = require('socket.io')(httpsServer, {
     cors: {
         origin: "*",
         methods: ["GET", "POST"]
@@ -532,6 +538,6 @@ function errorNotification(roomId, errorMessage) {
     io.to(roomId).emit('error_occurred', { errorMessage: errorMessage });
 }
 
-http.listen(3000, function () {
-    console.log('Server started!');
+httpsServer.listen(3000, function () {
+    console.log('Server started on port 3000 with HTTPS!');
 });

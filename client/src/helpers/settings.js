@@ -88,6 +88,36 @@ export function createSettingsOverlay() {
     separator.className = 'border-secondary';
     settingsContainer.appendChild(separator);
 
+    // Add fullscreen toggle button with icon
+    let fullScreenContainer = document.createElement('div');
+    fullScreenContainer.className = 'd-flex align-items-center mb-3';
+
+    let fullScreenLabel = document.createElement('label');
+    fullScreenLabel.textContent = '全螢幕模式:';
+    fullScreenLabel.className = 'me-2';
+    fullScreenContainer.appendChild(fullScreenLabel);
+
+    let fullScreenButton = document.createElement('button');
+    fullScreenButton.className = 'btn btn-warning';
+
+    let fullScreenIcon = document.createElement('i');
+    fullScreenIcon.className = document.fullscreenElement ? 'fas fa-compress' : 'fas fa-expand';
+    fullScreenButton.appendChild(fullScreenIcon);
+    
+    fullScreenButton.onclick = () => {
+        if (!document.fullscreenElement) {
+            enterFullScreenAndRotate();
+            fullScreenIcon.className = 'fas fa-compress'; // 切換到 "退出全螢幕" 圖標
+        } else {
+            exitFullScreen();
+            fullScreenIcon.className = 'fas fa-expand'; // 切換到 "進入全螢幕" 圖標
+        }
+    };
+
+    fullScreenContainer.appendChild(fullScreenButton);
+    settingsContainer.appendChild(fullScreenContainer);
+
+    // Append everything to the DOM
     settingsOverlay.appendChild(settingsContainer);
     document.body.appendChild(settingsOverlay);
 
@@ -351,4 +381,72 @@ export function addToggleUIVisibilityButton(container) {
 
     toggleUIContainer.appendChild(toggleUIButton);
     container.appendChild(toggleUIContainer);
+}
+
+export function addFullScreenButton() {
+    const fullScreenButton = document.createElement('button');
+    fullScreenButton.textContent = '進入全螢幕模式';
+    fullScreenButton.className = 'btn btn-warning mt-3';
+    fullScreenButton.style.position = 'absolute';
+    fullScreenButton.style.top = '80%';
+    fullScreenButton.style.left = '50%';
+    fullScreenButton.style.transform = 'translate(-50%, -50%)';
+    document.body.appendChild(fullScreenButton);
+
+    fullScreenButton.addEventListener('click', () => {
+        enterFullScreenAndRotate();
+        fullScreenButton.remove();
+    });
+
+    // 監聽全螢幕變化
+    document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement) {
+            // 如果退出全螢幕，重新顯示按鈕
+            addFullScreenButton();
+        }
+    });
+}
+
+export function enterFullScreenAndRotate() {
+    const requestFullscreen = () => {
+        if (document.documentElement.requestFullscreen) {
+            return document.documentElement.requestFullscreen();
+        } else if (document.documentElement.mozRequestFullScreen) {
+            return document.documentElement.mozRequestFullScreen();
+        } else if (document.documentElement.webkitRequestFullscreen) {
+            return document.documentElement.webkitRequestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) {
+            return document.documentElement.msRequestFullscreen();
+        }
+    };
+
+    requestFullscreen().catch((err) => {
+        console.error('Fullscreen request failed:', err);
+    });
+
+    if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch((err) => {
+            console.error('Screen orientation lock failed:', err);
+        });
+    } else {
+        console.error('Screen orientation.lock() is not available on this device.');
+    }
+}
+
+export function exitFullScreen() {
+    const exitFullscreen = () => {
+        if (document.exitFullscreen) {
+            return document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            return document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+            return document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            return document.msExitFullscreen();
+        }
+    };
+
+    exitFullscreen().catch((err) => {
+        console.error('Exit fullscreen request failed:', err);
+    });
 }

@@ -15,11 +15,12 @@ import { createSwapCardsContainer, createSwapCardsContainerForPOACH, hideSkillBu
 export default class GameManager {
     constructor(scene) {
         this.serverIP = 'localhost';
-        this.socketIP = process.env.SOCKET_IP || '192.168.10.104'; // '192.168.10.104' 是臨時測試的 ip
-        // this.socketIP = 'localhost'; 
+        this.socketIP = process.env.SOCKET_IP || '192.168.31.202'; // '192.168.10.104' 是臨時測試的 ip
+        this.socketIP = '192.168.31.202'; // TODO: 改回來 
         console.log('Socket IP:', this.socketIP); // 調試輸出
-        console.log('Socket IP:', process.env); // 調試輸出
-        
+        if (typeof process !== 'undefined') {
+            console.log('Socket IP:', process.env);
+        }
 
         this.scene = scene;
         this.dropZones = null;
@@ -60,7 +61,7 @@ export default class GameManager {
 
     setIP(serverIP, socketIP) {
         this.serverIP = serverIP;
-        this.socketIP = socketIP;
+        // this.socketIP = socketIP;
 
         // reconnect
         this.connectSocket();  

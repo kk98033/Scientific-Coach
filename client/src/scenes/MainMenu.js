@@ -1,6 +1,6 @@
 import { Scene } from 'phaser';
 import GameManager from '../helpers/gameManager';
-import { createSettingsOverlay, addIPSettings, addIDSettings, setCurrentPlayerID } from '../helpers/settings';
+import { createSettingsOverlay, addIPSettings, addIDSettings, setCurrentPlayerID, addFullScreenButton } from '../helpers/settings';
 import { createIPInput, createRoomInput, createHostCheckbox, createRoomListContainer } from '../helpers/mainMenuUI';
 import { hideLoading, showLoading } from '../helpers/loading';
 import { showNotification } from '../helpers/notification';
@@ -71,7 +71,7 @@ export class MainMenu extends Scene {
         this.createHTMLUI();
 
         if (/Mobi|Android/i.test(navigator.userAgent)) {
-            this.addFullScreenButton();
+            addFullScreenButton();
         }
 
         this.gameManager.socket.on('room_list', (rooms) => {
@@ -226,48 +226,6 @@ export class MainMenu extends Scene {
                 element.parentNode.removeChild(element);
             }
         });
-    }
-
-    addFullScreenButton() {
-        const fullScreenButton = document.createElement('button');
-        fullScreenButton.textContent = '進入全螢幕模式';
-        fullScreenButton.className = 'btn btn-warning mt-3';
-        fullScreenButton.style.position = 'absolute';
-        fullScreenButton.style.top = '80%';
-        fullScreenButton.style.left = '50%';
-        fullScreenButton.style.transform = 'translate(-50%, -50%)';
-        document.body.appendChild(fullScreenButton);
-
-        fullScreenButton.addEventListener('click', () => {
-            this.enterFullScreenAndRotate();
-            fullScreenButton.remove();
-        });
-    }
-
-    enterFullScreenAndRotate() {
-        const requestFullscreen = () => {
-            if (document.documentElement.requestFullscreen) {
-                return document.documentElement.requestFullscreen();
-            } else if (document.documentElement.mozRequestFullScreen) {
-                return document.documentElement.mozRequestFullScreen();
-            } else if (document.documentElement.webkitRequestFullscreen) {
-                return document.documentElement.webkitRequestFullscreen();
-            } else if (document.documentElement.msRequestFullscreen) {
-                return document.documentElement.msRequestFullscreen();
-            }
-        };
-
-        requestFullscreen().catch((err) => {
-            console.error('Fullscreen request failed:', err);
-        });
-
-        if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape').catch((err) => {
-                console.error('Screen orientation lock failed:', err);
-            });
-        } else {
-            console.error('Screen orientation.lock() is not available on this device.');
-        }
     }
 }
 

@@ -74,7 +74,14 @@ export default class GameManager {
 
     setupEventListeners() {
         this.socket.on('room_created', (data) => {
-            console.log('Room created:', data.roomId);
+            const { playerId, roomId, rooms } = data;
+            console.log('Room created:', roomId);
+
+            // 更新room輸入藍的id
+            const inputElementById = document.getElementById('roomInput');
+            if (inputElementById) {
+                inputElementById.value = roomId;
+            }
         });
 
         this.socket.on('room_created', (data) => {
@@ -766,7 +773,7 @@ export default class GameManager {
     }
 
     createRoom() { 
-        this.socket.emit('create_room');  
+        this.socket.emit('create_room', { playerId: this.playerId });  
     }
 
     joinRoom(roomId, isTable) {

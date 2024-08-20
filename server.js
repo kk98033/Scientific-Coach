@@ -73,6 +73,7 @@ io.on('connection', (socket) => {
     // end game logic
 
     socket.on('create_room', (data) => {
+        const { playerId } = data;
         const roomId = gameRoomManager.generateUniqueRoomId();
 
         console.log(`Cards added to deck in room ${roomId}`);
@@ -81,7 +82,7 @@ io.on('connection', (socket) => {
             // gameManager.addCardsToDeck(roomId, gameManager.debugCards);
             console.log(gameRoomManager.rooms[roomId])
             socket.join(roomId);
-            io.to(roomId).emit('room_created', { roomId, rooms });
+            io.to(roomId).emit('room_created', { playerId: playerId, roomId: roomId, rooms: rooms });
 
             // const rooms = gameRoomManager.getRoomIds();
             io.emit('room_list', gameRoomManager.getRoomIds());

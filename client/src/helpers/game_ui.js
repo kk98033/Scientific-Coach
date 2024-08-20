@@ -160,6 +160,20 @@ export function createTimeSettingContainer(gameManager, isEditable = false) {
     timeSettingContainer.id = 'timeSettingContainer';
     timeSettingContainer.className = 'p-3 bg-dark text-white rounded';
 
+    const style = document.createElement('style');
+    style.innerHTML = `
+        #timeSettingContainer {
+            max-height: 500px; /* 設定預設最大高度 */
+            overflow-y: auto; /* 啟用滾動 */
+        }
+        @media (max-height: 480px) {
+            #timeSettingContainer {
+                max-height: 100px; /* 手機橫向螢幕上設定較小的最大高度 */
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
     // 時間設定標籤和輸入框
     let timeSettingLabel = document.createElement('label');
     timeSettingLabel.textContent = '時間設定 (秒):';
@@ -227,7 +241,7 @@ export function createCardDeckContainer(gameManager, isEditable = false) {
         }
         @media (max-height: 480px) {
             #cardDeckContainer {
-                max-height: 150px; /* 手機橫向螢幕上設定較小的最大高度 */
+                max-height: 100px; /* 手機橫向螢幕上設定較小的最大高度 */
             }
         }
     `;
@@ -554,10 +568,10 @@ export function createCurrentPlayerIDContainer() {
     currentPlayerID.id = 'currentPlayerID';
     currentPlayerID.textContent = '未設置';
 
-    currentPlayerIDContainer.appendChild(currentPlayerIDLabel);
-    currentPlayerIDContainer.appendChild(currentPlayerID);
+    // currentPlayerIDContainer.appendChild(currentPlayerIDLabel);
+    // currentPlayerIDContainer.appendChild(currentPlayerID);
 
-    document.body.appendChild(currentPlayerIDContainer);
+    // document.body.appendChild(currentPlayerIDContainer);
 }
 
 

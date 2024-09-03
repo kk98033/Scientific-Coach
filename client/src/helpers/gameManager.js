@@ -362,12 +362,18 @@ export default class GameManager {
         
             // 設置顯示文字
             this.scene.timerText.setText(`${playerText}\n${roomText}\n${timerText}`);
-        });
+        }); 
         
         this.socket.on('is_game_started_on_this_room_for_leaving_request', (data) => {
-            const { gameIsStarted, isPlayerInRoom, playerId } = data; 
-            if (this.playerId != playerId) return;
+            const { gameIsStarted, isPlayerInRoom, isRoomExist, playerId } = data; 
+            if (this.playerId != playerId) return; 
              
+            if (!isRoomExist) {
+                // 房間不存在!
+                showAlert("房間不存在!", 'danger');
+                return;
+            }
+
             console.log(gameIsStarted, isPlayerInRoom);
             this.leaveRoom();
             
@@ -498,11 +504,11 @@ export default class GameManager {
             this.currentSkill = 1;
 
             console.log(`${playerId} used skill 1`);
- 
+  
             if (this.playerId === playerId || this.playerId === targetPlayerId) {
                 // 只允許發動技能的玩家以及被發動技能的玩家動作
                 this.isUsingSkills = true;
- 
+   
                 // 創建 "交換卡片" 按鈕和容器
                 createSwapCardsContainer(this);
 

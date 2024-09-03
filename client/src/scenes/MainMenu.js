@@ -43,8 +43,14 @@ export class MainMenu extends Scene {
         //     console.log('My player ID is:', data.playerId);
         //     setCurrentPlayerID(data.playerId);
         // });
-
+ 
         this.gameManager.socket.on('player_joined_success', (data) => {
+            let playerId = data;
+            if (this.gameManager.playerId !== playerId) {
+                console.log(" !!!")
+                return;
+            }
+
             // 成功加入房間!
             hideLoading();
             
@@ -52,6 +58,8 @@ export class MainMenu extends Scene {
             if (this.scene.key !== 'MainMenu') {
                 return;
             }
+ 
+            console.log('debug player join', data);
 
             // 檢查 hostCheckbox 是否存在
             const hostCheckbox = document.getElementById('hostCheckbox');
@@ -64,17 +72,18 @@ export class MainMenu extends Scene {
             this.scene.start(isHost ? 'GameTable' : 'Game', { gameManager: this.gameManager });
     
             if (this.gameManager.playerId === data.userId || isHost) {
-                showNotification(`成功加入房間: ${this.gameManager.roomId}`, 'info');
+                showNotification(`成功加入房間: ${this.gameManager.roomId}`, 'info'); 
             } 
         });
  
-        this.createHTMLUI();
+        this.createHTMLUI();  
 
         if (/Mobi|Android/i.test(navigator.userAgent)) {
             addFullScreenButton();
         }
 
         this.gameManager.socket.on('room_list', (rooms) => {
+            console.log('debug room', rooms)
             this.updateRoomList(rooms);
         });
 
@@ -113,6 +122,7 @@ export class MainMenu extends Scene {
             const existingRooms = Array.from(roomListContainer.getElementsByClassName('card')).map(card => card.getAttribute('data-room-id'));
             let isNewRoomAdded = false;
     
+            // 添加新房間
             newRooms.forEach(roomId => {
                 if (!existingRooms.includes(roomId)) {
                     isNewRoomAdded = true;
@@ -147,12 +157,28 @@ export class MainMenu extends Scene {
                 }
             });
     
+            // 移除已刪除的房間
+            existingRooms.forEach(roomId => {
+                if (!newRooms.includes(roomId)) {
+                    const roomItem = roomListContainer.querySelector(`[data-room-id="${roomId}"]`);
+                    if (roomItem) {
+                        roomItem.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+                        roomItem.style.opacity = '0';
+                        roomItem.style.transform = 'scale(0.9)';
+                        setTimeout(() => {
+                            roomItem.remove(); // 完全移除房間元素
+                        }, 500); // 確保動畫完成後移除
+                    }
+                }
+            });
+    
             // 滾動到最下面
             if (isNewRoomAdded) {
                 roomListContainer.scrollTop = roomListContainer.scrollHeight;
             }
         }
     }
+    
 
     createHTMLUI() {
         const container = document.createElement('div');

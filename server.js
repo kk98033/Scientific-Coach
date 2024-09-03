@@ -135,7 +135,9 @@ io.on('connection', (socket) => {
         const { result } = gameRoomManager.leaveRoom(playerId)
         if (result === 'room_deleted') {
            // 向房間發送"房間已刪除"訊息 
+           console.log("room has been deleted!!")
            io.to(roomId).emit('this_room_has_been_deleted', { roomId });
+           updateRoomList();
         }
         console.log(`Player ${playerId} left room ${roomId}. Reason: ${reason}`); 
     
@@ -148,10 +150,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('get_room_list', () => {
-        const rooms = gameRoomManager.getRoomIds();
-        console.log("rooms");
-        console.log(rooms)
-        socket.emit('room_list', rooms);
+        updateRoomList();
     });
     
     socket.on('update_player_list', (data) => {
@@ -316,10 +315,12 @@ io.on('connection', (socket) => {
     socket.on('get_and_update_settings', (data) => {
         const { roomId } = data;
         const settings = gameManager.getSettings(roomId);
-        console.log(settings)
-        io.to(roomId).emit('update_settings', {
-            settings: settings, 
-        });
+        if (settings) {
+            console.log(settings)
+            io.to(roomId).emit('update_settings', {
+                settings: settings, 
+            });
+        } else {}
     });
 
     socket.on('update_card_positions', (data) => {
@@ -343,11 +344,12 @@ io.on('connection', (socket) => {
     socket.on('is_game_started_on_this_room_for_leaving_request', (data) => {
         const { roomId, playerId } = data;
         console.log([roomId, playerId])
-        const { gameIsStarted, isPlayerInRoom } = gameManager.isGameStartedInRoom(roomId, playerId);
+        const { gameIsStarted, isPlayerInRoom, isRoomExist } = gameManager.isGameStartedInRoom(roomId, playerId);
 
         io.to(roomId).emit('is_game_started_on_this_room_for_leaving_request', {
             gameIsStarted: gameIsStarted,
             isPlayerInRoom: isPlayerInRoom,
+            isRoomExist: isRoomExist,
             playerId: playerId
         });
     }); 
@@ -531,6 +533,14 @@ io.on('connection', (socket) => {
 
 function errorNotification(roomId, errorMessage) {
     io.to(roomId).emit('error_occurred', { errorMessage: errorMessage });
+}
+
+function updateRoomList() {
+    // 從 gameRoomManager 獲取所有的房間ID
+    const rooms = gameRoomManager.getRoomIds();
+    console.log(rooms)
+    // 通過 Socket.io 向所有連接的客戶端發送更新的房間列表
+    io.emit('room_list', rooms);
 }
 
 http.listen(3000, function () {

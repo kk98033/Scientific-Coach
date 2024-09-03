@@ -1101,7 +1101,19 @@ class GameManager {
 
     getSettings(roomId) {
         const room = this.gameRoomManager.rooms[roomId];
-        return room.settings;
+        if (!room) {
+            console.log("--=-=-========ERRROR======-=-=-=-=-=-=");
+            console.log();
+            console.log();
+
+            console.log('roomid: ', roomId);
+
+            console.log();
+            console.log();
+            console.log("--=-=-==================-=-=-=-=-=-=");
+            // return null; 
+        }
+            return room.settings;
     }
 
     updateSettings(roomId, settings) {
@@ -1139,11 +1151,16 @@ class GameManager {
 
     isGameStartedInRoom(roomId, playerId) {
         const room = this.gameRoomManager.rooms[roomId];
-        if (!room) return;
+        if (!room) return {
+            gameIsStarted: false,
+            isPlayerInRoom: false,
+            isRoomExist: false
+        };
         const isPlayerInRoom = room.players.includes(playerId); 
         return {
             gameIsStarted: room.gameIsStarted,
-            isPlayerInRoom: isPlayerInRoom
+            isPlayerInRoom: isPlayerInRoom,
+            isRoomExist: true
         };
     }
     

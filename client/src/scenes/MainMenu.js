@@ -45,14 +45,15 @@ export class MainMenu extends Scene {
         // });
  
         this.gameManager.socket.on('player_joined_success', (data) => {
-            let playerId = data;
-            if (this.gameManager.playerId !== playerId) {
+            let playerId = data.userId; 
+            if (this.gameManager.playerId !== playerId && this.gameManager.isGameTable) {
                 console.log(" !!!")
+                console.log(this.gameManager.playerId, playerId, data)
                 return;
             }
 
             // 成功加入房間!
-            hideLoading();
+            hideLoading(); 
             
             console.log("debug-scene", this.scene.key);
             if (this.scene.key !== 'MainMenu') {

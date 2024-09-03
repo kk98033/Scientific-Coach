@@ -303,15 +303,16 @@ export default class GameManager {
                 this.clearTexts();
             }, 10000);
         });
-        
+         
         this.socket.on('get_ready_players', (data) => {
-            const { readyPlayers, count, total } = data;
+            const { readyPlayers, count, total, canStart } = data;
             console.log('debug-4', readyPlayers)
             console.log('debug-4', count)
             console.log('debug-4', total)
+            console.log('debug-4', canStart)
             this.updatePlayerReadyCountUI(count, total)
 
-            if (count === total) {
+            if (canStart) {
                 this.enableStartGameButton()
             } else {
                 this.disableStartGameButton()
@@ -807,17 +808,17 @@ export default class GameManager {
         this.socket.emit('leave_room', { roomId: this.roomId, reason: reason, playerId: this.playerId });
         console.log(`Requested to leave room ${this.roomId}`);
         // TODO: ui
-    }
+    } 
 
     createRoom() { 
         this.socket.emit('create_room', { playerId: this.playerId });  
     }
 
     joinRoom(roomId, isTable) {
-        this.roomId = roomId;
+        this.roomId = roomId; 
         showLoading();
         if (isTable) {
-            console.log('table join room')
+            console.log('table join room') 
             this.socket.emit('table_join_room', { roomId: roomId });
         } else {
             this.socket.emit('join_room', { roomId: roomId, playerId: this.playerId });

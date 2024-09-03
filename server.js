@@ -111,6 +111,7 @@ io.on('connection', (socket) => {
     socket.on('table_join_room', (data) => {
         const roomId = data.roomId;
         const tableId = socket.id; // use socket ID as player ID
+        // const tableId = data.playerId; // use socket ID as player ID
     
         if (gameRoomManager.tableJoinRoom(roomId, tableId)) {
             socket.join(roomId);
@@ -256,16 +257,13 @@ io.on('connection', (socket) => {
         const { roomId, playerId } = data;
         gameManager.onReady(roomId, playerId);
 
-        const { readyPlayers, count, total } = gameRoomManager.getReadyPlayers(roomId);
-        // return {
-        //     readyPlayers: room.readyPlayers,
-        //     count: room.readyPlayers.length
-        // };
-        console.log(readyPlayers, count)
+        const { readyPlayers, count, total, canStart } = gameRoomManager.getReadyPlayers(roomId);
+
         io.to(roomId).emit('get_ready_players', {
             readyPlayers: readyPlayers,
             count: count,
-            total: total
+            total: total,
+            canStart: canStart 
         });
     });
 
@@ -273,29 +271,25 @@ io.on('connection', (socket) => {
         const { roomId, playerId } = data;
         gameManager.onCancelReady(roomId, playerId);
 
-        const { readyPlayers, count, total } = gameRoomManager.getReadyPlayers(roomId);
-        // return {
-        //     readyPlayers: room.readyPlayers,
-        //     count: room.readyPlayers.length
-        // };
+        const { readyPlayers, count, total, canStart } = gameRoomManager.getReadyPlayers(roomId);
+
         io.to(roomId).emit('get_ready_players', {
             readyPlayers: readyPlayers,
             count: count,
-            total: total
+            total: total,
+            canStart: canStart 
         });
     });
     
     socket.on('get_ready_players', (data) => {
         const { roomId, playerId } = data;
-        const { readyPlayers, count, total } = gameRoomManager.getReadyPlayers(roomId);
-        // return {
-        //     readyPlayers: room.readyPlayers,
-        //     count: room.readyPlayers.length
-        // };
+        const { readyPlayers, count, total, canStart } = gameRoomManager.getReadyPlayers(roomId);
+
         io.to(roomId).emit('get_ready_players', {
             readyPlayers: readyPlayers,
             count: count,
-            total: total
+            total: total,
+            canStart: canStart 
         });
     });
     
@@ -309,6 +303,15 @@ io.on('connection', (socket) => {
         console.log(settings)
         io.to(roomId).emit('update_settings', {
             settings: settings, 
+        });
+
+        const { readyPlayers, count, total, canStart } = gameRoomManager.getReadyPlayers(roomId);
+
+        io.to(roomId).emit('get_ready_players', {
+            readyPlayers: readyPlayers,
+            count: count,
+            total: total,
+            canStart: canStart 
         });
     });
 

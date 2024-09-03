@@ -73,6 +73,37 @@ export default class GameManager {
     }
 
     setupEventListeners() {
+        // 伺服器連線事件
+        this.socket.on('connect', () => {
+            console.log('Connected to the server');
+            showNotification(`Connected to the server`, 'success');
+        });
+        
+        this.socket.on('disconnect', (reason) => {
+            console.log(`Disconnected: ${reason}`);
+            alert('伺服器連線中斷，請檢查您的網路連線。');
+        });
+        
+        this.socket.on('connect_error', (error) => {
+            console.log(`Connection Error: ${error}`);
+            alert('無法連線到伺服器，請稍後再試。');
+        });
+
+        // 重新連線
+        this.socket.on('reconnecting', (attemptNumber) => {
+            console.log(`Attempting to reconnect: ${attemptNumber}`);
+            showNotification(`Attempting to reconnect: ${attemptNumber}`, 'warning');
+        });
+
+        this.socket.on('reconnect_attempt', () => {
+            showNotification(`Trying to reconnect...`, 'warning');
+        });
+
+        this.socket.on('reconnect_failed', () => {
+            alert('重連失敗，請檢查您的網路狀況或稍後再試。');
+        });
+        // end 伺服器連線事件
+
         this.socket.on('room_created', (data) => {
             const { playerId, roomId, rooms } = data;
             console.log('Room created:', roomId);

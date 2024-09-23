@@ -42,6 +42,7 @@ export default class GameManager {
         this.handPositions = {}; // [[x1, y1], [x2, y2]...],
         this.tableCards = Array.from({ length: 8 }, () => []); // Array to store cards on the table
         this.tableCardsObj = Array.from({ length: 8 }, () => []); // Array to store cards on the table
+        this.newDrawnCards = {} //  { 'playerID': "", 'cards:' [ 'cardid', 'cardid2', ... }
 
         this.selectedCards = [];
         this.currentDraggedCard = null;    
@@ -828,10 +829,11 @@ export default class GameManager {
     updateGameState(data) {
         this.clearTexts();
         console.log("debug: 更新遊戲狀態!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        const { roomId, currentPlayer, gameState, table, pairSuccessIndex, cards, selected, handPositions } = data;
+        const { roomId, currentPlayer, gameState, table, pairSuccessIndex, cards, selected, handPositions, newDrawnCards } = data;
         console.log("接收到的資料:", data);
         this.currentPlayer = currentPlayer;
         this.gameState = gameState;
+        this.newDrawnCards = newDrawnCards;
         // this.selectedCards = selected;
         this.selectedCards = []
 
@@ -1010,6 +1012,9 @@ export default class GameManager {
             this.isDragging = true;
             gameObject.setTint(0xff69b4);
             this.currentDraggedCard = gameObject;
+
+            // 把拖動的卡片移動到最前面 (設置一個較高的 depth 值)
+            gameObject.setDepth(9999);
         });
     
         this.scene.input.on('drag', (pointer, gameObject, dragX, dragY) => {
@@ -1020,6 +1025,7 @@ export default class GameManager {
         this.scene.input.on('dragend', (pointer, gameObject, dropped) => {
             this.isDragging = false; // 重置拖動狀態
             gameObject.clearTint(); 
+            gameObject.setDepth(1);
         
             // 更新卡片 object 位置
             const finalX = gameObject.x;
@@ -1075,43 +1081,79 @@ export default class GameManager {
         const cardsPerRow = 4; // 每 row 的卡片數量
         const rowHeight = cardWidth * 2 - 20; // 每 row 的高度，假設為卡片高度加上一點間距
         const baseY = screenHeight / 2; // 將卡片顯示在螢幕的正中央下方
+
+        const newCardOffsetY = 30; // 新抽到卡牌的垂直偏移量
+        const newBaseX = screenWidth - cardWidth / 2 - 100; // 新抽到卡牌的 X 座標
+        let newCardIndex = 1;
     
         // 重新渲染所有卡片
         console.log('debug debug debug debug debug debug debug debug debug debug debug debug debug ');
-     
+    
+        // 獲取 newDrawnCards 的卡片 ID 列表
+        const newDrawnCardIds = this.newDrawnCards[this.playerId] 
+            ? this.newDrawnCards[this.playerId].map(card => card.id) 
+            : [];
+        console.log('debug-card', newDrawnCardIds, this.newDrawnCards[this.playerId]);
+        
         this.clearPlayerHandDisplay(); 
     
         this.handPositions = this.handPositions || {}; // 確保 handPositions 被初始化
     
         
         console.log(" ======debug-17 START====== ")
-        console.log('debug-17', this.handPositions);
-        console.log('debug-17 hand', this.hand);
+        console.log('debug-card', this.handPositions);
+        console.log('debug-card hand', this.hand);
         this.handObj = this.hand.map((card, index) => {
             const row = Math.floor(index / cardsPerRow); // 計算卡片所在的 row
             const col = index % cardsPerRow; // 計算卡片所在的 column 
             const totalCardWidth = cardOffset * (Math.min(cardsPerRow, this.hand.length) - 1) + cardWidth;
             const baseX = (screenWidth - totalCardWidth) / 2; // 計算每 row 的起始X座標，讓卡片在螢幕中央
-    
+        
             let x, y;
-    
+            let depth = 8; 
             
             if (this.handPositions[card.id]) {
                 // 如果 handPositions 中存在該卡片的位置信息，則使用該位置
                 [x, y] = this.handPositions[card.id];
-                console.log(`debug-17: using existing position for card ${card.id}: [${x}, ${y}]`);
+                console.log(`debug-card: using existing position for card ${card.id}: [${x}, ${y}]`);
 
             } else {
-                console.log(`debug-17: calculating new position for card ${card.id}`);
-                console.log("debug-17: hand position before update: ", this.handPositions, card.id, this.handPositions[card.id]);
-                console.log("debug-17 card:", card);
-                console.log("debug-17 index:", index);
+                console.log(`debug-card: calculating new position for card ${card.id}`);
+                console.log("debug-card: hand position before update: ", this.handPositions, card.id, this.handPositions[card.id]);
+                console.log("debug-card card:", card);
+                console.log("debug-card index:", index);
 
-                // 如果 handPositions 中不存在該卡片的位置信息，則使用預設位置
-                x = baseX + (col * cardOffset);
-                y = baseY + (row * rowHeight);
-                // 並將該位置信息加入 handPositions 中 
+                // 首先判斷 card.id 是否在 newDrawnCardIds 中
+                if (newDrawnCardIds.includes(card.id)) {
+                    console.log(`Card ${card.id} is in the newly drawn cards`);
+
+                    do {
+                        x = newBaseX;
+                        y = baseY + newCardOffsetY * newCardIndex;
+
+                        // 如果 x 和 y 的位置已經存在於 this.handPositions 中，那麼增加 newCardIndex
+                        const isPositionOccupied = Object.values(this.handPositions).some(pos => pos[0] === x && pos[1] === y);
+                        
+                        if (isPositionOccupied) {
+                            console.log(`Position (${x}, ${y}) is already occupied, trying new position...`);
+                            newCardIndex++;  // 增加索引以嘗試新的位置
+                        } else {
+                            break; // 位置沒被佔用，退出循環
+                        }
+
+                    } while (true);  // 不斷檢查直到找到不重複的位置
+
+                    newCardIndex++;
+                } else {
+                    // 如果 handPositions 中不存在該卡片的位置信息，則使用預設位置
+                    x = baseX + (col * cardOffset);
+                    y = baseY + (row * rowHeight);
+                }
+
+                // 將位置信息加入 handPositions 中 
                 this.handPositions[card.id] = [x, y];
+
+                depth = newCardIndex;
     
                 // 新增卡片的醒目特效 
                 const cardHighlight = this.scene.add.graphics({ x: x, y: y });
@@ -1129,13 +1171,15 @@ export default class GameManager {
                 }); 
             }
             
-    
+            console.log('debug-card-depth:', depth, newCardIndex)
             let playerCard = new Card(this.scene, card.id, true); // 可以隨意移動卡牌，無論是否是自己的回合
             let imageKey = card.type;
-            playerCard.render(x, y, imageKey, card.type); // 這裡是主要渲染卡片圖片的地方
+            playerCard.render(x, y, imageKey, card.type, depth); // 這裡是主要渲染卡片圖片的地方
+            console.log('debug-card-depth: card---', playerCard.card.card.card.depth) // WTF
             return playerCard.card;  
         });
-        console.log(" ======debug-17 END====== ")
+        console.log(" ======debug-card END====== ")
+        console.log(" ======debug-card-depth END====== ")
     
         console.log('debug-11', this.handPositions);
     }

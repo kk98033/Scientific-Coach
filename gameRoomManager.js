@@ -53,7 +53,8 @@ class GameRoomManager {
                     baseball: { count: 0, type: null },
                     judo: { count: 0, type: null }
                 },
-                playerScores: {} // { 'playerID': { 'cardPairCount': int, 'gameLevel': int, 'cardPairCount': int }, ... }
+                playerScores: {}, // { 'playerID': { 'cardPairCount': int, 'gameLevel': int, 'cardPairCount': int }, ... }
+                newDrawnCards: {} //  { 'playerID': [ 'cardid', 'cardid2', ... }
             }
         }; // for debug
     }
@@ -84,7 +85,7 @@ class GameRoomManager {
                 usedCards: [],
                 readyPlayers: [],
                 settings: {
-                    roundTime: 10,
+                    roundTime: 60,
                     matchCardsToWin: 5,
                     gymnastics: { count: 0, type: null },
                     soccer: { count: 0, type: null },
@@ -93,7 +94,8 @@ class GameRoomManager {
                     baseball: { count: 0, type: null },
                     judo: { count: 0, type: null }
                 },
-                playerScores: {} // { 'playerID': { 'resourcePoints': int, 'gameLevel': int, 'cardPairCount': int }, ... } | gameLevel: 0 => C, 1 => B, 2 => A
+                playerScores: {}, // { 'playerID': { 'resourcePoints': int, 'gameLevel': int, 'cardPairCount': int }, ... } | gameLevel: 0 => C, 1 => B, 2 => A
+                newDrawnCards: {} //  { 'playerID': "", 'cards:' [ 'cardid', 'cardid2', ... }
             };
             console.log(`Room ${roomId} created.`);
             return true;

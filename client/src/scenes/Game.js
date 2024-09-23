@@ -7,6 +7,7 @@ import { showAlert } from '../helpers/alert';
 import { addWaveGradientBorder, toggleGradientBorder, changeGradientColor } from '../helpers/waveGradient';
 import { createSkillButtonAndOverlay, createSkillPlayerListContainer, hideSkillButton, hideSkillPlayerListContainer, updateSkillPlayerList } from '../helpers/skills'
 import { hideModal, showModal } from '../helpers/modal';
+import Zone from '../helpers/zone';
 
 export class Game extends Scene {
     constructor() {
@@ -89,6 +90,10 @@ export class Game extends Scene {
         this.cameras.main.setBackgroundColor('#1c1c1c'); 
 
         this.waveIsVisable = true;
+
+        // 劃出新卡片渲染區域的UI
+        this.zone = new Zone(this);
+        this.zone.renderNewCardZone();
 
         // 加入紅色漸層效果
         addWaveGradientBorder(this, 0xff0000);

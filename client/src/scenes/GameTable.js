@@ -21,11 +21,11 @@ export class GameTable extends Scene {
     }
 
     preload() {
-        this.load.image('cyanCardFront', 'assets/c1.png');
-        this.load.image('cyanCardBack', 'assets/CardBack.png');
-        this.load.image('magentaCardFront', 'assets/b1.png');
-        this.load.image('magentaCardBack', 'assets/CardBack.png');
-        console.log('All assets loaded');
+        // this.load.image('cyanCardFront', 'assets/c1.png');
+        // this.load.image('cyanCardBack', 'assets/CardBack.png');
+        // this.load.image('magentaCardFront', 'assets/b1.png');
+        // this.load.image('magentaCardBack', 'assets/CardBack.png');
+        // console.log('All assets loaded');
     }
 
     create() {

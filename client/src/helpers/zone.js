@@ -30,6 +30,35 @@ export default class Zone {
         return this.gridZones;
     }
 
+    // 繪製新增卡片區域的外框
+    renderNewCardZone() {
+        const screenWidth = this.scene.cameras.main.width;
+        const screenHeight = this.scene.cameras.main.height;
+        const cardWidth = 200; // 卡片的寬度
+        const rowHeight = 300; // 每 row 的高度
+        const baseY = screenHeight / 2 + 50; // 將卡片顯示在螢幕的正中央下方
+    
+        const newCardX = screenWidth - 150; // 新卡片的 X 座標
+        const newCardY = baseY - 30; // Y 座標固定為中央下方
+    
+        const newCardZone = this.scene.add.zone(newCardX, newCardY, cardWidth, rowHeight).setRectangleDropZone(cardWidth, rowHeight);
+        this.gridZones.push(newCardZone);
+    
+        // 顯示新增卡片區塊的外框
+        const outline = this.renderOutline(newCardZone);
+        this.zoneOutlines.push(outline);
+
+        // 在卡片區域內側上方顯示文字
+        const textX = newCardX; // 將文字的 X 座標設置為區域的中心
+        const textY = newCardY - rowHeight / 2 + 10; // 將文字放置在區域內部的上方，向下偏移一點
+        const label = this.scene.add.text(textX, textY, "新卡牌區域", {
+            font: "24px Arial", // 設置粗體字
+            fill: "#808080" // 設置灰色字體
+        }).setOrigin(0.5, 0); // 設置文字居中水平對齊，且從上邊開始對齊
+    
+        return newCardZone;
+    }
+
     renderOutline(dropZone) {
         let dropZoneOutline = this.scene.add.graphics();
         dropZoneOutline.lineStyle(2, 0xff69b4);

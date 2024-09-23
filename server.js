@@ -73,6 +73,7 @@ io.on('connection', (socket) => {
     // end game logic
 
     socket.on('create_room', (data) => {
+        const { playerId } = data;
         const roomId = gameRoomManager.generateUniqueRoomId();
 
         console.log(`Cards added to deck in room ${roomId}`);
@@ -81,7 +82,7 @@ io.on('connection', (socket) => {
             // gameManager.addCardsToDeck(roomId, gameManager.debugCards);
             console.log(gameRoomManager.rooms[roomId])
             socket.join(roomId);
-            io.to(roomId).emit('room_created', { roomId, rooms });
+            io.to(roomId).emit('room_created', { playerId: playerId, roomId: roomId, rooms: rooms });
 
             // const rooms = gameRoomManager.getRoomIds();
             io.emit('room_list', gameRoomManager.getRoomIds());
@@ -110,6 +111,7 @@ io.on('connection', (socket) => {
     socket.on('table_join_room', (data) => {
         const roomId = data.roomId;
         const tableId = socket.id; // use socket ID as player ID
+        // const tableId = data.playerId; // use socket ID as player ID
     
         if (gameRoomManager.tableJoinRoom(roomId, tableId)) {
             socket.join(roomId);
@@ -134,7 +136,9 @@ io.on('connection', (socket) => {
         const { result } = gameRoomManager.leaveRoom(playerId)
         if (result === 'room_deleted') {
            // 向房間發送"房間已刪除"訊息 
+           console.log("room has been deleted!!")
            io.to(roomId).emit('this_room_has_been_deleted', { roomId });
+           updateRoomList();
         }
         console.log(`Player ${playerId} left room ${roomId}. Reason: ${reason}`); 
     
@@ -147,10 +151,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('get_room_list', () => {
-        const rooms = gameRoomManager.getRoomIds();
-        console.log("rooms");
-        console.log(rooms)
-        socket.emit('room_list', rooms);
+        updateRoomList();
     });
     
     socket.on('update_player_list', (data) => {
@@ -256,16 +257,13 @@ io.on('connection', (socket) => {
         const { roomId, playerId } = data;
         gameManager.onReady(roomId, playerId);
 
-        const { readyPlayers, count, total } = gameRoomManager.getReadyPlayers(roomId);
-        // return {
-        //     readyPlayers: room.readyPlayers,
-        //     count: room.readyPlayers.length
-        // };
-        console.log(readyPlayers, count)
+        const { readyPlayers, count, total, canStart } = gameRoomManager.getReadyPlayers(roomId);
+
         io.to(roomId).emit('get_ready_players', {
             readyPlayers: readyPlayers,
             count: count,
-            total: total
+            total: total,
+            canStart: canStart 
         });
     });
 
@@ -273,29 +271,25 @@ io.on('connection', (socket) => {
         const { roomId, playerId } = data;
         gameManager.onCancelReady(roomId, playerId);
 
-        const { readyPlayers, count, total } = gameRoomManager.getReadyPlayers(roomId);
-        // return {
-        //     readyPlayers: room.readyPlayers,
-        //     count: room.readyPlayers.length
-        // };
+        const { readyPlayers, count, total, canStart } = gameRoomManager.getReadyPlayers(roomId);
+
         io.to(roomId).emit('get_ready_players', {
             readyPlayers: readyPlayers,
             count: count,
-            total: total
+            total: total,
+            canStart: canStart 
         });
     });
     
     socket.on('get_ready_players', (data) => {
         const { roomId, playerId } = data;
-        const { readyPlayers, count, total } = gameRoomManager.getReadyPlayers(roomId);
-        // return {
-        //     readyPlayers: room.readyPlayers,
-        //     count: room.readyPlayers.length
-        // };
+        const { readyPlayers, count, total, canStart } = gameRoomManager.getReadyPlayers(roomId);
+
         io.to(roomId).emit('get_ready_players', {
             readyPlayers: readyPlayers,
             count: count,
-            total: total
+            total: total,
+            canStart: canStart 
         });
     });
     
@@ -310,15 +304,26 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('update_settings', {
             settings: settings, 
         });
+
+        const { readyPlayers, count, total, canStart } = gameRoomManager.getReadyPlayers(roomId);
+
+        io.to(roomId).emit('get_ready_players', {
+            readyPlayers: readyPlayers,
+            count: count,
+            total: total,
+            canStart: canStart 
+        });
     });
 
     socket.on('get_and_update_settings', (data) => {
         const { roomId } = data;
         const settings = gameManager.getSettings(roomId);
-        console.log(settings)
-        io.to(roomId).emit('update_settings', {
-            settings: settings, 
-        });
+        if (settings) {
+            console.log(settings)
+            io.to(roomId).emit('update_settings', {
+                settings: settings, 
+            });
+        } else {}
     });
 
     socket.on('update_card_positions', (data) => {
@@ -342,11 +347,12 @@ io.on('connection', (socket) => {
     socket.on('is_game_started_on_this_room_for_leaving_request', (data) => {
         const { roomId, playerId } = data;
         console.log([roomId, playerId])
-        const { gameIsStarted, isPlayerInRoom } = gameManager.isGameStartedInRoom(roomId, playerId);
+        const { gameIsStarted, isPlayerInRoom, isRoomExist } = gameManager.isGameStartedInRoom(roomId, playerId);
 
         io.to(roomId).emit('is_game_started_on_this_room_for_leaving_request', {
             gameIsStarted: gameIsStarted,
             isPlayerInRoom: isPlayerInRoom,
+            isRoomExist: isRoomExist,
             playerId: playerId
         });
     }); 
@@ -530,6 +536,14 @@ io.on('connection', (socket) => {
 
 function errorNotification(roomId, errorMessage) {
     io.to(roomId).emit('error_occurred', { errorMessage: errorMessage });
+}
+
+function updateRoomList() {
+    // 從 gameRoomManager 獲取所有的房間ID
+    const rooms = gameRoomManager.getRoomIds();
+    console.log(rooms)
+    // 通過 Socket.io 向所有連接的客戶端發送更新的房間列表
+    io.emit('room_list', rooms);
 }
 
 http.listen(3000, function () {

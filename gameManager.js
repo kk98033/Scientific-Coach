@@ -143,8 +143,8 @@ class GameManager {
         room.readyToSwapCards = false;
         room.currentSelectedForSkills = {};
 
-        
-
+        // 清空&歸零
+        room.newDrawnCards = {};
         room.currentSelected = [];
 
         // // if (room) {
@@ -370,7 +370,8 @@ class GameManager {
             selected: room.currentSelected,
             pairSuccessIndex: pairSuccessIndex,
             playerHand: playerHand,
-            handPositions: room.cardPositions[currentPlayerId]
+            handPositions: room.cardPositions[currentPlayerId],
+            newDrawnCards: room.newDrawnCards
         });   
         const players = this.gameRoomManager.getPlayersInRoom(roomId);
         this.io.to(roomId).emit('update_player_list', { players }); 
@@ -378,29 +379,18 @@ class GameManager {
 
     drawCards(roomId, playerId) {
         const room = this.gameRoomManager.rooms[roomId];
-        // if (room && room.deck.length > 0) {
-        // if (room && room.deck.length > 0) {
-        //     const card = room.deck.pop();  // 從牌組頂部抽一張牌
-        //     room.hands[playerId] = room.hands[playerId] || [];
-        //     room.hands[playerId].push(card);  // 將抽到的牌加入到玩家手牌中
-
-        //     // socket.emit('card_drawn', { card: card, playerId: playerId });
-        //     // this.io.to(roomId).emit('update_game_state', { roomId: roomId });
-        //     this.updateGameState(roomId);
-        //     console.log(room);
-        // } else {
-        //     // TODO: refresh deck
-        //     this.io.to(roomId).emit('draw_error', { message: 'No cards left in the deck' });
-        // }
 
         if (room) {
             if (this.refillDeck(roomId)) {
                 const card = room.deck.pop();  // 從牌組頂部抽一張牌
                 room.hands[playerId] = room.hands[playerId] || [];
                 room.hands[playerId].push(card);  // 將抽到的牌加入到玩家手牌中
+                
+                // 記錄玩家新抽到的牌
+                room.newDrawnCards[playerId] = room.newDrawnCards[playerId] || [];
+                room.newDrawnCards[playerId].push(card);
         
                 this.updateGameState(roomId);
-                // console.log(room);
             }
         }
     }
@@ -962,6 +952,7 @@ class GameManager {
                 }
             }); 
 
+            // 將玩家手中的排補滿
             for (let i=0; i<removedCards; i++) {
                 this.drawCards(roomId, playerId);
             }
@@ -1101,7 +1092,19 @@ class GameManager {
 
     getSettings(roomId) {
         const room = this.gameRoomManager.rooms[roomId];
-        return room.settings;
+        if (!room) {
+            console.log("--=-=-========ERRROR======-=-=-=-=-=-=");
+            console.log();
+            console.log();
+
+            console.log('roomid: ', roomId);
+
+            console.log();
+            console.log();
+            console.log("--=-=-==================-=-=-=-=-=-=");
+            // return null; 
+        }
+            return room.settings;
     }
 
     updateSettings(roomId, settings) {
@@ -1139,11 +1142,16 @@ class GameManager {
 
     isGameStartedInRoom(roomId, playerId) {
         const room = this.gameRoomManager.rooms[roomId];
-        if (!room) return;
+        if (!room) return {
+            gameIsStarted: false,
+            isPlayerInRoom: false,
+            isRoomExist: false
+        };
         const isPlayerInRoom = room.players.includes(playerId); 
         return {
             gameIsStarted: room.gameIsStarted,
-            isPlayerInRoom: isPlayerInRoom
+            isPlayerInRoom: isPlayerInRoom,
+            isRoomExist: true
         };
     }
     

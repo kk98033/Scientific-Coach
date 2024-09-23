@@ -53,7 +53,8 @@ class GameRoomManager {
                     baseball: { count: 0, type: null },
                     judo: { count: 0, type: null }
                 },
-                playerScores: {} // { 'playerID': { 'cardPairCount': int, 'gameLevel': int, 'cardPairCount': int }, ... }
+                playerScores: {}, // { 'playerID': { 'cardPairCount': int, 'gameLevel': int, 'cardPairCount': int }, ... }
+                newDrawnCards: {} //  { 'playerID': [ 'cardid', 'cardid2', ... }
             }
         }; // for debug
     }
@@ -84,7 +85,7 @@ class GameRoomManager {
                 usedCards: [],
                 readyPlayers: [],
                 settings: {
-                    roundTime: 10,
+                    roundTime: 60,
                     matchCardsToWin: 5,
                     gymnastics: { count: 0, type: null },
                     soccer: { count: 0, type: null },
@@ -93,7 +94,8 @@ class GameRoomManager {
                     baseball: { count: 0, type: null },
                     judo: { count: 0, type: null }
                 },
-                playerScores: {} // { 'playerID': { 'resourcePoints': int, 'gameLevel': int, 'cardPairCount': int }, ... } | gameLevel: 0 => C, 1 => B, 2 => A
+                playerScores: {}, // { 'playerID': { 'resourcePoints': int, 'gameLevel': int, 'cardPairCount': int }, ... } | gameLevel: 0 => C, 1 => B, 2 => A
+                newDrawnCards: {} //  { 'playerID': "", 'cards:' [ 'cardid', 'cardid2', ... }
             };
             console.log(`Room ${roomId} created.`);
             return true;
@@ -243,20 +245,49 @@ class GameRoomManager {
             ypeError: Cannot read properties of undefined (reading 'players')  
         */
         if (room) {
+            const readyPlayers = room.readyPlayers || [];
+            const activePlayers = room.activePlayers || [];
+    
+            // 檢查是否所有玩家都已 ready
+            const allPlayersReady = activePlayers.length > 0 && readyPlayers.length === activePlayers.length;
+    
+            // 計算各個排組的卡牌數
+            const cardCounts = {
+                gymnastics: room.settings.gymnastics.count * 9,
+                soccer: room.settings.soccer.count * 12,
+                tableTennis: room.settings.tableTennis.count * 12,
+                shooting: room.settings.shooting.count * 21,
+                baseball: room.settings.baseball.count * 21,
+                judo: room.settings.judo.count * 15
+            };
+    
+            // 計算總的卡牌數
+            const totalCardsInDeck = cardCounts.gymnastics + cardCounts.soccer + cardCounts.tableTennis +
+                                        cardCounts.shooting + cardCounts.baseball + cardCounts.judo;
+    
+            // 確認牌組卡牌數是否足夠
+            // 條件: 牌組中的總卡牌數 >= 8 (玩家手牌) * 玩家數 + 8 (牌桌卡牌)
+            const requiredCards = 8 * activePlayers.length + 8;
+            const deckIsSufficient = totalCardsInDeck >= requiredCards;
+    
+            // 新增條件，判斷遊戲是否可以開始
+            const canStart = allPlayersReady && deckIsSufficient;
+    
             return {
-                readyPlayers: room.readyPlayers,
-                count: room.readyPlayers.length,
-                total: room.activePlayers.length
+                readyPlayers: readyPlayers,
+                count: readyPlayers.length,
+                total: activePlayers.length,
+                canStart: canStart  // 根據所有玩家皆 ready 且牌組卡牌數足夠來決定是否可以開始遊戲
             };
         } else {
             return {
                 readyPlayers: [],
                 count: 0,
-                total: 0
+                total: 0,
+                canStart: false  // 當 room 不存在時，無法開始遊戲
             };
         }
     }
-
 }
 
 module.exports = GameRoomManager;

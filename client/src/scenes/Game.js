@@ -7,6 +7,7 @@ import { showAlert } from '../helpers/alert';
 import { addWaveGradientBorder, toggleGradientBorder, changeGradientColor } from '../helpers/waveGradient';
 import { createSkillButtonAndOverlay, createSkillPlayerListContainer, hideSkillButton, hideSkillPlayerListContainer, updateSkillPlayerList } from '../helpers/skills'
 import { hideModal, showModal } from '../helpers/modal';
+import Zone from '../helpers/zone';
 
 export class Game extends Scene {
     constructor() {
@@ -14,7 +15,60 @@ export class Game extends Scene {
             key: 'Game'
         });
         this.blurEffect = null;
-        // this.selectedCards = [];
+        this.wakeLock = null; // 用來存儲 Wake Lock 實例
+        this.silentVideoElement = null; // 用於播放無聲影片
+    }
+
+    // 請求螢幕鎖定
+    async requestWakeLock() {
+        if ('wakeLock' in navigator) {
+            try {
+                this.wakeLock = await navigator.wakeLock.request('screen');
+                showAlert('Wake Lock is active');
+                
+                // 監聽釋放事件，例如螢幕解鎖或瀏覽器失去焦點時
+                this.wakeLock.addEventListener('release', () => {
+                    showAlert('Wake Lock was released');
+                });
+            } catch (err) {
+                showAlert('Failed to acquire Wake Lock:', err);
+            }
+        } else {
+            showAlert('Wake Lock API is not supported on this browser');
+            this.playSilentAudio(); // 呼叫播放無聲影片的後備方案
+        }
+    }
+
+    // 釋放螢幕鎖定
+    releaseWakeLock() {
+        if (this.wakeLock !== null) {
+            this.wakeLock.release();
+            this.wakeLock = null;
+            console.log('Wake Lock has been released');
+        }
+    }
+
+    // 播放無聲影片來防止螢幕熄滅
+    playSilentAudio() {
+        this.silentAudioElement = document.createElement('audio');
+        this.silentAudioElement.src = '../audio/silent.mp3'; // 替換為無聲音頻的路徑
+        this.silentAudioElement.loop = true;
+        this.silentAudioElement.muted = true; // 保持靜音
+        this.silentAudioElement.style.display = 'none'; // 隱藏音頻元素
+        document.body.appendChild(this.silentAudioElement);
+    
+        this.silentAudioElement.play().catch(error => {
+            console.error('Failed to play the silent audio:', error);
+        });
+    }
+
+    // 停止播放無聲影片
+    stopSilentAudio() {
+        if (this.silentAudioElement) {
+            this.silentAudioElement.pause();
+            this.silentAudioElement.remove();
+            this.silentAudioElement = null;
+        }
     }
 
     init(data) {
@@ -36,6 +90,10 @@ export class Game extends Scene {
         this.cameras.main.setBackgroundColor('#1c1c1c'); 
 
         this.waveIsVisable = true;
+
+        // 劃出新卡片渲染區域的UI
+        this.zone = new Zone(this);
+        this.zone.renderNewCardZone();
 
         // 加入紅色漸層效果
         addWaveGradientBorder(this, 0xff0000);
@@ -67,6 +125,11 @@ export class Game extends Scene {
             // this.gameManager.showText('hello')
             if (!this.gameManager.isPlayerTurn()) return;  
             this.gameManager.discardCards(); 
+        });
+
+        document.getElementById('ready-btn').addEventListener('click', () => {
+            // 請求 Wake Lock 來防止螢幕熄滅
+            this.requestWakeLock();
         });
 
         this.isPlayerA = false; 
@@ -121,6 +184,12 @@ export class Game extends Scene {
     }
 
     update() {
+    }
+
+    shutdown() {
+        // 當場景關閉時釋放 Wake Lock 並停止播放無聲影片
+        this.releaseWakeLock();
+        this.stopSilentAudio();
     }
 
     // todo: remove this, I forgor what is this
